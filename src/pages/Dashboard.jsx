@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getTopArtists, getTopTracks, getRecentTracks } from "../data/lastfm";
-import { getUserInfo, fetchAllRecentTracks } from "../data/lastfm";
+import { getTopArtists, getTopTracks, getRecentTracks, fetchAllRecentTracks, getUserInfo } from "../data/lastfm";
+import { getRecentTimestampFromServer, saveRecentTimestampToServer, saveRecentTracksToServer, getRecentTracksDataFromServer} from "../data/recentTracksApi";
 
 export default function Dashboard() {
   const [topArtists, setTopArtists] = useState([]);
@@ -9,10 +9,10 @@ export default function Dashboard() {
   const [artistPeriod, setArtistPeriod] = useState("overall");
   const [trackPeriod, setTrackPeriod] = useState("overall");
   const [userInfo, setUserInfo] = useState(null);
-  const [uniqueArtistCount, setUniqueArtistCount] = useState(0);
-  const [uniqueTrackCount, setUniqueTrackCount] = useState(0);
+  const [uniqueArtistCount, setUniqueArtistCount] = useState(null);
+  const [uniqueTrackCount, setUniqueTrackCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
-  const [uniqueFromCache, setUniqueFromCache] = useState(true);
+  const [lastCalculatedTimestamp, setLastCalculatedTimestamp] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -29,34 +29,50 @@ export default function Dashboard() {
   }, [trackPeriod]);
 
   useEffect(() => {
-    async function fetchData() {
-      setRecentTracks(await getRecentTracks(10));
+    async function fetchRecentTracks() {
+      const tracks = await getRecentTracks(10);
+      setRecentTracks(Array.isArray(tracks) ? tracks.slice(0, 10) : []);
     }
-    fetchData();
+    fetchRecentTracks();
   }, []);
 
-  // Fetch headline stats on mount
   useEffect(() => {
     async function fetchStats() {
       const info = await getUserInfo();
       setUserInfo(info);
-
-      setUniqueLoading(true);
-      const { uniqueArtists, uniqueTracks, fromCache } = await fetchAllRecentTracks();
-      setUniqueArtistCount(uniqueArtists.length);
-      setUniqueTrackCount(uniqueTracks.length);
-      setUniqueFromCache(fromCache);
-      setUniqueLoading(false);
     }
     fetchStats();
   }, []);
 
-  async function handleRefreshUnique() {
+  async function handleRefreshUniqueCounts() {
     setUniqueLoading(true);
-    const { uniqueArtists, uniqueTracks, fromCache } = await fetchAllRecentTracks({ refresh: true });
-    setUniqueArtistCount(uniqueArtists.length);
-    setUniqueTrackCount(uniqueTracks.length);
-    setUniqueFromCache(fromCache);
+    try {
+      const lastTimestamp = await getRecentTimestampFromServer();
+      const allTracks = await fetchAllRecentTracks({ from: lastTimestamp });
+      const tracksArray = Array.isArray(allTracks) ? allTracks : [];
+      const uniqueArtists = new Set(tracksArray.map(t => t.artist && t.artist['#text']));
+      const uniqueTracks = new Set(tracksArray.map(t => t.name));
+      setUniqueArtistCount(uniqueArtists.size);
+      setUniqueTrackCount(uniqueTracks.size);
+
+      // Prepare tracks for storage in the format { track: ..., artist: ... }
+      const formattedTracks = tracksArray.map(t => ({
+      track: t.name,
+      artist: t.artist && t.artist['#text']
+      }));
+
+      // Save tracks to backend
+      console.log("Posting tracks to backend:", formattedTracks);
+      await saveRecentTracksToServer(formattedTracks);
+      console.log("Posted tracks to backend");
+
+      // Save the current timestamp AFTER fetching, for next run
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      await saveRecentTimestampToServer(currentTimestamp);
+    } catch (e) {
+      setUniqueArtistCount("-");
+      setUniqueTrackCount("-");
+    }
     setUniqueLoading(false);
   }
 
@@ -71,24 +87,20 @@ export default function Dashboard() {
             <span className="ml-2">{userInfo?.playcount ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <span className="font-semibold">Unique Artists:</span>
-            <span className="ml-2">{uniqueLoading ? "Loading..." : uniqueArtistCount}</span>
+            <span className="font-semibold">Unique Artists (since Aug 12):</span>
+            <span className="ml-2">{uniqueLoading ? "..." : uniqueArtistCount ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <span className="font-semibold">Unique Tracks:</span>
-            <span className="ml-2">{uniqueLoading ? "Loading..." : uniqueTrackCount}</span>
+            <span className="font-semibold">Unique Tracks (since Aug 12):</span>
+            <span className="ml-2">{uniqueLoading ? "..." : uniqueTrackCount ?? "-"}</span>
           </div>
           <button
-            className="ml-4 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-            onClick={handleRefreshUnique}
+            className="bg-blue-600 text-white px-4 py-2 rounded ml-4"
+            onClick={handleRefreshUniqueCounts}
             disabled={uniqueLoading}
-            title="Refresh unique artist/track counts"
           >
-            Refresh Unique Counts
+            {uniqueLoading ? "Refreshing..." : "Refresh Unique Counts"}
           </button>
-          {!uniqueLoading && uniqueFromCache && (
-            <span className="ml-2 text-xs text-gray-400">(cached)</span>
-          )}
         </div>
       </section>
       {/* Top Artists */}
