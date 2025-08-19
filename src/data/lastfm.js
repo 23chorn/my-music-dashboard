@@ -1,6 +1,9 @@
-// Helper to cache results in localStorage
-const ARTIST_CACHE_KEY = 'lastfm_unique_artists';
-const TRACK_CACHE_KEY = 'lastfm_unique_tracks';
+import axios from "axios";
+
+const API_KEY = import.meta.env.VITE_LASTFM_API_KEY;
+const USERNAME = import.meta.env.VITE_LASTFM_USERNAME;
+const BASE_URL = "https://ws.audioscrobbler.com/2.0/";
+
 
 export async function fetchAllRecentTracks({ from }) {
   let allTracks = [];
@@ -25,13 +28,6 @@ export async function fetchAllRecentTracks({ from }) {
   return allTracks;
 }
 
-import axios from "axios";
-
-// Replace with your Last.fm API key and username
-const API_KEY = import.meta.env.VITE_LASTFM_API_KEY;
-const USERNAME = import.meta.env.VITE_LASTFM_USERNAME;
-const BASE_URL = "https://ws.audioscrobbler.com/2.0/";
-
 export async function getTopArtists(limit = 10, period = "overall") {
   try {
     const response = await axios.get(BASE_URL, {
@@ -45,7 +41,13 @@ export async function getTopArtists(limit = 10, period = "overall") {
       },
     });
 
-    return response.data.topartists.artist;
+    const artists = response.data.topartists.artist;
+
+    return artists.map(artist => ({
+      name: artist.name,
+      playcount: artist.playcount,
+      image: artist.image?.[2]?.["#text"] || "",
+    }));
   } catch (error) {
     console.error("Error fetching top artists:", error);
     return [];
@@ -101,6 +103,32 @@ export async function getRecentTracks(limit = 10) {
     return response.data.recenttracks.track;
   } catch (error) {
     console.error("Error fetching recent tracks:", error);
+    return [];
+  }
+}
+
+export async function getTopAlbums(limit = 10, period = "overall") {
+  try {
+    const response = await axios.get(BASE_URL, {
+      params: {
+        method: "user.getTopAlbums",
+        user: USERNAME,
+        api_key: API_KEY,
+        format: "json",
+        limit,
+        period
+      }
+    });
+    const albums = response.data.topalbums.album;
+    // When mapping albums, ensure artist is a string:
+    return albums.map(album => ({
+      name: album.name,
+      artist: typeof album.artist === "string" ? album.artist : album.artist?.name || "",
+      playcount: album.playcount,
+      image: album.image?.[2]?.["#text"] || "", 
+    }));
+  } catch (error) {
+    console.error("Error fetching top albums:", error);
     return [];
   }
 }
