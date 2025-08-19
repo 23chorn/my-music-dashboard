@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTopArtists, getTopTracks, getRecentTracks, fetchAllRecentTracks, getUserInfo } from "../data/lastfm";
-import { getRecentTimestampFromServer, saveRecentTimestampToServer, saveRecentTracksToServer, getRecentTracksDataFromServer} from "../data/recentTracksApi";
+import { getRecentTracksDataFromServer, getRecentTimestampFromServer, saveRecentTimestampToServer, saveRecentTracksToServer } from "../data/recentTracksApi";
 
 export default function Dashboard() {
   const [topArtists, setTopArtists] = useState([]);
@@ -13,6 +13,26 @@ export default function Dashboard() {
   const [uniqueTrackCount, setUniqueTrackCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
   const [lastCalculatedTimestamp, setLastCalculatedTimestamp] = useState(null);
+
+  // On page load, use recentTracks.json to calculate unique counts and show lastTimestamp
+  async function loadStoredUniqueCounts() {
+    try {
+      const data = await getRecentTracksDataFromServer();
+      setLastCalculatedTimestamp(data.lastTimestamp);
+      const tracksArray = Array.isArray(data.tracks) ? data.tracks : [];
+      const uniqueArtists = new Set(tracksArray.map(t => t.artist));
+      const uniqueTracks = new Set(tracksArray.map(t => t.track));
+      setUniqueArtistCount(uniqueArtists.size);
+      setUniqueTrackCount(uniqueTracks.size);
+    } catch (e) {
+      setUniqueArtistCount("-");
+      setUniqueTrackCount("-");
+      setLastCalculatedTimestamp(null);
+    }
+  }
+  useEffect(() => {
+    loadStoredUniqueCounts();
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -50,28 +70,18 @@ export default function Dashboard() {
       const lastTimestamp = await getRecentTimestampFromServer();
       const allTracks = await fetchAllRecentTracks({ from: lastTimestamp });
       const tracksArray = Array.isArray(allTracks) ? allTracks : [];
-      const uniqueArtists = new Set(tracksArray.map(t => t.artist && t.artist['#text']));
-      const uniqueTracks = new Set(tracksArray.map(t => t.name));
-      setUniqueArtistCount(uniqueArtists.size);
-      setUniqueTrackCount(uniqueTracks.size);
-
-      // Prepare tracks for storage in the format { track: ..., artist: ... }
       const formattedTracks = tracksArray.map(t => ({
-      track: t.name,
-      artist: t.artist && t.artist['#text']
+        track: t.name,
+        artist: t.artist && t.artist['#text']
       }));
-
-      // Save tracks to backend
-      console.log("Posting tracks to backend:", formattedTracks);
       await saveRecentTracksToServer(formattedTracks);
-      console.log("Posted tracks to backend");
-
-      // Save the current timestamp AFTER fetching, for next run
       const currentTimestamp = Math.floor(Date.now() / 1000);
       await saveRecentTimestampToServer(currentTimestamp);
+
+      // Immediately reload counts and timestamp from backend
+      await loadStoredUniqueCounts();
     } catch (e) {
-      setUniqueArtistCount("-");
-      setUniqueTrackCount("-");
+      // Optionally handle error
     }
     setUniqueLoading(false);
   }
@@ -87,20 +97,27 @@ export default function Dashboard() {
             <span className="ml-2">{userInfo?.playcount ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <span className="font-semibold">Unique Artists (since Aug 12):</span>
-            <span className="ml-2">{uniqueLoading ? "..." : uniqueArtistCount ?? "-"}</span>
+            <span className="font-semibold">Unique Artists:</span>
+            <span className="ml-2">{uniqueArtistCount ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <span className="font-semibold">Unique Tracks (since Aug 12):</span>
-            <span className="ml-2">{uniqueLoading ? "..." : uniqueTrackCount ?? "-"}</span>
+            <span className="font-semibold">Unique Tracks:</span>
+            <span className="ml-2">{uniqueTrackCount ?? "-"}</span>
           </div>
-          <button
-            className="bg-blue-600 text-white px-4 py-2 rounded ml-4"
-            onClick={handleRefreshUniqueCounts}
-            disabled={uniqueLoading}
-          >
-            {uniqueLoading ? "Refreshing..." : "Refresh Unique Counts"}
-          </button>
+          <div className="flex flex-col items-start ml-4">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={handleRefreshUniqueCounts}
+              disabled={uniqueLoading}
+            >
+              {uniqueLoading ? "Refreshing..." : "Refresh Unique Counts"}
+            </button>
+            <span className="text-xs text-gray-400 mt-1">
+              Last calculated: {lastCalculatedTimestamp
+                ? new Date(lastCalculatedTimestamp * 1000).toLocaleString()
+                : "-"}
+            </span>
+          </div>
         </div>
       </section>
       {/* Top Artists */}
