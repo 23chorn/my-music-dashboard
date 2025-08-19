@@ -2,58 +2,29 @@
 const ARTIST_CACHE_KEY = 'lastfm_unique_artists';
 const TRACK_CACHE_KEY = 'lastfm_unique_tracks';
 
-export async function fetchAllRecentTracks({ refresh = false } = {}) {
-  if (!refresh) {
-    const cachedArtists = localStorage.getItem(ARTIST_CACHE_KEY);
-    const cachedTracks = localStorage.getItem(TRACK_CACHE_KEY);
-    if (cachedArtists && cachedTracks) {
-      return {
-        uniqueArtists: JSON.parse(cachedArtists),
-        uniqueTracks: JSON.parse(cachedTracks),
-        fromCache: true,
-      };
-    }
-  }
-
+export async function fetchAllRecentTracks({ from }) {
+  let allTracks = [];
   let page = 1;
   let totalPages = 1;
-  const uniqueArtistsSet = new Set();
-  const uniqueTracksSet = new Set();
+  const limit = 200;
 
-  do {
-    const response = await axios.get(BASE_URL, {
-      params: {
-        method: "user.getRecentTracks",
-        user: USERNAME,
-        api_key: API_KEY,
-        format: "json",
-        limit: 200,
-        page,
-      },
-    });
-    const tracks = response.data.recenttracks.track;
-    tracks.forEach(track => {
-      if (track.artist && track.artist['#text']) {
-        uniqueArtistsSet.add(track.artist['#text']);
-      }
-      if (track.name) {
-        uniqueTracksSet.add(track.name + '|' + (track.artist ? track.artist['#text'] : ''));
-      }
-    });
-    totalPages = parseInt(response.data.recenttracks['@attr']?.totalPages || '1', 10);
-    page++;
-  } while (page <= totalPages);
+  try {
+    do {
+      const url = `${BASE_URL}?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=${limit}&page=${page}${from ? `&from=${from}` : ""}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const tracks = data?.recenttracks?.track ?? [];
+      allTracks = allTracks.concat(tracks);
+      totalPages = Number(data?.recenttracks?.['@attr']?.totalPages ?? 1);
+      page++;
+    } while (page <= totalPages);
+  } catch (error) {
+    return [];
+  }
 
-  const uniqueArtists = Array.from(uniqueArtistsSet);
-  const uniqueTracks = Array.from(uniqueTracksSet);
-  localStorage.setItem(ARTIST_CACHE_KEY, JSON.stringify(uniqueArtists));
-  localStorage.setItem(TRACK_CACHE_KEY, JSON.stringify(uniqueTracks));
-  return {
-    uniqueArtists,
-    uniqueTracks,
-    fromCache: false,
-  };
+  return allTracks;
 }
+
 import axios from "axios";
 
 // Replace with your Last.fm API key and username
