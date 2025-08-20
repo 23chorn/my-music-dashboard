@@ -25,4 +25,6 @@ dist-ssr
 
 .env
 *.db
-public/data/recentTracks.json
+public/data/*
+spotify-data/*
+scripts/queryDB.js
