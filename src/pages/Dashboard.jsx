@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
-import { getTopArtists, getTopTracks, getRecentTracks, fetchAllRecentTracks, getUserInfo, getTopAlbums } from "../data/lastfm";
-import { getRecentTracksDataFromServer, getRecentTimestampFromServer, saveRecentTimestampToServer, saveRecentTracksToServer } from "../data/recentTracksApi";
+import { 
+    getTopArtistsFromServer, 
+    getTopTracksFromServer, 
+    getRecentTracksFromServer, 
+    getUserInfoFromServer, 
+    getTopAlbumsFromServer,
+    getUniqueCountsFromServer  
+  } from "../data/dashboardApi";
 import { FaSyncAlt, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 function CollapsibleSection({ title, children, defaultOpen = true }) {
@@ -28,107 +34,68 @@ export default function Dashboard() {
   const [topAlbums, setTopAlbums] = useState([]);
   const [albumPeriod, setAlbumPeriod] = useState("overall");
   const [userInfo, setUserInfo] = useState(null);
-  const [uniqueArtistCount, setUniqueArtistCount] = useState(null);
-  const [uniqueTrackCount, setUniqueTrackCount] = useState(null);
-  const [uniqueAlbumCount, setUniqueAlbumCount] = useState(null);
+  const [uniqueArtists, setUniqueArtists] = useState(null);
+  const [uniqueTracks, setUniqueTracks] = useState(null);
+  const [uniqueAlbums, setUniqueAlbums] = useState(null);
+  const [playCount, setPlayCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
-  const [lastCalculatedTimestamp, setLastCalculatedTimestamp] = useState(null);
 
-  // On page load, use recentTracks.json to calculate unique counts and show lastTimestamp
-  async function loadStoredUniqueCounts() {
+  // Fetch unique counts from backend
+  async function fetchUniqueCounts() {
+    setUniqueLoading(true);
     try {
-      const data = await getRecentTracksDataFromServer();
-      setLastCalculatedTimestamp(data.lastTimestamp);
-      const tracksArray = Array.isArray(data.tracks) ? data.tracks : [];
-      const uniqueArtists = new Set(tracksArray.map(t => t.artist));
-      const uniqueAlbums = new Set(tracksArray.map(t => t.album).filter(Boolean));
-      const uniqueTracks = new Set(tracksArray.map(t => t.track));
-      setUniqueArtistCount(uniqueArtists.size);
-      setUniqueAlbumCount(uniqueAlbums.size);
-      setUniqueTrackCount(uniqueTracks.size);
+      const data = await getUniqueCountsFromServer();
+      setUniqueArtists(data.uniqueArtistCount);
+      setUniqueTracks(data.uniqueTrackCount);
+      setUniqueAlbums(data.uniqueAlbumCount);
+      setPlayCount(data.playCount);
     } catch (e) {
-      setUniqueArtistCount("-");
-      setUniqueAlbumCount("-");
-      setUniqueTrackCount("-");
-      setLastCalculatedTimestamp(null);
+      setUniqueArtists("-");
+      setUniqueTracks("-");
+      setUniqueAlbums("-");
+      setPlayCount("-");
     }
+    setUniqueLoading(false);
   }
+
   useEffect(() => {
-    loadStoredUniqueCounts();
+    fetchUniqueCounts();
   }, []);
 
   useEffect(() => {
     async function fetchData() {
-      setTopArtists(await getTopArtists(10, artistPeriod));
+      setTopArtists(await getTopArtistsFromServer(10, artistPeriod));
     }
     fetchData();
   }, [artistPeriod]);
 
   useEffect(() => {
     async function fetchData() {
-      setTopTracks(await getTopTracks(10, trackPeriod));
+      setTopTracks(await getTopTracksFromServer(10, trackPeriod));
     }
     fetchData();
   }, [trackPeriod]);
 
   useEffect(() => {
     async function fetchRecentTracks() {
-      const tracks = await getRecentTracks(10);
-      setRecentTracks(Array.isArray(tracks) ? tracks.slice(0, 10) : []);
+      setRecentTracks(await getRecentTracksFromServer(10));
     }
     fetchRecentTracks();
   }, []);
 
   useEffect(() => {
     async function fetchStats() {
-      const info = await getUserInfo();
-      setUserInfo(info);
+      setUserInfo(await getUserInfoFromServer());
     }
     fetchStats();
   }, []);
 
   useEffect(() => {
     async function fetchTopAlbums() {
-      const albums = await getTopAlbums(10, albumPeriod);
-      setTopAlbums(albums);
+      setTopAlbums(await getTopAlbumsFromServer(10, albumPeriod));
     }
     fetchTopAlbums();
   }, [albumPeriod]);
-
-  async function handleRefreshAllStats() {
-    setUniqueLoading(true);
-    try {
-      // Refresh unique counts
-      const lastTimestamp = await getRecentTimestampFromServer();
-      const allTracks = await fetchAllRecentTracks({ from: lastTimestamp });
-      const tracksArray = Array.isArray(allTracks) ? allTracks.filter(t => t.date?.uts) : [];
-      const formattedTracks = tracksArray.map(t => ({
-        track: t.name,
-        artist: t.artist && t.artist['#text'],
-        album: t.album && t.album['#text'] ? t.album['#text'] : null,
-        timestamp: Number(t.date.uts)
-      }));
-      await saveRecentTracksToServer(formattedTracks);
-      const latestTimestamp = formattedTracks.length > 0
-        ? Math.max(...formattedTracks.map(t => t.timestamp))
-        : lastTimestamp;
-      await saveRecentTimestampToServer(latestTimestamp);
-
-      // Refresh headline stats
-      await loadStoredUniqueCounts();
-      const info = await getUserInfo();
-      setUserInfo(info);
-
-      // Refresh top artists/tracks
-      setTopArtists(await getTopArtists(10, artistPeriod));
-      setTopTracks(await getTopTracks(10, trackPeriod));
-      const tracks = await getRecentTracks(10);
-      setRecentTracks(Array.isArray(tracks) ? tracks.slice(0, 10) : []);
-    } catch (e) {
-      // Optionally handle error
-    }
-    setUniqueLoading(false);
-  }
 
   return (
     <div className="space-y-10">
@@ -138,29 +105,29 @@ export default function Dashboard() {
         {/* Refresh button in top right */}
         <button
           className="absolute top-0 right-0 bg-blue-600 text-white px-2 py-2 rounded flex items-center mt-2 mr-2"
-          onClick={handleRefreshAllStats}
+          onClick={fetchUniqueCounts}
           disabled={uniqueLoading}
-          title="Refresh all stats"
+          title="Refresh unique counts"
           style={{ fontSize: "1.2rem" }}
         >
           <FaSyncAlt className={uniqueLoading ? "animate-spin" : ""} />
         </button>
         <div className="flex flex-wrap gap-6 text-lg items-center">
           <div className="bg-gray-800 rounded p-4">
-            <span className="font-semibold">Lifetime Play Count:</span>
-            <span className="ml-2">{userInfo?.playcount ?? "-"}</span>
+            <span className="font-semibold">Total Play Count:</span>
+            <span className="ml-2">{playCount ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Unique Artists:</span>
-            <span className="ml-2">{uniqueArtistCount ?? "-"}</span>
+            <span className="ml-2">{uniqueArtists ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Unique Albums:</span>
-            <span className="ml-2">{uniqueAlbumCount ?? "-"}</span>
+            <span className="ml-2">{uniqueAlbums ?? "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Unique Tracks:</span>
-            <span className="ml-2">{uniqueTrackCount ?? "-"}</span>
+            <span className="ml-2">{uniqueTracks ?? "-"}</span>
           </div>
         </div>
       </section>
@@ -283,8 +250,8 @@ export default function Dashboard() {
                 {track.artist["#text"]} – {track.name}
               </span>
               <span className="text-sm text-gray-400">
-                {track.date?.uts
-                  ? new Date(track.date.uts * 1000).toLocaleString()
+                {track.timestamp
+                  ? new Date(track.timestamp * 1000).toLocaleString()
                   : "Now Playing"}
               </span>
             </li>
@@ -293,13 +260,13 @@ export default function Dashboard() {
       </CollapsibleSection>
 
       {/* Last refresh footnote at bottom of page */}
-      <div className="w-full flex justify-end mt-8">
+      {/* <div className="w-full flex justify-end mt-8">
         <span className="text-xs text-gray-400 mr-2">
           Last unique counts refresh: {lastCalculatedTimestamp
             ? new Date(lastCalculatedTimestamp * 1000).toLocaleString()
             : "-"}
         </span>
-      </div>
+      </div> */}
     </div>
   );
 }
