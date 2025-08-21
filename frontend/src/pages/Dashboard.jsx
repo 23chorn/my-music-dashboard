@@ -13,7 +13,7 @@ function CollapsibleSection({ title, children, defaultOpen = true }) {
   return (
     <section className="mb-8">
       <button
-        className="flex items-center text-xl font-bold mb-2 bg-gray-900 px-4 py-2 rounded w-full justify-between"
+        className="flex items-center text-xl font-bold mb-2 bg-gray-900 px-4 py-2 rounded w-full justify-between min-w-0"
         onClick={() => setOpen(o => !o)}
       >
         <span>{title}</span>
@@ -32,7 +32,6 @@ export default function Dashboard() {
   const [trackPeriod, setTrackPeriod] = useState("overall");
   const [topAlbums, setTopAlbums] = useState([]);
   const [albumPeriod, setAlbumPeriod] = useState("overall");
-  const [userInfo, setUserInfo] = useState(null);
   const [uniqueArtists, setUniqueArtists] = useState(null);
   const [uniqueTracks, setUniqueTracks] = useState(null);
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
@@ -93,22 +92,31 @@ export default function Dashboard() {
     fetchTopAlbums();
   }, [albumPeriod, albumLimit]);
 
+  useEffect(() => {
+    document.title = "Chorn's Music Dashboard";
+  }, []);
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
       {/* Headline Stats */}
-      <section className="mb-8 relative">
-        <h2 className="text-2xl font-bold mb-2">Welcome to Chorn's Music Dashboard!</h2>
+      <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+        <h2 className="text-2xl font-bold">Welcome to Chorn's Music Dashboard!</h2>
         {/* Refresh button in top right */}
         <button
-          className="absolute top-0 right-0 bg-blue-600 text-white px-2 py-2 rounded flex items-center mt-2 mr-2"
+          className="w-12 h-12 flex items-center justify-center rounded bg-blue-600 text-white hover:bg-blue-700 transition mt-2 sm:mt-0 self-start sm:self-auto"
           onClick={fetchUniqueCounts}
           disabled={uniqueLoading}
           title="Refresh unique counts"
-          style={{ fontSize: "1.2rem" }}
+          style={{ overflow: "visible" }}
         >
-          <FaSyncAlt className={uniqueLoading ? "animate-spin" : ""} />
+          <FaSyncAlt
+            className={uniqueLoading ? "animate-spin" : ""}
+            style={{ fontSize: "2.5rem" }}
+          />
         </button>
-        <div className="flex flex-wrap gap-6 text-lg items-center">
+      </section>
+
+      <div className="flex flex-wrap gap-6 text-lg items-center">
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Total Play Count:</span>
             <span className="ml-2">{playCount != null ? playCount.toLocaleString() : "-"}</span>
@@ -126,7 +134,6 @@ export default function Dashboard() {
             <span className="ml-2">{uniqueTracks != null ? uniqueTracks.toLocaleString() : "-"}</span>
           </div>
         </div>
-      </section>
 
       {/* Top Artists */}
       <CollapsibleSection title="Top Artists">
@@ -159,7 +166,7 @@ export default function Dashboard() {
             </select>
           </div>
         </div>
-        <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {topArtists.map((artist) => (
             <li
               key={artist.artist}
@@ -182,7 +189,7 @@ export default function Dashboard() {
       </CollapsibleSection>
 
       {/* Top Tracks */}
-      <CollapsibleSection title="Top Tracks">
+      <CollapsibleSection title="Top Tracks" className="w-full min-w-0">
         <div className="mb-2 flex flex-wrap gap-4 items-center">
           <div>
             <label className="mr-2">Period:</label>
@@ -212,13 +219,13 @@ export default function Dashboard() {
             </select>
           </div>
         </div>
-        <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {topTracks.map((track) => (
             <li
               key={track.track}
               className="p-4 bg-gray-800 rounded hover:bg-gray-700"
             >
-              <p className="font-semibold">{track.track}</p>
+              <p className="font-semibold truncate">{track.track}</p>
               <p className="text-sm text-gray-400">{track.artist.artist}</p>
               <p className="text-sm text-gray-400">
                 {track.playcount != null ? track.playcount.toLocaleString() : 0} plays
@@ -259,7 +266,7 @@ export default function Dashboard() {
             </select>
           </div>
         </div>
-        <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {topAlbums.map((album) => (
             <li
               key={album.album + album.artist}

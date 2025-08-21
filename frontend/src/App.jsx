@@ -1,10 +1,12 @@
 import { useState } from "react";
+import SidePanel from "./components/sidePanel";
 import Dashboard from "./pages/Dashboard";
-import History from "./pages/History";
 import Discovery from "./pages/Discovery";
+import History from "./pages/History";
 
 export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
+  const [collapsed, setCollapsed] = useState(true);
 
   const renderPage = () => {
     switch (activePage) {
@@ -20,34 +22,52 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-800 p-6 flex flex-col">
-        <h1 className="text-2xl font-bold mb-8">My Music Stats</h1>
-        <nav className="flex flex-col space-y-4">
-          <button
-            className={`text-left px-4 py-2 rounded ${activePage === "dashboard" ? "bg-gray-700" : "hover:bg-gray-700"}`}
-            onClick={() => setActivePage("dashboard")}
+    <div className="flex min-h-screen bg-gray-950">
+      <SidePanel collapsed={collapsed} setCollapsed={setCollapsed}>
+        <nav className="flex flex-col gap-4 px-2">
+          <a
+            href="/"
+            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium transition ${
+              activePage === "dashboard" ? "border-l-4 border-blue-500" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              setActivePage("dashboard");
+            }}
           >
             Dashboard
-          </button>
-          <button
-            className={`text-left px-4 py-2 rounded ${activePage === "history" ? "bg-gray-700" : "hover:bg-gray-700"}`}
-            onClick={() => setActivePage("history")}
-          >
-            History
-          </button>
-          <button
-            className={`text-left px-4 py-2 rounded ${activePage === "discovery" ? "bg-gray-700" : "hover:bg-gray-700"}`}
-            onClick={() => setActivePage("discovery")}
+          </a>
+          <a
+            href="/discovery"
+            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium transition ${
+              activePage === "discovery" ? "border-l-4 border-blue-500" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              setActivePage("discovery");
+            }}
           >
             Discovery
-          </button>
+          </a>
+          <a
+            href="/history"
+            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium transition ${
+              activePage === "history" ? "border-l-4 border-blue-500" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              setActivePage("history");
+            }}
+          >
+            History
+          </a>
         </nav>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-8 overflow-auto">
+      </SidePanel>
+      <main
+        className={`flex-1 p-4 transition-all duration-300 ${
+          collapsed ? "ml-16" : "ml-64"
+        }`}
+      >
         {renderPage()}
       </main>
     </div>
