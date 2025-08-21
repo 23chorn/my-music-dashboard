@@ -1,4 +1,5 @@
 import { FaSyncAlt } from "react-icons/fa";
+import { useEffect, useState } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import TopArtistsSection from "../components/TopArtistsSection";
 import TopTracksSection from "../components/TopTracksSection";
@@ -14,6 +15,11 @@ export default function Dashboard() {
     recentTracks, recentLimit, setRecentLimit,
     playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading, handleRefresh
   } = useDashboardData();
+
+
+  useEffect(() => {
+    document.title = "Chorn's Music Dashboard";
+  }, []);
 
   return (
     <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
