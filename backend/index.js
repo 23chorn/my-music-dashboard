@@ -4,16 +4,12 @@ const cors = require('cors');
 const app = express();
 const { 
   fetchAllRecentTracks
-} = require('./lastfm');
+} = require('./src/services/lastfm');
 const {
   getLastTimestamp,
   addPlaysDeduped,
-  getUniqueCounts,
-  getTopArtists,
-  getTopTracks,
-  getTopAlbums,
-  getRecentTracks
-} = require('./db');
+  getUniqueCounts
+} = require('./src/db/db');
 
 app.use(cors());
 app.use(express.json());
@@ -55,42 +51,22 @@ app.get('/api/unique-counts', async (req, res) => {
 });
 
 // Top Artists
-app.get('/api/top-artists', (req, res) => {
-  const { limit = 10, period = "overall" } = req.query;
-  getTopArtists(Number(limit), period, (err, artists) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json(artists);
-  });
-});
+const topArtistsRouter = require('./src/routes/topArtists');
+app.use('/api/top-artists', topArtistsRouter);
 
 // Top Tracks
-app.get('/api/top-tracks', (req, res) => {
-  const { limit = 10, period = "overall" } = req.query;
-  getTopTracks(Number(limit), period, (err, tracks) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json(tracks);
-  });
-});
+const topTracksRouter = require('./src/routes/topTracks');
+app.use('/api/top-tracks', topTracksRouter);
 
 // Top Albums
-app.get('/api/top-albums', (req, res) => {
-  const { limit = 10, period = "overall" } = req.query;
-  getTopAlbums(Number(limit), period, (err, albums) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json(albums);
-  });
-});
+const topAlbumsRouter = require('./src/routes/topAlbums');
+app.use('/api/top-albums', topAlbumsRouter);
 
 // Recent Tracks
-app.get('/api/recent-tracks', (req, res) => {
-  const { limit = 10 } = req.query;
-  getRecentTracks(Number(limit), (err, tracks) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json(tracks);
-  });
-});
+const recentTracksRouter = require('./src/routes/recentTracks');
+app.use('/api/recent-tracks', recentTracksRouter);
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Server running on ${PORT}`);
 });
