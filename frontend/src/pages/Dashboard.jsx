@@ -44,7 +44,6 @@ export default function Dashboard() {
 
   // Fetch unique counts from backend
   async function fetchUniqueCounts() {
-    setUniqueLoading(true);
     try {
       const data = await getUniqueCountsFromServer();
       setUniqueArtists(data.uniqueArtistCount);
@@ -57,7 +56,25 @@ export default function Dashboard() {
       setUniqueAlbums("-");
       setPlayCount("-");
     }
-    setUniqueLoading(false);
+  }
+
+  async function handleRefresh() {
+    setUniqueLoading(true);
+    try {
+      await Promise.all([
+        fetchUniqueCounts(),
+        (async () => {
+          setTopArtists(await getTopArtistsFromServer(artistLimit, artistPeriod));
+          setTopAlbums(await getTopAlbumsFromServer(albumLimit, albumPeriod));
+          setTopTracks(await getTopTracksFromServer(trackLimit, trackPeriod));
+          setRecentTracks(await getRecentTracksFromServer(recentLimit));
+        })(),
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setUniqueLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -104,9 +121,9 @@ export default function Dashboard() {
         {/* Refresh button in top right */}
         <button
           className="w-12 h-12 flex items-center justify-center rounded bg-blue-600 text-white hover:bg-blue-700 transition mt-2 sm:mt-0 self-start sm:self-auto"
-          onClick={fetchUniqueCounts}
+          onClick={handleRefresh}
           disabled={uniqueLoading}
-          title="Refresh unique counts"
+          title="Refresh all stats"
           style={{ overflow: "visible" }}
         >
           <FaSyncAlt
