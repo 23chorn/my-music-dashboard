@@ -115,19 +115,19 @@ export default function Dashboard() {
         <div className="flex flex-wrap gap-6 text-lg items-center">
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Total Play Count:</span>
-            <span className="ml-2">{playCount ?? "-"}</span>
+            <span className="ml-2">{playCount != null ? playCount.toLocaleString() : "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Unique Artists:</span>
-            <span className="ml-2">{uniqueArtists ?? "-"}</span>
+            <span className="ml-2">{uniqueArtists != null ? uniqueArtists.toLocaleString() : "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Unique Albums:</span>
-            <span className="ml-2">{uniqueAlbums ?? "-"}</span>
+            <span className="ml-2">{uniqueAlbums != null ? uniqueAlbums.toLocaleString() : "-"}</span>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <span className="font-semibold">Unique Tracks:</span>
-            <span className="ml-2">{uniqueTracks ?? "-"}</span>
+            <span className="ml-2">{uniqueTracks != null ? uniqueTracks.toLocaleString() : "-"}</span>
           </div>
         </div>
       </section>
@@ -167,7 +167,9 @@ export default function Dashboard() {
                 </div>
               )}
               <p className="font-semibold">{artist.name}</p>
-              <p className="text-sm text-gray-400">{artist.playcount} plays</p>
+              <p className="text-sm text-gray-400">
+                {artist.playcount != null ? artist.playcount.toLocaleString() : 0} plays
+              </p>
             </li>
           ))}
         </ul>
@@ -194,7 +196,9 @@ export default function Dashboard() {
             >
               <p className="font-semibold">{track.name}</p>
               <p className="text-sm text-gray-400">{track.artist.name}</p>
-              <p className="text-sm text-gray-400">{track.playcount} plays</p>
+              <p className="text-sm text-gray-400">
+                {track.playcount != null ? track.playcount.toLocaleString() : 0} plays
+              </p>
             </li>
           ))}
         </ul>
@@ -232,7 +236,9 @@ export default function Dashboard() {
                   : album.name}
               </p>
               <p className="text-sm text-gray-400">{album.artist}</p>
-              <p className="text-sm text-gray-400">{album.playcount} plays</p>
+              <p className="text-sm text-gray-400">
+                {album.playcount != null ? album.playcount.toLocaleString() : 0} plays
+              </p>
             </li>
           ))}
         </ul>

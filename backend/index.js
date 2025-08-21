@@ -115,17 +115,6 @@ app.get('/api/unique-counts', async (req, res) => {
   }
 });
 
-// // GET endpoint for recent tracks
-// app.get('/api/recent-tracks', (req, res) => {
-//   getLastTimestamp((err, lastTimestamp) => {
-//     if (err) return res.status(500).json({ error: 'Internal server error' });
-//     db.all("SELECT track, artist, album, timestamp FROM plays ORDER BY timestamp DESC", (err, rows) => {
-//       if (err) return res.status(500).json({ error: 'Internal server error' });
-//       res.json({ lastTimestamp, tracks: rows });
-//     });
-//   });
-// });
-
 // GET endpoint for last timestamp
 app.get('/api/recent-timestamp', (req, res) => {
   getLastTimestamp((err, lastTimestamp) => {
