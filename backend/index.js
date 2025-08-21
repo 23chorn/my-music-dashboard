@@ -3,17 +3,16 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const { 
-  getTopArtists, 
-  getTopTracks, 
-  getTopAlbums, 
-  getRecentTracks, 
-  getUserInfo, 
   fetchAllRecentTracks
 } = require('./lastfm');
 const {
   getLastTimestamp,
   addPlaysDeduped,
-  getUniqueCounts
+  getUniqueCounts,
+  getTopArtists,
+  getTopTracks,
+  getTopAlbums,
+  getRecentTracks
 } = require('./db');
 
 app.use(cors());
@@ -56,37 +55,39 @@ app.get('/api/unique-counts', async (req, res) => {
 });
 
 // Top Artists
-app.get('/api/top-artists', async (req, res) => {
+app.get('/api/top-artists', (req, res) => {
   const { limit = 10, period = "overall" } = req.query;
-  const artists = await getTopArtists(limit, period);
-  res.json(artists);
+  getTopArtists(Number(limit), period, (err, artists) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(artists);
+  });
 });
 
 // Top Tracks
-app.get('/api/top-tracks', async (req, res) => {
+app.get('/api/top-tracks', (req, res) => {
   const { limit = 10, period = "overall" } = req.query;
-  const tracks = await getTopTracks(limit, period);
-  res.json(tracks);
+  getTopTracks(Number(limit), period, (err, tracks) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(tracks);
+  });
 });
 
 // Top Albums
-app.get('/api/top-albums', async (req, res) => {
+app.get('/api/top-albums', (req, res) => {
   const { limit = 10, period = "overall" } = req.query;
-  const albums = await getTopAlbums(limit, period);
-  res.json(albums);
+  getTopAlbums(Number(limit), period, (err, albums) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(albums);
+  });
 });
 
 // Recent Tracks
-app.get('/api/recent-tracks', async (req, res) => {
+app.get('/api/recent-tracks', (req, res) => {
   const { limit = 10 } = req.query;
-  const tracks = await getRecentTracks(limit);
-  res.json(tracks || []);
-});
-
-// User Info
-app.get('/api/user-info', async (req, res) => {
-  const userInfo = await getUserInfo();
-  res.json(userInfo);
+  getRecentTracks(Number(limit), (err, tracks) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(tracks);
+  });
 });
 
 const PORT = 3001;

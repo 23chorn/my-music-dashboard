@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { 
     getTopArtistsFromServer, 
     getTopTracksFromServer, 
-    getRecentTracksFromServer, 
-    getUserInfoFromServer, 
+    getRecentTracksFromServer,
     getTopAlbumsFromServer,
     getUniqueCountsFromServer  
   } from "../data/dashboardApi";
@@ -39,6 +38,10 @@ export default function Dashboard() {
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
   const [playCount, setPlayCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
+  const [artistLimit, setArtistLimit] = useState(10);
+  const [trackLimit, setTrackLimit] = useState(10);
+  const [albumLimit, setAlbumLimit] = useState(10);
+  const [recentLimit, setRecentLimit] = useState(10);
 
   // Fetch unique counts from backend
   async function fetchUniqueCounts() {
@@ -64,38 +67,31 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      setTopArtists(await getTopArtistsFromServer(10, artistPeriod));
+      setTopArtists(await getTopArtistsFromServer(artistLimit, artistPeriod));
     }
     fetchData();
-  }, [artistPeriod]);
+  }, [artistPeriod, artistLimit]);
 
   useEffect(() => {
     async function fetchData() {
-      setTopTracks(await getTopTracksFromServer(10, trackPeriod));
+      setTopTracks(await getTopTracksFromServer(trackLimit, trackPeriod));
     }
     fetchData();
-  }, [trackPeriod]);
+  }, [trackPeriod, trackLimit]);
 
   useEffect(() => {
     async function fetchRecentTracks() {
-      setRecentTracks(await getRecentTracksFromServer(10));
+      setRecentTracks(await getRecentTracksFromServer(recentLimit));
     }
     fetchRecentTracks();
-  }, []);
-
-  useEffect(() => {
-    async function fetchStats() {
-      setUserInfo(await getUserInfoFromServer());
-    }
-    fetchStats();
-  }, []);
+  }, [recentLimit]);
 
   useEffect(() => {
     async function fetchTopAlbums() {
-      setTopAlbums(await getTopAlbumsFromServer(10, albumPeriod));
+      setTopAlbums(await getTopAlbumsFromServer(albumLimit, albumPeriod));
     }
     fetchTopAlbums();
-  }, [albumPeriod]);
+  }, [albumPeriod, albumLimit]);
 
   return (
     <div className="space-y-10">
@@ -134,39 +130,49 @@ export default function Dashboard() {
 
       {/* Top Artists */}
       <CollapsibleSection title="Top Artists">
-        <div className="mb-2">
-          <label className="mr-2">Period:</label>
-          <select value={artistPeriod} onChange={e => setArtistPeriod(e.target.value)} className="bg-gray-700 text-white p-1 rounded">
-            <option value="overall">All Time</option>
-            <option value="7day">Last 7 Days</option>
-            <option value="1month">Last Month</option>
-            <option value="3month">Last 3 Months</option>
-            <option value="6month">Last 6 Months</option>
-            <option value="12month">Last 12 Months</option>
-          </select>
+        <div className="mb-2 flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="mr-2">Period:</label>
+            <select
+              value={artistPeriod}
+              onChange={e => setArtistPeriod(e.target.value)}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              <option value="overall">All Time</option>
+              <option value="7day">Last 7 Days</option>
+              <option value="1month">Last Month</option>
+              <option value="3month">Last 3 Months</option>
+              <option value="6month">Last 6 Months</option>
+              <option value="12month">Last 12 Months</option>
+            </select>
+          </div>
+          <div>
+            <label className="mr-2">Limit:</label>
+            <select
+              value={artistLimit}
+              onChange={e => setArtistLimit(Math.min(50, Number(e.target.value)))}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              {[5,10,15,20,25,30,40,50].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {topArtists.map((artist) => (
             <li
-              key={artist.name}
+              key={artist.artist}
               className="p-4 bg-gray-800 rounded hover:bg-gray-700 flex flex-col items-center"
             >
-              {artist.image ? (
+              {artist.image && (
                 <img
                   src={artist.image}
-                  alt={artist.name}
+                  alt={artist.artist}
                   className="mb-2 rounded-full w-20 h-20 object-cover"
                 />
-              ) : (
-                <div className="mb-2 rounded-full w-20 h-20 bg-gray-700 flex items-center justify-center text-gray-400 text-2xl font-bold">
-                  {artist.name
-                    .split(" ")
-                    .map(word => word[0])
-                    .join("")
-                    .toUpperCase()}
-                </div>
               )}
-              <p className="font-semibold">{artist.name}</p>
+              <p className="font-semibold">{artist.artist}</p>
               <p className="text-sm text-gray-400">
                 {artist.playcount != null ? artist.playcount.toLocaleString() : 0} plays
               </p>
@@ -177,25 +183,43 @@ export default function Dashboard() {
 
       {/* Top Tracks */}
       <CollapsibleSection title="Top Tracks">
-        <div className="mb-2">
-          <label className="mr-2">Period:</label>
-          <select value={trackPeriod} onChange={e => setTrackPeriod(e.target.value)} className="bg-gray-700 text-white p-1 rounded">
-            <option value="overall">All Time</option>
-            <option value="7day">Last 7 Days</option>
-            <option value="1month">Last Month</option>
-            <option value="3month">Last 3 Months</option>
-            <option value="6month">Last 6 Months</option>
-            <option value="12month">Last 12 Months</option>
-          </select>
+        <div className="mb-2 flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="mr-2">Period:</label>
+            <select
+              value={trackPeriod}
+              onChange={e => setTrackPeriod(e.target.value)}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              <option value="overall">All Time</option>
+              <option value="7day">Last 7 Days</option>
+              <option value="1month">Last Month</option>
+              <option value="3month">Last 3 Months</option>
+              <option value="6month">Last 6 Months</option>
+              <option value="12month">Last 12 Months</option>
+            </select>
+          </div>
+          <div>
+            <label className="mr-2">Limit:</label>
+            <select
+              value={trackLimit}
+              onChange={e => setTrackLimit(Math.min(50, Number(e.target.value)))}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              {[5,10,15,20,25,30,40,50].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {topTracks.map((track) => (
             <li
-              key={track.name}
+              key={track.track}
               className="p-4 bg-gray-800 rounded hover:bg-gray-700"
             >
-              <p className="font-semibold">{track.name}</p>
-              <p className="text-sm text-gray-400">{track.artist.name}</p>
+              <p className="font-semibold">{track.track}</p>
+              <p className="text-sm text-gray-400">{track.artist.artist}</p>
               <p className="text-sm text-gray-400">
                 {track.playcount != null ? track.playcount.toLocaleString() : 0} plays
               </p>
@@ -206,34 +230,55 @@ export default function Dashboard() {
 
       {/* Top Albums */}
       <CollapsibleSection title="Top Albums">
-        <div className="mb-2">
-          <label className="mr-2">Period:</label>
-          <select value={albumPeriod} onChange={e => setAlbumPeriod(e.target.value)} className="bg-gray-700 text-white p-1 rounded">
-            <option value="overall">All Time</option>
-            <option value="7day">Last 7 Days</option>
-            <option value="1month">Last Month</option>
-            <option value="3month">Last 3 Months</option>
-            <option value="6month">Last 6 Months</option>
-            <option value="12month">Last 12 Months</option>
-          </select>
+        <div className="mb-2 flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="mr-2">Period:</label>
+            <select
+              value={albumPeriod}
+              onChange={e => setAlbumPeriod(e.target.value)}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              <option value="overall">All Time</option>
+              <option value="7day">Last 7 Days</option>
+              <option value="1month">Last Month</option>
+              <option value="3month">Last 3 Months</option>
+              <option value="6month">Last 6 Months</option>
+              <option value="12month">Last 12 Months</option>
+            </select>
+          </div>
+          <div>
+            <label className="mr-2">Limit:</label>
+            <select
+              value={albumLimit}
+              onChange={e => setAlbumLimit(Math.min(50, Number(e.target.value)))}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              {[5,10,15,20,25,30,40,50].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {topAlbums.map((album) => (
             <li
-              key={album.name + album.artist}
+              key={album.album + album.artist}
               className="p-4 bg-gray-800 rounded hover:bg-gray-700 flex flex-col items-center"
             >
               {album.image && (
                 <img
                   src={album.image}
-                  alt={album.name}
+                  alt={album.album}
                   className="mb-2 rounded w-20 h-20 object-cover"
                 />
               )}
-              <p className="font-semibold">
-                {album.name.length > 25
-                  ? album.name.slice(0, 25) + "..."
-                  : album.name}
+              <p 
+                className="font-semibold"
+                title={album.album}
+              >
+                {album.album.length > 20
+                  ? album.album.slice(0, 20) + "..."
+                  : album.album}
               </p>
               <p className="text-sm text-gray-400">{album.artist}</p>
               <p className="text-sm text-gray-400">
@@ -246,14 +291,36 @@ export default function Dashboard() {
 
       {/* Recent Tracks */}
       <CollapsibleSection title="Recent Tracks">
+        <div className="mb-2 flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="mr-2">Limit:</label>
+            <select
+              value={recentLimit}
+              onChange={e => setRecentLimit(Math.min(50, Number(e.target.value)))}
+              className="bg-gray-700 text-white p-1 rounded"
+            >
+              {[5,10,15,20,25,30,40,50].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <ul className="space-y-2">
           {recentTracks.map((track, index) => (
             <li
               key={index}
-              className="p-2 bg-gray-800 rounded hover:bg-gray-700 flex justify-between"
+              className="p-2 bg-gray-800 rounded hover:bg-gray-700 flex flex-col md:flex-row md:justify-between"
             >
               <span>
-                {track.artist["#text"]} – {track.name}
+                <span className="font-semibold">{track.track}</span>
+                {" — "}
+                <span className="text-gray-300">{track.artist}</span>
+                {track.album && (
+                  <>
+                    {" • "}
+                    <span className="italic text-gray-400">{track.album}</span>
+                  </>
+                )}
               </span>
               <span className="text-sm text-gray-400">
                 {track.timestamp
@@ -264,15 +331,6 @@ export default function Dashboard() {
           ))}
         </ul>
       </CollapsibleSection>
-
-      {/* Last refresh footnote at bottom of page */}
-      {/* <div className="w-full flex justify-end mt-8">
-        <span className="text-xs text-gray-400 mr-2">
-          Last unique counts refresh: {lastCalculatedTimestamp
-            ? new Date(lastCalculatedTimestamp * 1000).toLocaleString()
-            : "-"}
-        </span>
-      </div> */}
     </div>
   );
 }

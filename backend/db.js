@@ -74,8 +74,94 @@ function getUniqueCounts(callback) {
   });
 }
 
+function getTopArtists(limit = 10, period = "overall", callback) {
+  const fromTimestamp = getPeriodTimestamp(period);
+  let query = `
+    SELECT artist, COUNT(*) as playcount
+    FROM plays
+    WHERE timestamp >= ?
+    GROUP BY artist
+    ORDER BY playcount DESC
+    LIMIT ?
+  `;
+  db.all(query, [fromTimestamp, limit], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+function getTopTracks(limit = 10, period = "overall", callback) {
+  const fromTimestamp = getPeriodTimestamp(period);
+  const query = `
+    SELECT track, artist, COUNT(*) as playcount
+    FROM plays
+    WHERE timestamp >= ?
+    GROUP BY track, artist
+    ORDER BY playcount DESC
+    LIMIT ?
+  `;
+  db.all(query, [fromTimestamp, limit], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+function getTopAlbums(limit = 10, period = "overall", callback) {
+  const fromTimestamp = getPeriodTimestamp(period);
+  const query = `
+    SELECT album, artist, COUNT(*) as playcount
+    FROM plays
+    WHERE timestamp >= ?
+      AND album IS NOT NULL AND album != ''
+    GROUP BY album, artist
+    ORDER BY playcount DESC
+    LIMIT ?
+  `;
+  db.all(query, [fromTimestamp, limit], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+function getRecentTracks(limit = 10, callback) {
+  const query = `
+    SELECT track, artist, album, timestamp
+    FROM plays
+    ORDER BY timestamp DESC
+    LIMIT ?
+  `;
+  db.all(query, [limit], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+function getPeriodTimestamp(period) {
+  const now = Math.floor(Date.now() / 1000);
+  switch (period) {
+    case "7day":
+      return now - 7 * 24 * 60 * 60;
+    case "1month":
+      return now - 30 * 24 * 60 * 60;
+    case "3month":
+      return now - 90 * 24 * 60 * 60;
+    case "6month":
+      return now - 180 * 24 * 60 * 60;
+    case "12month":
+      return now - 365 * 24 * 60 * 60;
+    case "overall":
+    default:
+      return 0;
+  }
+}
+
 module.exports = {
   getLastTimestamp,
   addPlaysDeduped,
-  getUniqueCounts
+  getUniqueCounts,
+  getTopArtists,
+  getTopTracks,
+  getTopAlbums,
+  getRecentTracks,
+  getPeriodTimestamp
 };
