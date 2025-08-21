@@ -66,6 +66,10 @@ app.use('/api/top-albums', topAlbumsRouter);
 const recentTracksRouter = require('./src/routes/recentTracks');
 app.use('/api/recent-tracks', recentTracksRouter);
 
+app.get('/', (req, res) => {
+  res.send('🎵 My Music Dashboard API is running! Visit /api/top-artists, /api/top-tracks, /api/top-albums, or /api/recent-tracks for data.');
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
