@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
+.vite
 .env
 spotify-data/*
 scripts/queryDB.js
