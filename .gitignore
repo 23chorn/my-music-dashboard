@@ -24,7 +24,5 @@ dist-ssr
 *.sw?
 
 .env
-*.db
-backend/data/*
 spotify-data/*
 scripts/queryDB.js
