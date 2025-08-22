@@ -54,24 +54,48 @@ function addPlaysDeduped(plays, callback) {
 
 function getUniqueCounts(callback) {
   db.serialize(() => {
-    db.get("SELECT COUNT(DISTINCT artist) AS uniqueArtistCount FROM plays", (err, artistRow) => {
-      if (err) return callback(err);
-      db.get("SELECT COUNT(DISTINCT track) AS uniqueTrackCount FROM plays", (err2, trackRow) => {
-        if (err2) return callback(err2);
-        db.get("SELECT COUNT(DISTINCT album) AS uniqueAlbumCount FROM plays WHERE album IS NOT NULL AND album != ''", (err3, albumRow) => {
-          if (err3) return callback(err3);
-          db.get("SELECT COUNT(*) AS playCount FROM plays", (err4, playRow) => {
-            if (err4) return callback(err4);
-            callback(null, {
-              uniqueArtistCount: artistRow.uniqueArtistCount,
-              uniqueTrackCount: trackRow.uniqueTrackCount,
-              uniqueAlbumCount: albumRow.uniqueAlbumCount,
-              playCount: playRow.playCount
-            });
-          });
-        });
-      });
-    });
+    // Unique artists played
+    db.get(
+      `SELECT COUNT(DISTINCT tracks.artist_id) AS uniqueArtistCount
+       FROM plays_new
+       JOIN tracks ON plays_new.track_id = tracks.id`,
+      (err, artistRow) => {
+
+        // Unique tracks played (track+artist+album)
+        db.get(
+          `SELECT COUNT(DISTINCT tracks.id || '|' || tracks.artist_id || '|' || tracks.album_id) AS uniqueTrackCount
+           FROM plays_new
+           JOIN tracks ON plays_new.track_id = tracks.id`,
+          (err2, trackRow) => {
+
+            // Unique albums played
+            db.get(
+              `SELECT COUNT(DISTINCT tracks.album_id) AS uniqueAlbumCount
+               FROM plays_new
+               JOIN tracks ON plays_new.track_id = tracks.id`,
+              (err3, albumRow) => {
+
+                // Total play count
+                db.get(
+                  `SELECT COUNT(*) AS playCount FROM plays_new`,
+                  (err4, playRow) => {
+                    callback(
+                      err || err2 || err3 || err4,
+                      {
+                        uniqueArtistCount: artistRow?.uniqueArtistCount ?? 0,
+                        uniqueTrackCount: trackRow?.uniqueTrackCount ?? 0,
+                        uniqueAlbumCount: albumRow?.uniqueAlbumCount ?? 0,
+                        playCount: playRow?.playCount ?? 0,
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          }
+        );
+      }
+    );
   });
 }
 
