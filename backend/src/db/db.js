@@ -33,7 +33,7 @@ db.serialize(() => {
     FOREIGN KEY (artist_id) REFERENCES artists (id),
     FOREIGN KEY (album_id) REFERENCES albums (id)
   )`);
-  db.run(`CREATE TABLE IF NOT EXISTS plays_new (
+  db.run(`CREATE TABLE IF NOT EXISTS plays (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     track_id INTEGER NOT NULL,
     timestamp INTEGER NOT NULL,
@@ -43,7 +43,7 @@ db.serialize(() => {
 
 function getLastTimestamp(callback) {
   db.get(
-    `SELECT MAX(timestamp) AS lastTimestamp FROM plays_new`,
+    `SELECT MAX(timestamp) AS lastTimestamp FROM plays`,
     (err, row) => {
       if (err) return callback(err);
       callback(null, row.lastTimestamp);
@@ -117,13 +117,13 @@ function addPlaysDeduped(plays, callback) {
                         function afterTrack(trackId) {
                           // 4. Deduplicate and insert play
                           db.get(
-                            `SELECT id FROM plays_new WHERE track_id = ? AND timestamp = ?`,
+                            `SELECT id FROM plays WHERE track_id = ? AND timestamp = ?`,
                             [trackId, play.timestamp],
                             (err, playRow) => {
                               if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
                               if (!playRow) {
                                 db.run(
-                                  `INSERT INTO plays_new (track_id, timestamp) VALUES (?, ?)`,
+                                  `INSERT INTO plays (track_id, timestamp) VALUES (?, ?)`,
                                   [trackId, play.timestamp],
                                   err => {
                                     if (err) errors.push(err);
@@ -174,13 +174,13 @@ function addPlaysDeduped(plays, callback) {
 
                   function afterTrack(trackId) {
                     db.get(
-                      `SELECT id FROM plays_new WHERE track_id = ? AND timestamp = ?`,
+                      `SELECT id FROM plays WHERE track_id = ? AND timestamp = ?`,
                       [trackId, play.timestamp],
                       (err, playRow) => {
                         if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
                         if (!playRow) {
                           db.run(
-                            `INSERT INTO plays_new (track_id, timestamp) VALUES (?, ?)`,
+                            `INSERT INTO plays (track_id, timestamp) VALUES (?, ?)`,
                             [trackId, play.timestamp],
                             err => {
                               if (err) errors.push(err);
@@ -221,27 +221,27 @@ function getUniqueCounts(callback) {
     // Unique artists played
     db.get(
       `SELECT COUNT(DISTINCT tracks.artist_id) AS uniqueArtistCount
-       FROM plays_new
-       JOIN tracks ON plays_new.track_id = tracks.id`,
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id`,
       (err, artistRow) => {
 
         // Unique tracks played (track+artist+album)
         db.get(
           `SELECT COUNT(DISTINCT tracks.id || '|' || tracks.artist_id || '|' || tracks.album_id) AS uniqueTrackCount
-           FROM plays_new
-           JOIN tracks ON plays_new.track_id = tracks.id`,
+           FROM plays
+           JOIN tracks ON plays.track_id = tracks.id`,
           (err2, trackRow) => {
 
             // Unique albums played
             db.get(
               `SELECT COUNT(DISTINCT tracks.album_id) AS uniqueAlbumCount
-               FROM plays_new
-               JOIN tracks ON plays_new.track_id = tracks.id`,
+               FROM plays
+               JOIN tracks ON plays.track_id = tracks.id`,
               (err3, albumRow) => {
 
                 // Total play count
                 db.get(
-                  `SELECT COUNT(*) AS playCount FROM plays_new`,
+                  `SELECT COUNT(*) AS playCount FROM plays`,
                   (err4, playRow) => {
                     callback(
                       err || err2 || err3 || err4,
@@ -267,10 +267,10 @@ function getTopArtists(limit = 10, period = "overall", callback) {
   const fromTimestamp = getPeriodTimestamp(period);
   const query = `
     SELECT artists.id, artists.name, artists.image_url, COUNT(*) AS playcount
-    FROM plays_new
-    JOIN tracks ON plays_new.track_id = tracks.id
+    FROM plays
+    JOIN tracks ON plays.track_id = tracks.id
     JOIN artists ON tracks.artist_id = artists.id
-    WHERE plays_new.timestamp >= ?
+    WHERE plays.timestamp >= ?
     GROUP BY artists.id
     ORDER BY playcount DESC
     LIMIT ?
@@ -290,11 +290,11 @@ function getTopTracks(limit = 10, period = "overall", callback) {
   const fromTimestamp = getPeriodTimestamp(period);
   const query = `
     SELECT tracks.id, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
-    FROM plays_new
-    JOIN tracks ON plays_new.track_id = tracks.id
+    FROM plays
+    JOIN tracks ON plays.track_id = tracks.id
     JOIN artists ON tracks.artist_id = artists.id
     LEFT JOIN albums ON tracks.album_id = albums.id
-    WHERE plays_new.timestamp >= ?
+    WHERE plays.timestamp >= ?
     GROUP BY tracks.id
     ORDER BY playcount DESC
     LIMIT ?
@@ -315,11 +315,11 @@ function getTopAlbums(limit = 10, period = "overall", callback) {
   const fromTimestamp = getPeriodTimestamp(period);
   const query = `
     SELECT albums.id, albums.name AS album, artists.name AS artist, albums.image_url, COUNT(*) AS playcount
-    FROM plays_new
-    JOIN tracks ON plays_new.track_id = tracks.id
+    FROM plays
+    JOIN tracks ON plays.track_id = tracks.id
     JOIN albums ON tracks.album_id = albums.id
     JOIN artists ON albums.artist_id = artists.id
-    WHERE plays_new.timestamp >= ?
+    WHERE plays.timestamp >= ?
     GROUP BY albums.id
     ORDER BY playcount DESC
     LIMIT ?
@@ -338,12 +338,12 @@ function getTopAlbums(limit = 10, period = "overall", callback) {
 
 function getRecentTracks(limit = 10, callback) {
   const query = `
-    SELECT plays_new.timestamp, tracks.name AS track, artists.name AS artist, albums.name AS album
-    FROM plays_new
-    JOIN tracks ON plays_new.track_id = tracks.id
+    SELECT plays.timestamp, tracks.name AS track, artists.name AS artist, albums.name AS album
+    FROM plays
+    JOIN tracks ON plays.track_id = tracks.id
     JOIN artists ON tracks.artist_id = artists.id
     LEFT JOIN albums ON tracks.album_id = albums.id
-    ORDER BY plays_new.timestamp DESC
+    ORDER BY plays.timestamp DESC
     LIMIT ?
   `;
   db.all(query, [limit], (err, rows) => {

@@ -82,7 +82,7 @@ async function migrate() {
 
       // 4. Insert play
       await db.run(
-        "INSERT INTO plays_new (track_id, timestamp) VALUES (?, ?)",
+        "INSERT INTO plays (track_id, timestamp) VALUES (?, ?)",
         trackId,
         timestamp
       );
