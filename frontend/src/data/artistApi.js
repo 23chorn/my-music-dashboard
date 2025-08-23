@@ -35,3 +35,9 @@ export async function getArtistMilestones(id) {
   if (!res.ok) throw new Error('Failed to fetch artist milestones');
   return await res.json();
 }
+
+export async function getArtistDailyPlays(id, days = 30) {
+  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/daily-plays?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch daily plays');
+  return await res.json();
+}

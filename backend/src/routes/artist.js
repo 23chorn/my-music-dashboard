@@ -7,6 +7,7 @@ const {
   getArtistRecentPlays,
   getArtistStats,
   getArtistMilestones,
+  getArtistDailyPlays,
 } = require('../db/artistDb');
 
 router.get('/:id', (req, res) => {
@@ -52,6 +53,15 @@ router.get('/:id/milestones', (req, res) => {
   getArtistMilestones(req.params.id, (err, milestones) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(milestones);
+  });
+});
+
+router.get('/:id/daily-plays', (req, res) => {
+  const artistId = req.params.id;
+  const days = Number(req.query.days) || 30; // support ?days= in query
+  getArtistDailyPlays(artistId, days, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(rows);
   });
 });
 

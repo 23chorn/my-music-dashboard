@@ -6,9 +6,13 @@ import {
   getArtistTopAlbums,
   getArtistRecentPlays,
   getArtistStats,
-  getArtistMilestones
+  getArtistMilestones,
+  getArtistDailyPlays
 } from "../data/artistApi";
 import { getOrdinalSuffix } from "../utils/ordinalSuffix";
+import ArtistHeatmap from "../components/ArtistHeatmap";
+import RecentTracksSection from "../components/RecentTracksSection";
+import TopTracksSection from "../components/TopTracksSection";
 
 export default function ArtistView() {
   const { id } = useParams();
@@ -19,6 +23,7 @@ export default function ArtistView() {
   const [stats, setStats] = useState(null);
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dailyPlays, setDailyPlays] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -53,8 +58,25 @@ export default function ArtistView() {
     fetchData();
   }, [id]);
 
+  useEffect(() => {
+    async function fetchEraData() {
+      try {
+        const daily = await getArtistDailyPlays(id);
+        setDailyPlays(daily);
+      } catch {
+        setDailyPlays([]);
+      }
+    }
+    fetchEraData();
+  }, [id]);
+
   if (loading) return <div className="p-4">Loading...</div>;
   if (!artist) return <div className="p-4">Artist not found.</div>;
+
+  // Calculate start date for last 12 months
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setFullYear(endDate.getFullYear() - 1);
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4">
@@ -229,25 +251,17 @@ export default function ArtistView() {
       {/* Recent Plays */}
       <section>
         <h2 className="text-2xl font-semibold mb-4 text-blue-400">Recent Plays</h2>
-        <ul className="space-y-2">
-          {recentPlays.length === 0 && <li className="text-gray-400">No recent plays found.</li>}
-          {recentPlays.map((play, idx) => (
-            <li
-              key={idx}
-              className="flex items-center justify-between bg-gray-800 rounded px-4 py-2 shadow"
-            >
-              <div>
-                <span className="font-medium">{play.track}</span>
-                {play.album && (
-                  <span className="text-gray-400 ml-2">– {play.album}</span>
-                )}
-              </div>
-              <span className="text-gray-500 text-sm">
-                {new Date(play.timestamp * 1000).toLocaleString()}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <RecentTracksSection
+  recentTracks={recentPlays}
+  recentLimit={recentPlays.length} // or set a limit if you want
+  setRecentLimit={() => {}} // pass a no-op if you don't want to change limit here
+/>
+      </section>
+
+      {/* Era Explorer Section */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-blue-400">Era Explorer: Heatmap of Plays</h2>
+        {artist && <ArtistHeatmap artistId={artist.id} days={30} />}
       </section>
     </div>
   );

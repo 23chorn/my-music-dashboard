@@ -213,6 +213,25 @@ async function getArtistStats(artistId, callback) {
   }
 }
 
+function getArtistDailyPlays(artistId, days = 30, callback) {
+  db.all(
+    `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
+     FROM plays
+     JOIN tracks ON plays.track_id = tracks.id
+     WHERE tracks.artist_id = ?
+       AND plays.timestamp >= strftime('%s', 'now', ?)
+     GROUP BY day
+     ORDER BY day ASC`,
+    [
+      artistId,
+      `-${days - 1} days`
+    ],
+    (err, rows) => {
+      callback(err, rows);
+    }
+  );
+}
+
 module.exports = {
   getArtistInfo,
   getArtistTopTracks,
@@ -220,4 +239,5 @@ module.exports = {
   getArtistRecentPlays,
   getArtistStats,
   getArtistMilestones,
+  getArtistDailyPlays,
 };
