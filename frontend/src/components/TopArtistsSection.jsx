@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import CollapsibleSection from "./CollapsibleSection";
 
 export default function TopArtistsSection({
@@ -7,6 +8,8 @@ export default function TopArtistsSection({
   artistPeriod,
   setArtistPeriod,
 }) {
+  const navigate = useNavigate();
+
   return (
     <CollapsibleSection title="Top Artists">
       <div className="mb-2 flex flex-wrap gap-4 items-center">
@@ -40,9 +43,15 @@ export default function TopArtistsSection({
       </div>
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {topArtists.map((artist, idx) => (
-          <li key={idx} className="bg-gray-800 rounded p-4 flex flex-col">
-            <span className="font-semibold">{artist.artist}</span>
-            <span className="text-xs text-gray-500 mt-2">Plays: {artist.playcount}</span>
+          <li
+            key={artist.artistId}
+            className="mb-2 px-2 py-4 bg-gray-800 rounded shadow cursor-pointer hover:bg-blue-900 transition text-blue-400 flex flex-col items-center justify-center"
+            onClick={() => navigate(`/artist/${artist.artistId}`)}
+            style={{ minHeight: "80px" }}
+            title={`View ${artist.artist}`}
+          >
+            <span className="font-semibold text-lg">{artist.artist}</span>
+            <span className="text-gray-400 text-sm">({artist.playcount} plays)</span>
           </li>
         ))}
       </ul>

@@ -1,5 +1,6 @@
 import { FaSyncAlt } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useDashboardData from "../hooks/useDashboardData";
 import TopArtistsSection from "../components/TopArtistsSection";
 import TopTracksSection from "../components/TopTracksSection";
@@ -8,6 +9,7 @@ import RecentTracksSection from "../components/RecentTracksSection";
 import StatsSection from "../components/StatsSection";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const {
     topArtists, artistLimit, setArtistLimit, artistPeriod, setArtistPeriod,
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
