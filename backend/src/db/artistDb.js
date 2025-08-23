@@ -3,6 +3,7 @@ const util = require('util');
 const db = new sqlite3.Database(__dirname + '/../../data/recentTracks.db');
 const dbGet = util.promisify(db.get).bind(db);
 const dbAll = util.promisify(db.all).bind(db);
+const { getPeriodTimestamp} = require('../utils/period');
 
 function getArtistInfo(artistId, callback) {
   db.get(
@@ -14,19 +15,23 @@ function getArtistInfo(artistId, callback) {
   );
 }
 
-function getArtistTopTracks(artistId, callback) {
+function getArtistTopTracks(artistId, limit = 10, period = 'overall', callback) {
+  const fromTimestamp = getPeriodTimestamp(period);
   db.all(
-    `SELECT tracks.id, tracks.name, albums.name AS album, COUNT(*) AS playcount
+    `SELECT tracks.id AS trackId, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
      FROM plays
      JOIN tracks ON plays.track_id = tracks.id
-     LEFT JOIN albums ON tracks.album_id = albums.id
+     JOIN albums ON tracks.album_id = albums.id
+     JOIN artists ON tracks.artist_id = artists.id
      WHERE tracks.artist_id = ?
+     AND plays.timestamp >= ?
      GROUP BY tracks.id
      ORDER BY playcount DESC
-     LIMIT 10`,
-    [artistId],
+     LIMIT ?`,
+    [artistId, fromTimestamp, limit],
     (err, tracks) => {
-      callback(err, tracks);
+      if (err) return callback(err);
+      callback(null, tracks);
     }
   );
 }
@@ -47,21 +52,23 @@ function getArtistRecentPlays(artistId, limit = 10, callback) {
   );
 }
 
-function getArtistTopAlbums(artistId, callback) {
-  console.log('getArtistTopAlbums called with', artistId);
+function getArtistTopAlbums(artistId, limit = 10, period = 'overall', callback) {
+  const fromTimestamp = getPeriodTimestamp(period);
   db.all(
-    `SELECT albums.id, albums.name, COUNT(*) AS playcount
+    `SELECT albums.id AS albumId, albums.name AS album, artists.name AS artist, albums.image_url AS image, COUNT(*) AS playcount
      FROM plays
      JOIN tracks ON plays.track_id = tracks.id
      JOIN albums ON tracks.album_id = albums.id
+     JOIN artists ON albums.artist_id = artists.id
      WHERE albums.artist_id = ?
+     AND plays.timestamp >= ?
      GROUP BY albums.id
      ORDER BY playcount DESC
-     LIMIT 10`,
-    [artistId],
+     LIMIT ?`,
+    [artistId, fromTimestamp, limit],
     (err, albums) => {
-      console.log('getArtistTopAlbums result', err, albums);
-      callback(err, albums);
+      if (err) return callback(err);
+      callback(null, albums);
     }
   );
 }

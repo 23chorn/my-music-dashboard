@@ -6,19 +6,19 @@ export async function getArtistInfo(id) {
   return await res.json();
 }
 
-export async function getArtistTopTracks(id) {
-  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/top-tracks`);
+export async function getArtistTopTracks(id, limit = 5, period = 'overall') {
+  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/top-tracks?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top tracks');
   return await res.json();
 }
 
-export async function getArtistTopAlbums(id) {
-  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/top-albums`);
+export async function getArtistTopAlbums(id, limit = 5, period = 'overall') {
+  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/top-albums?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top albums');
   return await res.json();
 }
 
-export async function getArtistRecentPlays(id, limit = 10) {
+export async function getArtistRecentPlays(id, limit = 5) {
   const res = await fetch(`${API_BASE_URL}/api/artist/${id}/recent-plays?limit=${limit}`);
   if (!res.ok) throw new Error('Failed to fetch recent plays');
   return await res.json();

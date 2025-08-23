@@ -40,25 +40,6 @@ export default function useDashboardData() {
     }
   }
 
-  async function handleRefresh() {
-    setUniqueLoading(true);
-    try {
-      await Promise.all([
-        fetchUniqueCounts(),
-        (async () => {
-          setTopArtists(await getTopArtistsFromServer(artistLimit, artistPeriod));
-          setTopAlbums(await getTopAlbumsFromServer(albumLimit, albumPeriod));
-          setTopTracks(await getTopTracksFromServer(trackLimit, trackPeriod));
-          setRecentTracks(await getRecentTracksFromServer(recentLimit));
-        })(),
-      ]);
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-    } finally {
-      setUniqueLoading(false);
-    }
-  }
-
   useEffect(() => {
     fetchUniqueCounts();
   }, []);
@@ -96,6 +77,6 @@ export default function useDashboardData() {
     topTracks, setTopTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, setTopAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading, handleRefresh
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading
   };
 }

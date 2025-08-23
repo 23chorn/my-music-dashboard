@@ -28,14 +28,20 @@ router.get('/:id', (req, res) => {
 });
 
 router.get('/:id/top-tracks', (req, res) => {
-  getArtistTopTracks(req.params.id, (err, tracks) => {
+  const artistId = req.params.id;
+  const limit = Number(req.query.limit) || 10;
+  const period = req.query.period || 'overall';
+  getArtistTopTracks(artistId, limit, period, (err, tracks) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(tracks);
   });
 });
 
 router.get('/:id/top-albums', (req, res) => {
-  getArtistTopAlbums(req.params.id, (err, albums) => {
+  const artistId = req.params.id;
+  const limit = Number(req.query.limit) || 10;
+  const period = req.query.period || 'overall';
+  getArtistTopAlbums(artistId, limit, period, (err, albums) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(albums);
   });

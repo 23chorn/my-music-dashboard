@@ -7,13 +7,19 @@ export default function TopAlbumsSection({
   albumPeriod,
   setAlbumPeriod,
 }) {
+  // Always fallback to an array
+  const albums = Array.isArray(topAlbums) ? topAlbums : [];
+
+  // Fallback for albumLimit
+  const limit = typeof albumLimit === "number" ? albumLimit : 10;
+
   return (
     <CollapsibleSection title="Top Albums">
       <div className="mb-2 flex flex-wrap gap-4 items-center">
         <div>
           <label className="mr-2">Period:</label>
           <select
-            value={albumPeriod}
+            value={albumPeriod ?? "overall"}
             onChange={e => setAlbumPeriod(e.target.value)}
             className="bg-gray-700 text-white p-1 rounded"
           >
@@ -28,7 +34,7 @@ export default function TopAlbumsSection({
         <div>
           <label className="mr-2">Limit:</label>
           <select
-            value={albumLimit}
+            value={limit}
             onChange={e => setAlbumLimit(Math.min(50, Number(e.target.value)))}
             className="bg-gray-700 text-white p-1 rounded"
           >
@@ -39,32 +45,37 @@ export default function TopAlbumsSection({
         </div>
       </div>
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {topAlbums.map((album) => (
-          <li
-            key={album.album + album.artist}
-            className="p-4 bg-gray-800 rounded hover:bg-gray-700 flex flex-col items-center"
-          >
-            {album.image && (
-              <img
-                src={album.image}
-                alt={album.album}
-                className="mb-2 rounded w-20 h-20 object-cover"
-              />
-            )}
-            <p 
-              className="font-semibold"
-              title={album.album}
+        {albums.slice(0, limit).map((album, idx) => {
+          const albumName = album?.album ?? "Unknown Album";
+          const artistName = album?.artist ?? "Unknown Artist";
+          return (
+            <li
+              key={albumName + artistName + idx}
+              className="p-4 bg-gray-800 rounded hover:bg-gray-700 flex flex-col items-center"
             >
-              {album.album.length > 20
-                ? album.album.slice(0, 20) + "..."
-                : album.album}
-            </p>
-            <p className="text-sm text-gray-400">{album.artist}</p>
-            <p className="text-sm text-gray-400">
-              {album.playcount != null ? album.playcount.toLocaleString() : 0} plays
-            </p>
-          </li>
-        ))}
+              {album.image && (
+                <img
+                  src={album.image}
+                  alt={albumName}
+                  className="mb-2 rounded w-20 h-20 object-cover"
+                />
+              )}
+              <p 
+                className="font-semibold"
+                title={albumName}
+              >
+                {albumName.length > 20
+                  ? albumName.slice(0, 20) + "..."
+                  : albumName}
+              </p>
+              <p className="text-sm text-gray-400">{artistName}</p>
+              <p className="text-sm text-gray-400">
+                {album.playcount != null ? album.playcount.toLocaleString() : 0} plays
+              </p>
+            </li>
+          );
+        })}
       </ul>
     </CollapsibleSection>
-  )};
+  );
+}
