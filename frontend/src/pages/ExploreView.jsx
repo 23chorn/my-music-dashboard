@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllArtistsWithPlaycount } from "../data/artistApi"; 
+import ListTile from "../components/ListTile";
+import SectionHeader from "../components/SectionHeader";
+import GroupedSection from "../components/GroupedSection";
 
 const DATA_TYPES = [
   { key: "artist", label: "Artists" },
@@ -14,7 +17,7 @@ export default function ExploreView() {
   const [sortBy, setSortBy] = useState("plays");
   const [loading, setLoading] = useState(true);
   const [alphaCategory, setAlphaCategory] = useState("A");
-  const [page, setPage] = useState(1); // <-- Move here!
+  const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +39,6 @@ export default function ExploreView() {
     fetchData();
   }, [dataType]);
 
-  // Alphabetical categories (A-Z, #)
   const alphaCategories = [
     ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)),
     "#"
@@ -65,10 +67,20 @@ export default function ExploreView() {
     const totalPages = Math.ceil(sortedData.length / PAGE_SIZE);
     displayedData = sortedData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-    // Pagination controls for playcount sort
+    // Prepare tiles for GroupedSection
+    const artistTiles = displayedData.map((item, idx) => ({
+      label: item.name,
+      sub: `${item.playcount ?? 0} plays`,
+      number: (page - 1) * PAGE_SIZE + idx + 1,
+      link: `/artist/${item.id}` // <-- Add link to artist page
+    }));
+
     return (
       <div className="max-w-3xl mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6">Explore</h1>
+        <SectionHeader
+          title="Explore"
+          subheader="Browse all artists by playcount or alphabetically."
+        />
         <div className="mb-4 flex gap-4 items-center">
           {DATA_TYPES.map((type, idx) => (
             <button
@@ -97,20 +109,15 @@ export default function ExploreView() {
           <div>Loading...</div>
         ) : (
           <>
-            <ul className="divide-y divide-gray-700">
-              {displayedData.map(item => (
-                <li
-                  key={item.id}
-                  className="py-3 px-2 flex justify-between items-center cursor-pointer hover:bg-gray-800 rounded transition"
-                  onClick={() => navigate(`/artist/${item.id}`)}
-                >
-                  <span className="text-blue-400 font-semibold underline">
-                    {item.name}
-                  </span>
-                  <span className="text-gray-400 text-sm">{item.playcount ?? 0} plays</span>
-                </li>
-              ))}
-            </ul>
+            <GroupedSection
+              title="Artists"
+              items={artistTiles}
+              showPeriod={false}
+              showLimit={false}
+              mapper={tile => tile}
+              layout="list"
+              Renderer={ListTile}
+            />
             <div className="flex justify-center items-center gap-2 mt-6">
               <button
                 onClick={() => setPage(page - 1)}
@@ -137,9 +144,19 @@ export default function ExploreView() {
   }
 
   // Alphabetical controls and display
+  // Prepare tiles for GroupedSection
+  const artistTiles = displayedData.map(item => ({
+    label: item.name,
+    sub: `${item.playcount ?? 0} plays`,
+    link: `/artist/${item.id}` // <-- Add link to artist page
+  }));
+
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Explore</h1>
+    <div className="p-4">
+      <SectionHeader
+        title="Explore"
+        subheader="Browse all artists by playcount or alphabetically."
+      />
       <div className="mb-4 flex gap-4 items-center">
         {DATA_TYPES.map((type, idx) => (
           <button
@@ -185,20 +202,15 @@ export default function ExploreView() {
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <ul className="divide-y divide-gray-700">
-          {displayedData.map(item => (
-            <li
-              key={item.id}
-              className="py-3 px-2 flex justify-between items-center cursor-pointer hover:bg-gray-800 rounded transition"
-              onClick={() => navigate(`/artist/${item.id}`)}
-            >
-              <span className="text-blue-400 font-semibold underline">
-                {item.name}
-              </span>
-              <span className="text-gray-400 text-sm">{item.playcount ?? 0} plays</span>
-            </li>
-          ))}
-        </ul>
+        <GroupedSection
+          title="Artists"
+          items={artistTiles}
+          showPeriod={false}
+          showLimit={false}
+          mapper={tile => tile}
+          layout="list"
+          Renderer={ListTile}
+        />
       )}
     </div>
   );

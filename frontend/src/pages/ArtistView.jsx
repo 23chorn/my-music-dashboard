@@ -1,117 +1,31 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  getArtistInfo,
-  getArtistTopTracks,
-  getArtistTopAlbums,
-  getArtistRecentPlays,
-  getArtistStats,
-  getArtistMilestones,
-  getArtistDailyPlays
-} from "../data/artistApi";
-import { getOrdinalSuffix } from "../utils/ordinalSuffix";
+import useArtistViewData from "../hooks/useArtistViewData";
 import ArtistHeatmap from "../components/Heatmap";
 import GroupedSection from "../components/GroupedSection";
-import ListTile from "../components/ListTile";
+import MilestoneSection from "../components/MilestoneSection";
+import SectionHeader from "../components/SectionHeader";
 
 export default function ArtistView() {
   const { id } = useParams();
-  const [artist, setArtist] = useState(null);
-  const [topTracks, setTopTracks] = useState([]);
-  const [topAlbums, setTopAlbums] = useState([]);
-  const [recentPlays, setRecentPlays] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [milestones, setMilestones] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [dailyPlays, setDailyPlays] = useState([]);
-  const [recentLimit, setRecentLimit] = useState(5);
-  const [albumLimit, setAlbumLimit] = useState(5);
-  const [albumPeriod, setAlbumPeriod] = useState("overall");
-  const [trackLimit, setTrackLimit] = useState(5);
-  const [trackPeriod, setTrackPeriod] = useState("overall");
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const [
-          artistData,
-          tracks,
-          albums,
-          plays,
-          statsData,
-          milestonesData
-        ] = await Promise.all([
-          getArtistInfo(id),
-          getArtistTopTracks(id),
-          getArtistTopAlbums(id),
-          getArtistRecentPlays(id),
-          getArtistStats(id),
-          getArtistMilestones(id)
-        ]);
-        setArtist(artistData);
-        setTopTracks(tracks);
-        setTopAlbums(albums);
-        setRecentPlays(plays);
-        setStats(statsData);
-        setMilestones(milestonesData);
-      } catch {
-        setArtist(null);
-      }
-      setLoading(false);
-    }
-    fetchData();
-  }, [id]);
-
-  useEffect(() => {
-    async function fetchEraData() {
-      try {
-        const daily = await getArtistDailyPlays(id);
-        setDailyPlays(daily);
-      } catch {
-        setDailyPlays([]);
-      }
-    }
-    fetchEraData();
-  }, [id]);
-
-  useEffect(() => {
-    async function fetchRecentPlays() {
-      try {
-        const plays = await getArtistRecentPlays(id, recentLimit);
-        setRecentPlays(plays);
-      } catch {
-        setRecentPlays([]);
-      }
-    }
-    if (id) fetchRecentPlays();
-  }, [id, recentLimit]);
-
-  // Fetch top albums when albumLimit or albumPeriod changes
-  useEffect(() => {
-    async function fetchTopAlbums() {
-      try {
-        const albums = await getArtistTopAlbums(id, albumLimit, albumPeriod);
-        setTopAlbums(albums);
-      } catch {
-        setTopAlbums([]);
-      }
-    }
-    if (id) fetchTopAlbums();
-  }, [id, albumLimit, albumPeriod]);
-
-  // Fetch top tracks when trackLimit or trackPeriod changes
-  useEffect(() => {
-    async function fetchTopTracks() {
-      try {
-        const tracks = await getArtistTopTracks(id, trackLimit, trackPeriod);
-        setTopTracks(tracks);
-      } catch {
-        setTopTracks([]);
-      }
-    }
-    if (id) fetchTopTracks();
-  }, [id, trackLimit, trackPeriod]);
+  const {
+    artist,
+    topTracks,
+    topAlbums,
+    recentPlays,
+    stats,
+    milestones,
+    loading,
+    recentLimit,
+    setRecentLimit,
+    albumLimit,
+    setAlbumLimit,
+    albumPeriod,
+    setAlbumPeriod,
+    trackLimit,
+    setTrackLimit,
+    trackPeriod,
+    setTrackPeriod
+  } = useArtistViewData(id);
 
   // Prepare tiles for stats section
   const statsTiles = stats
@@ -178,14 +92,7 @@ export default function ArtistView() {
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4">
-      <div className="flex items-center gap-6 mb-8">
-        {artist.image_url && (
-          <img src={artist.image_url} alt={artist.name} className="w-28 h-28 rounded shadow-lg object-cover" />
-        )}
-        <div>
-          <h1 className="text-4xl font-bold mb-2">{artist.name}</h1>
-        </div>
-      </div>
+      <SectionHeader image={artist.image_url} title={artist.name} />
 
       <GroupedSection
         title="Artist Stats"
@@ -199,21 +106,7 @@ export default function ArtistView() {
       {milestones && milestones.length > 0 && (
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4 text-blue-400">Milestones</h2>
-          <ul className="space-y-2">
-            {milestones.map(milestone => (
-              <ListTile
-                key={milestone.milestone}
-                label={`${milestone.milestone}${getOrdinalSuffix(milestone.milestone)} play:`}
-                value={milestone.track}
-                album={milestone.album}
-                sub={
-                  milestone.timestamp
-                    ? new Date(milestone.timestamp * 1000).toLocaleString()
-                    : "N/A"
-                }
-              />
-            ))}
-          </ul>
+          <MilestoneSection milestones={milestones} />
         </section>
       )}
 

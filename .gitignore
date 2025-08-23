@@ -29,3 +29,4 @@ spotify-data/*
 scripts/queryDB.js
 backend/scripts
 /spotify-data
+*.jpeg

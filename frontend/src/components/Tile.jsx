@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { formatValue } from "../utils/numberFormat";
 
 export default function Tile({ tiles }) {
   if (!tiles || tiles.length === 0) return null;
@@ -8,14 +9,24 @@ export default function Tile({ tiles }) {
       {tiles.map((tile, idx) => {
         const content = (
           <div className="flex flex-col items-center justify-center w-full h-full text-center">
-            <span className="text-gray-400 text-sm mb-1">{tile.label}</span>
-            <span className="font-bold text-lg text-blue-300">{tile.value}</span>
+            <span className="text-gray-400 text-sm mb-1">
+              {formatValue(tile.label)}
+            </span>
+            <span className="font-bold text-lg text-blue-300">
+              {formatValue(tile.value)}
+            </span>
             {tile.sub && (
-              <span className="text-gray-400 text-xs">{tile.sub}</span>
+              <span className="text-gray-400 text-xs">
+                {formatValue(tile.sub)}
+              </span>
+            )}
+            {tile.album && (
+              <span className="text-blue-400 text-xs">
+                {formatValue(tile.album)}
+              </span>
             )}
           </div>
         );
-        // Use Link for internal links, <a> for external
         if (tile.link && tile.link.startsWith("/")) {
           return (
             <Link
@@ -39,7 +50,6 @@ export default function Tile({ tiles }) {
             </a>
           );
         } else {
-          // No link: use ListTile hover color (hover:bg-gray-700)
           return (
             <div
               key={idx}

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/GroupedSection";
+import SectionHeader from "../components/SectionHeader";
 
 export default function Dashboard() {
   const {
@@ -24,13 +25,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
-      <section className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-        <h2 className="text-2xl font-bold">Welcome to Chorn's Music Dashboard!</h2>
-        <p className="text-sm text-gray-600">Here you can find all your music statistics in one place.</p>
-      </section>
+      <SectionHeader
+        image="/pfp.jpeg"
+        title="Welcome to Chorn's Music Dashboard!"
+        subheader="Here you can find all your music statistics in one place."
+      />
 
       <GroupedSection
-        title="Your Stats"
+        title="My Stats"
         items={dashboardTiles}
         showPeriod={false}
         showLimit={false}
