@@ -357,6 +357,46 @@ function getRecentTracks(limit = 10, callback) {
   });
 }
 
+function searchAll(query, callback) {
+  const likeQuery = `%${query}%`;
+  db.all(
+    `SELECT id, name FROM artists WHERE name LIKE ? LIMIT 10`,
+    [likeQuery],
+    (err, artists) => {
+      if (err) return callback(err);
+
+      // Collect artist IDs for track/album search
+      const artistIds = artists.map(a => a.id);
+
+      // Tracks: match by name OR by artist_id
+      let tracksQuery = `SELECT id, name FROM tracks WHERE name LIKE ?`;
+      let tracksParams = [likeQuery];
+      if (artistIds.length > 0) {
+        tracksQuery += ` OR artist_id IN (${artistIds.map(() => '?').join(',')})`;
+        tracksParams = [likeQuery, ...artistIds];
+      }
+      tracksQuery += ` LIMIT 10`;
+
+      // Albums: match by name OR by artist_id
+      let albumsQuery = `SELECT id, name FROM albums WHERE name LIKE ?`;
+      let albumsParams = [likeQuery];
+      if (artistIds.length > 0) {
+        albumsQuery += ` OR artist_id IN (${artistIds.map(() => '?').join(',')})`;
+        albumsParams = [likeQuery, ...artistIds];
+      }
+      albumsQuery += ` LIMIT 10`;
+
+      db.all(tracksQuery, tracksParams, (err2, tracks) => {
+        if (err2) return callback(err2);
+        db.all(albumsQuery, albumsParams, (err3, albums) => {
+          if (err3) return callback(err3);
+          callback(null, { artists, tracks, albums });
+        });
+      });
+    }
+  );
+}
+
 module.exports = {
   getLastTimestamp,
   addPlaysDeduped,
@@ -365,4 +405,5 @@ module.exports = {
   getTopTracks,
   getTopAlbums,
   getRecentTracks,
+  searchAll,
 };

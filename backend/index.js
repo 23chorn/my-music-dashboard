@@ -66,6 +66,12 @@ app.use('/api/top-albums', topAlbumsRouter);
 const recentTracksRouter = require('./src/routes/recentTracks');
 app.use('/api/recent-tracks', recentTracksRouter);
 
+const searchRouter = require('./src/routes/search');
+app.use('/api/search', searchRouter);
+
+const artistRouter = require('./src/routes/artist');
+app.use('/api/artist', artistRouter);
+
 app.get('/', (req, res) => {
   res.send('🎵 My Music Dashboard API is running! Visit /api/top-artists, /api/top-tracks, /api/top-albums, or /api/recent-tracks for data.');
 });
