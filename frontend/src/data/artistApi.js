@@ -29,3 +29,9 @@ export async function getArtistStats(id) {
   if (!res.ok) throw new Error('Failed to fetch artist stats');
   return await res.json();
 }
+
+export async function getArtistMilestones(id) {
+  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/milestones`);
+  if (!res.ok) throw new Error('Failed to fetch artist milestones');
+  return await res.json();
+}

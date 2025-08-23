@@ -5,7 +5,8 @@ import {
   getArtistTopTracks,
   getArtistTopAlbums,
   getArtistRecentPlays,
-  getArtistStats
+  getArtistStats,
+  getArtistMilestones
 } from "../data/artistApi";
 
 export default function ArtistView() {
@@ -15,24 +16,34 @@ export default function ArtistView() {
   const [topAlbums, setTopAlbums] = useState([]);
   const [recentPlays, setRecentPlays] = useState([]);
   const [stats, setStats] = useState(null);
+  const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
-        const [artistData, tracks, albums, plays, statsData] = await Promise.all([
+        const [
+          artistData,
+          tracks,
+          albums,
+          plays,
+          statsData,
+          milestonesData
+        ] = await Promise.all([
           getArtistInfo(id),
           getArtistTopTracks(id),
           getArtistTopAlbums(id),
           getArtistRecentPlays(id),
-          getArtistStats(id)
+          getArtistStats(id),
+          getArtistMilestones(id)
         ]);
         setArtist(artistData);
         setTopTracks(tracks);
         setTopAlbums(albums);
         setRecentPlays(plays);
         setStats(statsData);
+        setMilestones(milestonesData);
       } catch {
         setArtist(null);
       }
@@ -57,8 +68,14 @@ export default function ArtistView() {
 
       {stats && (
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-blue-400">Artist Streaming Stats</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <h2 className="text-xl font-semibold mb-4 text-blue-400">Artist Stats</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Total Streams</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.total_streams ?? "N/A"}
+              </span>
+            </div>
             <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
               <span className="text-gray-400 text-sm mb-1">First Streamed</span>
               <span className="font-bold text-lg text-blue-300">
@@ -110,7 +127,71 @@ export default function ArtistView() {
                 {stats.top_year?.count ? `${stats.top_year.count} plays` : ""}
               </span>
             </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Longest Listening Streak</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.longest_streak ? `${stats.longest_streak} days` : "N/A"}
+              </span>
+            </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">% of Total Listening</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.percent_of_total !== null && stats.percent_of_total !== undefined
+                  ? `${stats.percent_of_total}%`
+                  : "N/A"}
+              </span>
+            </div>
           </div>
+        </section>
+      )}
+
+      {milestones && milestones.length > 0 && (
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-blue-400">Milestones</h2>
+          <ul className="space-y-2">
+            {milestones.map(milestone => {
+              // Format the ordinal suffix
+              let suffix = "th";
+              if (milestone.milestone === 1) suffix = "st";
+              else if (milestone.milestone === 2) suffix = "nd";
+              else if (milestone.milestone === 3) suffix = "rd";
+              else if (
+                milestone.milestone % 10 === 1 &&
+                milestone.milestone % 100 !== 11
+              ) suffix = "st";
+              else if (
+                milestone.milestone % 10 === 2 &&
+                milestone.milestone % 100 !== 12
+              ) suffix = "nd";
+              else if (
+                milestone.milestone % 10 === 3 &&
+                milestone.milestone % 100 !== 13
+              ) suffix = "rd";
+
+              return (
+                <li
+                  key={milestone.milestone}
+                  className="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 rounded px-4 py-2 shadow"
+                >
+                  <div>
+                    <span className="font-bold text-blue-300">
+                      {milestone.milestone}
+                      {suffix} play:
+                    </span>{" "}
+                    <span className="font-medium">{milestone.track}</span>
+                    {milestone.album && (
+                      <span className="text-gray-400 ml-2">– {milestone.album}</span>
+                    )}
+                  </div>
+                  <span className="text-gray-500 text-sm">
+                    {milestone.timestamp
+                      ? new Date(milestone.timestamp * 1000).toLocaleString()
+                      : "N/A"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </section>
       )}
 

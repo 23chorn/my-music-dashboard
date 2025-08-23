@@ -81,14 +81,6 @@ function AppContent() {
           >
             History
           </Link>
-          <Link
-            to="/search"
-            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium transition ${
-              window.location.pathname === "/search" ? "border-l-4 border-blue-500" : ""
-            }`}
-          >
-            Search
-          </Link>
         </nav>
       </SidePanel>
       <div className={`flex-1 flex flex-col transition-all duration-300 ${collapsed ? "ml-16" : "ml-64"}`}>

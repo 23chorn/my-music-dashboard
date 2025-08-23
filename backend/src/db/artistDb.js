@@ -1,11 +1,16 @@
 const sqlite3 = require('sqlite3').verbose();
+const util = require('util');
 const db = new sqlite3.Database(__dirname + '/../../data/recentTracks.db');
+const dbGet = util.promisify(db.get).bind(db);
+const dbAll = util.promisify(db.all).bind(db);
 
 function getArtistInfo(artistId, callback) {
   db.get(
     `SELECT id, name, image_url FROM artists WHERE id = ?`,
     [artistId],
-    callback
+    (err, artist) => {
+      callback(err, artist);
+    }
   );
 }
 
@@ -20,22 +25,9 @@ function getArtistTopTracks(artistId, callback) {
      ORDER BY playcount DESC
      LIMIT 10`,
     [artistId],
-    callback
-  );
-}
-
-function getArtistTopAlbums(artistId, callback) {
-  db.all(
-    `SELECT albums.id, albums.name, COUNT(*) AS playcount
-     FROM plays
-     JOIN tracks ON plays.track_id = tracks.id
-     JOIN albums ON tracks.album_id = albums.id
-     WHERE albums.artist_id = ?
-     GROUP BY albums.id
-     ORDER BY playcount DESC
-     LIMIT 10`,
-    [artistId],
-    callback
+    (err, tracks) => {
+      callback(err, tracks);
+    }
   );
 }
 
@@ -49,75 +41,162 @@ function getArtistRecentPlays(artistId, callback) {
      ORDER BY plays.timestamp DESC
      LIMIT 10`,
     [artistId],
-    callback
+    (err, plays) => {
+      callback(err, plays);
+    }
   );
 }
 
-function getArtistStats(artistId, callback) {
-  // First and most recent play
-  db.get(
-    `SELECT MIN(plays.timestamp) AS first_play, MAX(plays.timestamp) AS last_play
+function getArtistTopAlbums(artistId, callback) {
+  console.log('getArtistTopAlbums called with', artistId);
+  db.all(
+    `SELECT albums.id, albums.name, COUNT(*) AS playcount
      FROM plays
      JOIN tracks ON plays.track_id = tracks.id
-     WHERE tracks.artist_id = ?`,
+     JOIN albums ON tracks.album_id = albums.id
+     WHERE albums.artist_id = ?
+     GROUP BY albums.id
+     ORDER BY playcount DESC
+     LIMIT 10`,
     [artistId],
-    (err, row) => {
-      if (err) return callback(err);
-
-      // Top day
-      db.get(
-        `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
-         FROM plays
-         JOIN tracks ON plays.track_id = tracks.id
-         WHERE tracks.artist_id = ?
-         GROUP BY day
-         ORDER BY count DESC
-         LIMIT 1`,
-        [artistId],
-        (err2, topDayRow) => {
-          if (err2) return callback(err2);
-
-          // Top month
-          db.get(
-            `SELECT strftime('%Y-%m', plays.timestamp, 'unixepoch') AS month, COUNT(*) AS count
-             FROM plays
-             JOIN tracks ON plays.track_id = tracks.id
-             WHERE tracks.artist_id = ?
-             GROUP BY month
-             ORDER BY count DESC
-             LIMIT 1`,
-            [artistId],
-            (err3, topMonthRow) => {
-              if (err3) return callback(err3);
-
-              // Top year
-              db.get(
-                `SELECT strftime('%Y', plays.timestamp, 'unixepoch') AS year, COUNT(*) AS count
-                 FROM plays
-                 JOIN tracks ON plays.track_id = tracks.id
-                 WHERE tracks.artist_id = ?
-                 GROUP BY year
-                 ORDER BY count DESC
-                 LIMIT 1`,
-                [artistId],
-                (err4, topYearRow) => {
-                  if (err4) return callback(err4);
-
-                  callback(null, {
-                    first_play: row.first_play,
-                    last_play: row.last_play,
-                    top_day: topDayRow,
-                    top_month: topMonthRow,
-                    top_year: topYearRow,
-                  });
-                }
-              );
-            }
-          );
-        }
-      );
+    (err, albums) => {
+      console.log('getArtistTopAlbums result', err, albums);
+      callback(err, albums);
     }
   );
+}
+
+function getArtistMilestones(artistId, callback) {
+  const milestones = [1, 100, 500, 1000, 5000];
+  db.all(
+    `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
+     FROM plays
+     JOIN tracks ON plays.track_id = tracks.id
+     LEFT JOIN albums ON tracks.album_id = albums.id
+     WHERE tracks.artist_id = ?
+     ORDER BY plays.timestamp ASC`,
+    [artistId],
+    (err, allPlays) => {
+      if (err) return callback(err);
+      const milestonePlays = milestones
+        .map(n => {
+          const play = allPlays[n - 1];
+          if (!play) return null;
+          return { milestone: n, ...play };
+        })
+        .filter(Boolean);
+      callback(null, milestonePlays);
+    }
+  );
+}
+
+async function getArtistStats(artistId, callback) {
+  try {
+    // First and most recent play
+    const row = await dbGet(
+      `SELECT MIN(plays.timestamp) AS first_play, MAX(plays.timestamp) AS last_play
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?`,
+      [artistId]
+    );
+
+    // Total streams for this artist
+    const totalRow = await dbGet(
+      `SELECT COUNT(*) AS total_streams
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?`,
+      [artistId]
+    );
+
+    // Total streams overall
+    const overallRow = await dbGet(
+      `SELECT COUNT(*) AS overall_streams FROM plays`
+    );
+
+    const percent = overallRow.overall_streams
+      ? ((totalRow.total_streams / overallRow.overall_streams) * 100).toFixed(2)
+      : null;
+
+    // Top day
+    const topDayRow = await dbGet(
+      `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?
+       GROUP BY day
+       ORDER BY count DESC
+       LIMIT 1`,
+      [artistId]
+    );
+
+    // Top month
+    const topMonthRow = await dbGet(
+      `SELECT strftime('%Y-%m', plays.timestamp, 'unixepoch') AS month, COUNT(*) AS count
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?
+       GROUP BY month
+       ORDER BY count DESC
+       LIMIT 1`,
+      [artistId]
+    );
+
+    // Top year
+    const topYearRow = await dbGet(
+      `SELECT strftime('%Y', plays.timestamp, 'unixepoch') AS year, COUNT(*) AS count
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?
+       GROUP BY year
+       ORDER BY count DESC
+       LIMIT 1`,
+      [artistId]
+    );
+
+    // Longest streak
+    const streakRows = await dbAll(
+      `SELECT DATE(plays.timestamp, 'unixepoch') AS day
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?
+       GROUP BY day
+       ORDER BY day ASC`,
+      [artistId]
+    );
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let prevDate = null;
+    streakRows.forEach(row => {
+      const date = new Date(row.day);
+      if (prevDate) {
+        const diff = (date - prevDate) / (1000 * 60 * 60 * 24);
+        if (diff === 1) {
+          currentStreak += 1;
+        } else {
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+      prevDate = date;
+    });
+
+    callback(null, {
+      first_play: row.first_play,
+      last_play: row.last_play,
+      total_streams: totalRow.total_streams,
+      percent_of_total: percent,
+      top_day: topDayRow,
+      top_month: topMonthRow,
+      top_year: topYearRow,
+      longest_streak: longestStreak,
+    });
+  } catch (err) {
+    callback(err);
+  }
 }
 
 module.exports = {
@@ -126,4 +205,5 @@ module.exports = {
   getArtistTopAlbums,
   getArtistRecentPlays,
   getArtistStats,
+  getArtistMilestones,
 };

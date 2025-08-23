@@ -6,6 +6,7 @@ const {
   getArtistTopAlbums,
   getArtistRecentPlays,
   getArtistStats,
+  getArtistMilestones,
 } = require('../db/artistDb');
 
 router.get('/:id', (req, res) => {
@@ -39,8 +40,18 @@ router.get('/:id/recent-plays', (req, res) => {
 
 router.get('/:id/stats', (req, res) => {
   getArtistStats(req.params.id, (err, stats) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
+    if (err) {
+      console.error(err); // Log the error for debugging
+      return res.status(500).json({ error: 'DB error' });
+    }
     res.json(stats);
+  });
+});
+
+router.get('/:id/milestones', (req, res) => {
+  getArtistMilestones(req.params.id, (err, milestones) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(milestones);
   });
 });
 
