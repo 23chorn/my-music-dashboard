@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { searchAll } from "./data/searchApi";
-import SidePanel from "./components/sidePanel";
+import SidePanel from "./components/SidePanel";
 import Dashboard from "./pages/Dashboard";
 import Discovery from "./pages/Discovery";
 import History from "./pages/History";

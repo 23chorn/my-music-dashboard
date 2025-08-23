@@ -10,11 +10,9 @@ import {
   getArtistDailyPlays
 } from "../data/artistApi";
 import { getOrdinalSuffix } from "../utils/ordinalSuffix";
-import ArtistHeatmap from "../components/ArtistHeatmap";
-import RecentTracksSection from "../components/RecentTracksSection";
-import TopAlbumsSection from "../components/TopAlbumsSection";
-import TopTracksSection from "../components/TopTracksSection";
-import TilesSection from "../components/TilesSection";
+import ArtistHeatmap from "../components/Heatmap";
+import GroupedSection from "../components/GroupedSection";
+import ListTile from "../components/ListTile";
 
 export default function ArtistView() {
   const { id } = useParams();
@@ -178,11 +176,6 @@ export default function ArtistView() {
   if (loading) return <div className="p-4">Loading...</div>;
   if (!artist) return <div className="p-4">Artist not found.</div>;
 
-  // Calculate start date for last 12 months
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setFullYear(endDate.getFullYear() - 1);
-
   return (
     <div className="w-full max-w-5xl mx-auto p-4">
       <div className="flex items-center gap-6 mb-8">
@@ -194,72 +187,92 @@ export default function ArtistView() {
         </div>
       </div>
 
-      <TilesSection tiles={statsTiles} title="Artist Stats" />
+      <GroupedSection
+        title="Artist Stats"
+        items={statsTiles}
+        showPeriod={false}
+        showLimit={false}
+        mapper={tile => tile}
+        layout="grid"
+      />
 
       {milestones && milestones.length > 0 && (
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4 text-blue-400">Milestones</h2>
           <ul className="space-y-2">
-            {milestones.map(milestone => {
-              const suffix = getOrdinalSuffix(milestone.milestone);
-              return (
-                <li
-                  key={milestone.milestone}
-                  className="flex flex-col md:flex-row md:items-center justify-between bg-gray-800 rounded px-4 py-2 shadow"
-                >
-                  <div>
-                    <span className="font-bold text-blue-300">
-                      {milestone.milestone}
-                      {suffix} play:
-                    </span>{" "}
-                    <span className="font-medium">{milestone.track}</span>
-                    {milestone.album && (
-                      <span className="text-gray-400 ml-2">– {milestone.album}</span>
-                    )}
-                  </div>
-                  <span className="text-gray-500 text-sm">
-                    {milestone.timestamp
-                      ? new Date(milestone.timestamp * 1000).toLocaleString()
-                      : "N/A"}
-                  </span>
-                </li>
-              );
-            })}
+            {milestones.map(milestone => (
+              <ListTile
+                key={milestone.milestone}
+                label={`${milestone.milestone}${getOrdinalSuffix(milestone.milestone)} play:`}
+                value={milestone.track}
+                album={milestone.album}
+                sub={
+                  milestone.timestamp
+                    ? new Date(milestone.timestamp * 1000).toLocaleString()
+                    : "N/A"
+                }
+              />
+            ))}
           </ul>
         </section>
       )}
 
-      {/* Top Tracks */}
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-400">Top Tracks</h2>
-        <TopTracksSection
-          topTracks={topTracks ?? []}
-          trackLimit={trackLimit}
-          setTrackLimit={setTrackLimit}
-          trackPeriod={trackPeriod}
-          setTrackPeriod={setTrackPeriod}
+        <GroupedSection
+          title="Top Tracks"
+          items={topTracks}
+          period={trackPeriod}
+          setPeriod={setTrackPeriod}
+          showPeriod={true}
+          showLimit={true}
+          limit={trackLimit}
+          setLimit={setTrackLimit}
+          mapper={track => ({
+            label: track.track,
+            value: track.artist,
+            sub: `${track.playcount ?? 0} plays`
+          })}
+          layout='grid'
+          collapsible={true}
         />
       </section>
 
-      {/* Top Albums */}
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-blue-400">Top Albums</h2>
-        <TopAlbumsSection
-          topAlbums={topAlbums ?? []}
-          albumLimit={albumLimit}
-          setAlbumLimit={setAlbumLimit}
-          albumPeriod={albumPeriod}
-          setAlbumPeriod={setAlbumPeriod}
+        <GroupedSection
+          title="Top Albums"
+          items={topAlbums}
+          period={albumPeriod}
+          setPeriod={setAlbumPeriod}
+          showPeriod={true}
+          showLimit={true}
+          limit={albumLimit}
+          setLimit={setAlbumLimit}
+          mapper={album => ({
+            label: album.album,
+            value: album.artist,
+            sub: `${album.playcount ?? 0} plays`
+          })}
+          layout='grid'
+          collapsible={true}
         />
       </section>
 
-      {/* Recent Plays */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4 text-blue-400">Recent Plays</h2>
-        <RecentTracksSection
-          recentTracks={recentPlays}
-          recentLimit={recentLimit}
-          setRecentLimit={setRecentLimit}
+        <GroupedSection
+          title="Recent Plays"
+          items={recentPlays}
+          limit={recentLimit}
+          setLimit={setRecentLimit}
+          showLimit={true}
+          mapper={track => ({
+            label: track.track,
+            value: track.artist,
+            album: track.album,
+            sub: track.timestamp
+              ? new Date(track.timestamp * 1000).toLocaleString()
+              : "Now Playing"
+          })}
+          collapsible={true}
         />
       </section>
 

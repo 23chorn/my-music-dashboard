@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
-export default function CollapsibleSection({ title, children, defaultOpen = true, className = "" }) {
+export default function CollapsibleSection({ children, defaultOpen = true, className = "" }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section className={`mb-8 ${className}`}>
-      <button
-        className="flex items-center text-xl font-bold mb-2 bg-gray-900 px-4 py-2 rounded w-full justify-between min-w-0"
-        onClick={() => setOpen(o => !o)}
-      >
-        <span>{title}</span>
-        {open ? <FaChevronUp /> : <FaChevronDown />}
-      </button>
+      <div className="flex items-center mb-2">
+        <button
+          className="p-1 rounded bg-gray-900 hover:bg-gray-800 transition"
+          onClick={() => setOpen(o => !o)}
+          aria-label={open ? "Collapse section" : "Expand section"}
+        >
+          {open ? <FaChevronUp /> : <FaChevronDown />}
+        </button>
+      </div>
       {open && <div>{children}</div>}
     </section>
   );

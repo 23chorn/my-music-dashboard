@@ -1,11 +1,6 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import useDashboardData from "../hooks/useDashboardData";
-import TopArtistsSection from "../components/TopArtistsSection";
-import TopTracksSection from "../components/TopTracksSection";
-import TopAlbumsSection from "../components/TopAlbumsSection";
-import RecentTracksSection from "../components/RecentTracksSection";
-import TilesSection from "../components/TilesSection";
+import GroupedSection from "../components/GroupedSection";
 
 export default function Dashboard() {
   const {
@@ -34,40 +29,84 @@ export default function Dashboard() {
         <p className="text-sm text-gray-600">Here you can find all your music statistics in one place.</p>
       </section>
 
-      <TilesSection tiles={dashboardTiles} title="Your Stats" />
-
-      {/* Top Artists */}
-      <TopArtistsSection
-        topArtists={topArtists}
-        artistLimit={artistLimit}
-        setArtistLimit={setArtistLimit}
-        artistPeriod={artistPeriod}
-        setArtistPeriod={setArtistPeriod}
+      <GroupedSection
+        title="Your Stats"
+        items={dashboardTiles}
+        showPeriod={false}
+        showLimit={false}
+        mapper={tile => tile}
+        layout="grid"
       />
 
-      {/* Top Tracks */}
-      <TopTracksSection
-        topTracks={topTracks}
-        trackLimit={trackLimit}
-        setTrackLimit={setTrackLimit}
-        trackPeriod={trackPeriod}
-        setTrackPeriod={setTrackPeriod}
+      <GroupedSection
+        title="Top Artists"
+        items={topArtists}
+        period={artistPeriod}
+        setPeriod={setArtistPeriod}
+        showPeriod={true}
+        showLimit={true}
+        limit={artistLimit}
+        setLimit={setArtistLimit}
+        mapper={artist => ({
+          label: artist.artist,
+          value: `${artist.playcount ?? 0} plays`,
+          link: artist.artistId ? `/artist/${artist.artistId}` : undefined
+        })}
+        layout='grid'
+        collapsible={true}
       />
 
-      {/* Top Albums */}
-      <TopAlbumsSection
-        topAlbums={topAlbums}
-        albumLimit={albumLimit}
-        setAlbumLimit={setAlbumLimit}
-        albumPeriod={albumPeriod}
-        setAlbumPeriod={setAlbumPeriod}
+      <GroupedSection
+        title="Top Tracks"
+        items={topTracks}
+        period={trackPeriod}
+        setPeriod={setTrackPeriod}
+        showPeriod={true}
+        showLimit={true}
+        limit={trackLimit}
+        setLimit={setTrackLimit}
+        mapper={track => ({
+          label: track.track,
+          value: track.artist,
+          sub: `${track.playcount ?? 0} plays`
+        })}
+        layout='grid'
+        collapsible={true}
       />
 
-      {/* Recent Tracks */}
-      <RecentTracksSection
-        recentTracks={recentTracks}
-        recentLimit={recentLimit}
-        setRecentLimit={setRecentLimit}
+      <GroupedSection
+        title="Top Albums"
+        items={topAlbums}
+        period={albumPeriod}
+        setPeriod={setAlbumPeriod}
+        showPeriod={true}
+        showLimit={true}
+        limit={albumLimit}
+        setLimit={setAlbumLimit}
+        mapper={album => ({
+          label: album.artist,
+          value: album.album,
+          sub: `${album.playcount ?? 0} plays`
+        })}
+        layout='grid'
+        collapsible={true}
+      />
+
+      <GroupedSection
+        title="Recent Plays"
+        items={recentTracks}
+        limit={recentLimit}
+        setLimit={setRecentLimit}
+        showLimit={true}
+        mapper={track => ({
+          label: track.track,
+          value: track.artist,
+          album: track.album,
+          sub: track.timestamp
+            ? new Date(track.timestamp * 1000).toLocaleString()
+            : "Now Playing"
+        })}
+        collapsible={true}
       />
     </div>
   );
