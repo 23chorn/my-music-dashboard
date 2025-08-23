@@ -33,7 +33,9 @@ router.get('/:id/top-albums', (req, res) => {
 });
 
 router.get('/:id/recent-plays', (req, res) => {
-  getArtistRecentPlays(req.params.id, (err, plays) => {
+  const artistId = req.params.id;
+  const limit = Number(req.query.limit) || 10;
+  getArtistRecentPlays(artistId, limit, (err, plays) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(plays);
   });

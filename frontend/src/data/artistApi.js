@@ -18,8 +18,8 @@ export async function getArtistTopAlbums(id) {
   return await res.json();
 }
 
-export async function getArtistRecentPlays(id) {
-  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/recent-plays`);
+export async function getArtistRecentPlays(id, limit = 10) {
+  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/recent-plays?limit=${limit}`);
   if (!res.ok) throw new Error('Failed to fetch recent plays');
   return await res.json();
 }

@@ -31,7 +31,7 @@ function getArtistTopTracks(artistId, callback) {
   );
 }
 
-function getArtistRecentPlays(artistId, callback) {
+function getArtistRecentPlays(artistId, limit = 10, callback) {
   db.all(
     `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
      FROM plays
@@ -39,8 +39,8 @@ function getArtistRecentPlays(artistId, callback) {
      LEFT JOIN albums ON tracks.album_id = albums.id
      WHERE tracks.artist_id = ?
      ORDER BY plays.timestamp DESC
-     LIMIT 10`,
-    [artistId],
+     LIMIT ?`,
+    [artistId, limit],
     (err, plays) => {
       callback(err, plays);
     }

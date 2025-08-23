@@ -12,7 +12,6 @@ import {
 import { getOrdinalSuffix } from "../utils/ordinalSuffix";
 import ArtistHeatmap from "../components/ArtistHeatmap";
 import RecentTracksSection from "../components/RecentTracksSection";
-import TopTracksSection from "../components/TopTracksSection";
 
 export default function ArtistView() {
   const { id } = useParams();
@@ -24,6 +23,7 @@ export default function ArtistView() {
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dailyPlays, setDailyPlays] = useState([]);
+  const [recentLimit, setRecentLimit] = useState(10);
 
   useEffect(() => {
     async function fetchData() {
@@ -69,6 +69,18 @@ export default function ArtistView() {
     }
     fetchEraData();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchRecentPlays() {
+      try {
+        const plays = await getArtistRecentPlays(id, recentLimit);
+        setRecentPlays(plays);
+      } catch {
+        setRecentPlays([]);
+      }
+    }
+    if (id) fetchRecentPlays();
+  }, [id, recentLimit]);
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (!artist) return <div className="p-4">Artist not found.</div>;
@@ -253,8 +265,8 @@ export default function ArtistView() {
         <h2 className="text-2xl font-semibold mb-4 text-blue-400">Recent Plays</h2>
         <RecentTracksSection
   recentTracks={recentPlays}
-  recentLimit={recentPlays.length} // or set a limit if you want
-  setRecentLimit={() => {}} // pass a no-op if you don't want to change limit here
+  recentLimit={recentLimit} // or set a limit if you want
+  setRecentLimit={setRecentLimit} // pass a no-op if you don't want to change limit here
 />
       </section>
 
