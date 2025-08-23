@@ -4,6 +4,7 @@ const API_KEY = process.env.VITE_LASTFM_API_KEY;
 const USERNAME = process.env.VITE_LASTFM_USERNAME;
 const BASE_URL = "https://ws.audioscrobbler.com/2.0/";
 
+
 async function fetchAllRecentTracks({ from }) {
   try {
     const params = {
