@@ -1,4 +1,3 @@
-// Example SidePanel.jsx
 import { FaBars } from "react-icons/fa";
 
 export default function SidePanel({ children, collapsed, setCollapsed }) {
