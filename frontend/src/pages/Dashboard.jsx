@@ -23,10 +23,15 @@ export default function Dashboard() {
     { label: "Unique Tracks", value: uniqueTracks ?? "N/A" },
   ];
 
+  const imageUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://jstjcx5dxzpncbjg.public.blob.vercel-storage.com/pfp.jpeg"
+      : "/pfp.jpeg";
+
   return (
     <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
       <SectionHeader
-        image="/pfp.jpeg"
+        image={imageUrl}
         title="Welcome to Chorn's Music Dashboard!"
         subheader="Here you can find all your music statistics in one place."
       />
