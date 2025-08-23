@@ -5,6 +5,7 @@ const {
   getArtistTopTracks,
   getArtistTopAlbums,
   getArtistRecentPlays,
+  getArtistStats,
 } = require('../db/artistDb');
 
 router.get('/:id', (req, res) => {
@@ -33,6 +34,13 @@ router.get('/:id/recent-plays', (req, res) => {
   getArtistRecentPlays(req.params.id, (err, plays) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(plays);
+  });
+});
+
+router.get('/:id/stats', (req, res) => {
+  getArtistStats(req.params.id, (err, stats) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(stats);
   });
 });
 

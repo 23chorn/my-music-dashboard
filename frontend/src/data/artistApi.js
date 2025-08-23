@@ -23,3 +23,9 @@ export async function getArtistRecentPlays(id) {
   if (!res.ok) throw new Error('Failed to fetch recent plays');
   return await res.json();
 }
+
+export async function getArtistStats(id) {
+  const res = await fetch(`${API_BASE_URL}/api/artist/${id}/stats`);
+  if (!res.ok) throw new Error('Failed to fetch artist stats');
+  return await res.json();
+}

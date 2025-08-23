@@ -4,7 +4,8 @@ import {
   getArtistInfo,
   getArtistTopTracks,
   getArtistTopAlbums,
-  getArtistRecentPlays
+  getArtistRecentPlays,
+  getArtistStats
 } from "../data/artistApi";
 
 export default function ArtistView() {
@@ -13,22 +14,25 @@ export default function ArtistView() {
   const [topTracks, setTopTracks] = useState([]);
   const [topAlbums, setTopAlbums] = useState([]);
   const [recentPlays, setRecentPlays] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
-        const [artistData, tracks, albums, plays] = await Promise.all([
+        const [artistData, tracks, albums, plays, statsData] = await Promise.all([
           getArtistInfo(id),
           getArtistTopTracks(id),
           getArtistTopAlbums(id),
-          getArtistRecentPlays(id)
+          getArtistRecentPlays(id),
+          getArtistStats(id)
         ]);
         setArtist(artistData);
         setTopTracks(tracks);
         setTopAlbums(albums);
         setRecentPlays(plays);
+        setStats(statsData);
       } catch {
         setArtist(null);
       }
@@ -41,39 +45,135 @@ export default function ArtistView() {
   if (!artist) return <div className="p-4">Artist not found.</div>;
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="w-full max-w-5xl mx-auto p-4">
+      <div className="flex items-center gap-6 mb-8">
         {artist.image_url && (
-          <img src={artist.image_url} alt={artist.name} className="w-24 h-24 rounded" />
+          <img src={artist.image_url} alt={artist.name} className="w-28 h-28 rounded shadow-lg object-cover" />
         )}
-        <h1 className="text-3xl font-bold">{artist.name}</h1>
+        <div>
+          <h1 className="text-4xl font-bold mb-2">{artist.name}</h1>
+        </div>
       </div>
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Top Tracks</h2>
-        <ul>
-          {topTracks.map(track => (
-            <li key={track.id} className="mb-1">
-              {track.name} <span className="text-gray-500">({track.playcount} plays)</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Top Albums</h2>
-        <ul>
-          {topAlbums.map(album => (
-            <li key={album.id} className="mb-1">
-              {album.name} <span className="text-gray-500">({album.playcount} plays)</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+
+      {stats && (
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-blue-400">Artist Streaming Stats</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">First Streamed</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.first_play ? new Date(stats.first_play * 1000).toLocaleDateString() : "N/A"}
+              </span>
+            </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Most Recent Stream</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.last_play ? new Date(stats.last_play * 1000).toLocaleDateString() : "N/A"}
+              </span>
+            </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Top Day</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.top_day?.day
+                  ? (() => {
+                      const d = new Date(stats.top_day.day);
+                      return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1)
+                        .toString()
+                        .padStart(2, "0")}/${d.getFullYear()}`;
+                    })()
+                  : "N/A"}
+              </span>
+              <span className="text-gray-400 text-xs">
+                {stats.top_day?.count ? `${stats.top_day.count} plays` : ""}
+              </span>
+            </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Top Month</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.top_month?.month
+                  ? (() => {
+                      const [year, month] = stats.top_month.month.split("-");
+                      return `${month}/${year}`;
+                    })()
+                  : "N/A"}
+              </span>
+              <span className="text-gray-400 text-xs">
+                {stats.top_month?.count ? `${stats.top_month.count} plays` : ""}
+              </span>
+            </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Top Year</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.top_year?.year ? stats.top_year.year : "N/A"}
+              </span>
+              <span className="text-gray-400 text-xs">
+                {stats.top_year?.count ? `${stats.top_year.count} plays` : ""}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Top Tracks */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 text-blue-400">Top Tracks</h2>
+          <ol className="space-y-2">
+            {topTracks.length === 0 && <li className="text-gray-400">No tracks found.</li>}
+            {topTracks.map((track, idx) => (
+              <li
+                key={track.id}
+                className="flex items-center justify-between bg-gray-800 rounded px-4 py-2 shadow hover:bg-blue-900 transition"
+              >
+                <div>
+                  <span className="font-medium text-lg">{idx + 1}. {track.name}</span>
+                  {track.album && (
+                    <span className="text-gray-400 ml-2">– {track.album}</span>
+                  )}
+                </div>
+                <span className="text-gray-400 text-sm">{track.playcount} plays</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* Top Albums */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 text-blue-400">Top Albums</h2>
+          <ol className="space-y-2">
+            {topAlbums.length === 0 && <li className="text-gray-400">No albums found.</li>}
+            {topAlbums.map((album, idx) => (
+              <li
+                key={album.id}
+                className="flex items-center justify-between bg-gray-800 rounded px-4 py-2 shadow hover:bg-blue-900 transition"
+              >
+                <span className="font-medium text-lg">{idx + 1}. {album.name}</span>
+                <span className="text-gray-400 text-sm">{album.playcount} plays</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+
+      {/* Recent Plays */}
       <section>
-        <h2 className="text-xl font-semibold mb-2">Recent Plays</h2>
-        <ul>
+        <h2 className="text-2xl font-semibold mb-4 text-blue-400">Recent Plays</h2>
+        <ul className="space-y-2">
+          {recentPlays.length === 0 && <li className="text-gray-400">No recent plays found.</li>}
           {recentPlays.map((play, idx) => (
-            <li key={idx} className="mb-1">
-              {play.track} {play.album && <>– <span className="text-gray-400">{play.album}</span></>} <span className="text-gray-500">({new Date(play.timestamp * 1000).toLocaleString()})</span>
+            <li
+              key={idx}
+              className="flex items-center justify-between bg-gray-800 rounded px-4 py-2 shadow"
+            >
+              <div>
+                <span className="font-medium">{play.track}</span>
+                {play.album && (
+                  <span className="text-gray-400 ml-2">– {play.album}</span>
+                )}
+              </div>
+              <span className="text-gray-500 text-sm">
+                {new Date(play.timestamp * 1000).toLocaleString()}
+              </span>
             </li>
           ))}
         </ul>
