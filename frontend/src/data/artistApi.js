@@ -41,3 +41,9 @@ export async function getArtistDailyPlays(id, days = 30) {
   if (!res.ok) throw new Error('Failed to fetch daily plays');
   return await res.json();
 }
+
+export async function getAllArtistsWithPlaycount() {
+  const res = await fetch(`${API_BASE_URL}/api/artist/all`);
+  if (!res.ok) throw new Error('Failed to fetch all artists');
+  return await res.json();
+}

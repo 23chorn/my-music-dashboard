@@ -8,7 +8,16 @@ const {
   getArtistStats,
   getArtistMilestones,
   getArtistDailyPlays,
+  getAllArtistsWithPlaycount,
 } = require('../db/artistDb');
+
+// Get all artists with playcount for Explore page
+router.get('/all', (req, res) => {
+  getAllArtistsWithPlaycount((err, rows) => {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json(rows);
+  });
+});
 
 router.get('/:id', (req, res) => {
   getArtistInfo(req.params.id, (err, artist) => {

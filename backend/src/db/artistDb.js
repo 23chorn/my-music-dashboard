@@ -232,6 +232,21 @@ function getArtistDailyPlays(artistId, days = 30, callback) {
   );
 }
 
+function getAllArtistsWithPlaycount(callback) {
+  db.all(
+    `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
+     FROM artists
+     LEFT JOIN tracks ON tracks.artist_id = artists.id
+     LEFT JOIN plays ON plays.track_id = tracks.id
+     GROUP BY artists.id
+     ORDER BY artists.name ASC`,
+    [],
+    (err, rows) => {
+      callback(err, rows);
+    }
+  );
+}
+
 module.exports = {
   getArtistInfo,
   getArtistTopTracks,
@@ -240,4 +255,5 @@ module.exports = {
   getArtistStats,
   getArtistMilestones,
   getArtistDailyPlays,
+  getAllArtistsWithPlaycount,
 };

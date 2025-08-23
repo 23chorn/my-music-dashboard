@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Discovery from "./pages/Discovery";
 import History from "./pages/History";
 import ArtistView from "./pages/ArtistView";
+import ExploreView from "./pages/ExploreView";
 
 function AppContent() {
   const [collapsed, setCollapsed] = useState(true);
@@ -80,6 +81,14 @@ function AppContent() {
             }`}
           >
             History
+          </Link>
+          <Link
+            to="/explore"
+            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-blue-400 font-medium transition ${
+              window.location.pathname === "/explore" ? "border-l-4 border-blue-500" : ""
+            }`}
+          >
+            Explore
           </Link>
         </nav>
       </SidePanel>
@@ -158,6 +167,7 @@ function AppContent() {
             <Route path="/discovery" element={<Discovery />} />
             <Route path="/history" element={<History />} />
             <Route path="/artist/:id" element={<ArtistView />} />
+            <Route path="/explore" element={<ExploreView />} />
           </Routes>
         </main>
       </div>
