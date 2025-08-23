@@ -8,7 +8,7 @@ import History from "./pages/History";
 import ArtistView from "./pages/ArtistView";
 
 function AppContent() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);

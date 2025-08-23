@@ -50,7 +50,7 @@
 .react-calendar-heatmap .heatmap .color-empty {
   rx: 4;
   ry: 4;
-  width: 16px;
+  width: 16x;
   height: 16px;
 }
 
@@ -58,6 +58,23 @@
 .react-calendar-heatmap .heatmap rect {
   width: 2px;
   height: 2px;
-  rx: 2;
-  ry: 2;
+  rx: 1;
+  ry: 1;
+}
+
+/* Heatmap color scale: shades of red */
+.color-empty {
+  fill: #2d2d2d !important;
+}
+.color-scale-1 {
+  fill: #ffb3b3 !important;
+}
+.color-scale-2 {
+  fill: #ff6666 !important;
+}
+.color-scale-3 {
+  fill: #ff1a1a !important;
+}
+.color-scale-4 {
+  fill: #990000 !important;
 }
