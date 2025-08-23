@@ -8,6 +8,7 @@ import {
   getArtistStats,
   getArtistMilestones
 } from "../data/artistApi";
+import { getOrdinalSuffix } from "../utils/ordinalSuffix";
 
 export default function ArtistView() {
   const { id } = useParams();
@@ -141,6 +142,12 @@ export default function ArtistView() {
                   : "N/A"}
               </span>
             </div>
+            <div className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center">
+              <span className="text-gray-400 text-sm mb-1">Rank Among All Artists</span>
+              <span className="font-bold text-lg text-blue-300">
+                {stats.rank ? `#${stats.rank} of ${stats.total_artists}` : "N/A"}
+              </span>
+            </div>
           </div>
         </section>
       )}
@@ -150,24 +157,7 @@ export default function ArtistView() {
           <h2 className="text-xl font-semibold mb-4 text-blue-400">Milestones</h2>
           <ul className="space-y-2">
             {milestones.map(milestone => {
-              // Format the ordinal suffix
-              let suffix = "th";
-              if (milestone.milestone === 1) suffix = "st";
-              else if (milestone.milestone === 2) suffix = "nd";
-              else if (milestone.milestone === 3) suffix = "rd";
-              else if (
-                milestone.milestone % 10 === 1 &&
-                milestone.milestone % 100 !== 11
-              ) suffix = "st";
-              else if (
-                milestone.milestone % 10 === 2 &&
-                milestone.milestone % 100 !== 12
-              ) suffix = "nd";
-              else if (
-                milestone.milestone % 10 === 3 &&
-                milestone.milestone % 100 !== 13
-              ) suffix = "rd";
-
+              const suffix = getOrdinalSuffix(milestone.milestone);
               return (
                 <li
                   key={milestone.milestone}

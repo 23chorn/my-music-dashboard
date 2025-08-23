@@ -184,6 +184,18 @@ async function getArtistStats(artistId, callback) {
       prevDate = date;
     });
 
+    // Rank among all artists
+    const artistRanks = await dbAll(
+      `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
+       FROM artists
+       LEFT JOIN tracks ON tracks.artist_id = artists.id
+       LEFT JOIN plays ON plays.track_id = tracks.id
+       GROUP BY artists.id
+       ORDER BY playcount DESC`
+    );
+    const rank =
+      artistRanks.findIndex(a => a.id === Number(artistId)) + 1; // 1-based rank
+
     callback(null, {
       first_play: row.first_play,
       last_play: row.last_play,
@@ -193,6 +205,8 @@ async function getArtistStats(artistId, callback) {
       top_month: topMonthRow,
       top_year: topYearRow,
       longest_streak: longestStreak,
+      rank: rank > 0 ? rank : null,
+      total_artists: artistRanks.length,
     });
   } catch (err) {
     callback(err);
