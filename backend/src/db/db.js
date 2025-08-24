@@ -286,23 +286,34 @@ function getTopArtists(limit = 5, period = "overall", callback) {
   });
 }
 
-function getTopTracks(limit = 5, period = "overall", callback) {
+function getTopTracks({ limit = 5, period = "overall", artistId = null }, callback) {
   const fromTimestamp = getPeriodTimestamp(period);
-  const query = `
-    SELECT tracks.id, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
+  let query = `
+    SELECT tracks.id AS trackId, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
     FROM plays
     JOIN tracks ON plays.track_id = tracks.id
     JOIN artists ON tracks.artist_id = artists.id
     LEFT JOIN albums ON tracks.album_id = albums.id
     WHERE plays.timestamp >= ?
+  `;
+  const params = [fromTimestamp];
+
+  if (artistId) {
+    query += ` AND tracks.artist_id = ?`;
+    params.push(artistId);
+  }
+
+  query += `
     GROUP BY tracks.id
     ORDER BY playcount DESC
     LIMIT ?
   `;
-  db.all(query, [fromTimestamp, limit], (err, rows) => {
+  params.push(limit);
+
+  db.all(query, params, (err, rows) => {
     if (err) return callback(err);
     callback(null, rows.map(row => ({
-      trackId: row.id,
+      trackId: row.trackId,
       track: row.track,
       artist: row.artist,
       album: row.album,
@@ -311,26 +322,37 @@ function getTopTracks(limit = 5, period = "overall", callback) {
   });
 }
 
-function getTopAlbums(limit = 5, period = "overall", callback) {
+function getTopAlbums({ limit = 5, period = "overall", artistId = null }, callback) {
   const fromTimestamp = getPeriodTimestamp(period);
-  const query = `
-    SELECT albums.id, albums.name AS album, artists.name AS artist, albums.image_url, COUNT(*) AS playcount
+  let query = `
+    SELECT albums.id AS albumId, albums.name AS album, artists.name AS artist, albums.image_url AS image, COUNT(*) AS playcount
     FROM plays
     JOIN tracks ON plays.track_id = tracks.id
     JOIN albums ON tracks.album_id = albums.id
     JOIN artists ON albums.artist_id = artists.id
     WHERE plays.timestamp >= ?
+  `;
+  const params = [fromTimestamp];
+
+  if (artistId) {
+    query += ` AND albums.artist_id = ?`;
+    params.push(artistId);
+  }
+
+  query += `
     GROUP BY albums.id
     ORDER BY playcount DESC
     LIMIT ?
   `;
-  db.all(query, [fromTimestamp, limit], (err, rows) => {
+  params.push(limit);
+
+  db.all(query, params, (err, rows) => {
     if (err) return callback(err);
     callback(null, rows.map(row => ({
-      albumId: row.id,
+      albumId: row.albumId,
       album: row.album,
       artist: row.artist,
-      image: row.image_url,
+      image: row.image,
       playcount: row.playcount
     })));
   });

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/GroupedSection";
 import SectionHeader from "../components/SectionHeader";
+import { formatValue } from "../utils/numberFormat";
 
 export default function Dashboard() {
   const {
@@ -17,10 +18,10 @@ export default function Dashboard() {
   }, []);
 
   const dashboardTiles = [
-    { label: "Total Plays", value: playCount ?? "N/A" },
-    { label: "Unique Artists", value: uniqueArtists ?? "N/A" },
-    { label: "Unique Albums", value: uniqueAlbums ?? "N/A" },
-    { label: "Unique Tracks", value: uniqueTracks ?? "N/A" },
+    { label: "Total Plays", value: formatValue(playCount) ?? "N/A" },
+    { label: "Unique Artists", value: formatValue(uniqueArtists) ?? "N/A" },
+    { label: "Unique Albums", value: formatValue(uniqueAlbums) ?? "N/A" },
+    { label: "Unique Tracks", value: formatValue(uniqueTracks) ?? "N/A" },
   ];
 
   const imageUrl =
@@ -55,8 +56,8 @@ export default function Dashboard() {
         limit={artistLimit}
         setLimit={setArtistLimit}
         mapper={artist => ({
-          label: artist.artist,
-          value: `${artist.playcount ?? 0} plays`,
+          value: artist.artist,
+          sub: formatValue(`${artist.playcount ?? 0} plays`),
           link: artist.artistId ? `/artist/${artist.artistId}` : undefined
         })}
         layout='grid'
@@ -75,7 +76,7 @@ export default function Dashboard() {
         mapper={track => ({
           label: track.artist,
           value: track.track,
-          sub: `${track.playcount ?? 0} plays`
+          sub: formatValue(`${track.playcount ?? 0} plays`)
         })}
         layout='grid'
         collapsible={true}
@@ -93,7 +94,7 @@ export default function Dashboard() {
         mapper={album => ({
           label: album.artist,
           value: album.album,
-          sub: `${album.playcount ?? 0} plays`
+          sub: formatValue(`${album.playcount ?? 0} plays`)
         })}
         layout='grid'
         collapsible={true}

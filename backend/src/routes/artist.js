@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const {
   getArtistInfo,
-  getArtistTopTracks,
   getArtistTopAlbums,
   getArtistRecentPlays,
   getArtistStats,
@@ -10,6 +9,7 @@ const {
   getArtistDailyPlays,
   getAllArtistsWithPlaycount,
 } = require('../db/artistDb');
+const { getTopTracks, getTopAlbums } = require('../db/db'); 
 
 // Get all artists with playcount for Explore page
 router.get('/all', (req, res) => {
@@ -31,7 +31,7 @@ router.get('/:id/top-tracks', (req, res) => {
   const artistId = req.params.id;
   const limit = Number(req.query.limit) || 10;
   const period = req.query.period || 'overall';
-  getArtistTopTracks(artistId, limit, period, (err, tracks) => {
+  getTopTracks({ artistId, limit, period }, (err, tracks) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(tracks);
   });
@@ -41,7 +41,7 @@ router.get('/:id/top-albums', (req, res) => {
   const artistId = req.params.id;
   const limit = Number(req.query.limit) || 10;
   const period = req.query.period || 'overall';
-  getArtistTopAlbums(artistId, limit, period, (err, albums) => {
+  getTopAlbums({ artistId, limit, period }, (err, albums) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json(albums);
   });

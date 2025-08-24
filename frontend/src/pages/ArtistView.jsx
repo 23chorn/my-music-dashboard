@@ -4,6 +4,7 @@ import Heatmap from "../components/Heatmap";
 import GroupedSection from "../components/GroupedSection";
 import MilestoneSection from "../components/MilestoneSection";
 import SectionHeader from "../components/SectionHeader";
+import { formatValue } from "../utils/numberFormat";
 
 export default function ArtistView() {
   const { id } = useParams();
@@ -32,46 +33,54 @@ export default function ArtistView() {
     ? [
         {
           label: "Total Streams",
-          value: stats.total_streams ?? "N/A",
+          value: formatValue(stats.total_streams),
         },
         {
           label: "First Streamed",
-          value: stats.first_play ? new Date(stats.first_play * 1000).toLocaleDateString() : "N/A",
+          value: stats.first_play
+            ? new Date(stats.first_play * 1000).toLocaleDateString()
+            : "N/A",
         },
         {
           label: "Most Recent Stream",
-          value: stats.last_play ? new Date(stats.last_play * 1000).toLocaleDateString() : "N/A",
+          value: stats.last_play
+            ? new Date(stats.last_play * 1000).toLocaleDateString()
+            : "N/A",
         },
         {
           label: "Top Day",
           value: stats.top_day?.day
             ? (() => {
-                const d = new Date(stats.top_day.day);
-                return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1)
-                  .toString()
-                  .padStart(2, "0")}/${d.getFullYear()}`;
-              })()
+                  const d = new Date(stats.top_day.day);
+                  return `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1)
+                    .toString()
+                    .padStart(2, "0")}/${d.getFullYear()}`;
+                })()
             : "N/A",
-          sub: stats.top_day?.count ? `${stats.top_day.count} plays` : "",
+          sub: stats.top_day?.count ? formatValue(`${stats.top_day.count} plays`) : "",
         },
         {
           label: "Top Month",
           value: stats.top_month?.month
             ? (() => {
-                const [year, month] = stats.top_month.month.split("-");
-                return `${month}/${year}`;
-              })()
+                  const [year, month] = stats.top_month.month.split("-");
+                  return `${month}/${year}`;
+                })()
             : "N/A",
-          sub: stats.top_month?.count ? `${stats.top_month.count} plays` : "",
+          sub: stats.top_month?.count ? formatValue(`${stats.top_month.count} plays`) : "",
         },
         {
           label: "Top Year",
-          value: stats.top_year?.year ? stats.top_year.year : "N/A",
-          sub: stats.top_year?.count ? `${stats.top_year.count} plays` : "",
+          value: stats.top_year?.year
+            ? stats.top_year.year
+            : "N/A",
+          sub: stats.top_year?.count ? formatValue(`${stats.top_year.count} plays`) : "",
         },
         {
           label: "Longest Listening Streak",
-          value: stats.longest_streak ? `${stats.longest_streak} days` : "N/A",
+          value: formatValue(
+            stats.longest_streak ? `${stats.longest_streak} days` : "N/A"
+          ),
         },
         {
           label: "% of Total Listening",
@@ -82,7 +91,9 @@ export default function ArtistView() {
         },
         {
           label: "Rank Among All Artists",
-          value: stats.rank ? `#${stats.rank} of ${stats.total_artists}` : "N/A",
+          value: stats.rank
+            ? formatValue(`#${stats.rank} of ${stats.total_artists}`)
+            : "N/A",
         },
       ]
     : [];
@@ -122,7 +133,7 @@ export default function ArtistView() {
           mapper={track => ({
             label: track.artist,
             value: track.track,
-            sub: `${track.playcount ?? 0} plays`
+            sub: formatValue(`${track.playcount ?? 0} plays`)
           })}
           layout='grid'
           collapsible={true}
@@ -142,7 +153,7 @@ export default function ArtistView() {
           mapper={album => ({
             label: album.artist,
             value: album.album,
-            sub: `${album.playcount ?? 0} plays`
+            sub: formatValue(`${album.playcount ?? 0} plays`)
           })}
           layout='grid'
           collapsible={true}

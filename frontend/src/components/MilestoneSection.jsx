@@ -1,11 +1,12 @@
 import GroupedSection from "./GroupedSection";
 import { getOrdinalSuffix } from "../utils/ordinalSuffix";
+import { formatValue } from "../utils/numberFormat";
 
 export default function MilestoneSection({ milestones }) {
   if (!milestones || milestones.length === 0) return null;
 
   const milestoneTiles = milestones.map(milestone => ({
-    label: `${milestone.milestone}${getOrdinalSuffix(milestone.milestone)} play:`,
+    label: formatValue(`${milestone.milestone}${getOrdinalSuffix(milestone.milestone)} play:`),
     value: milestone.track,
     album: milestone.album,
     sub: milestone.timestamp

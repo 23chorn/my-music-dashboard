@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { formatValue } from "../utils/numberFormat";
 
 export default function Tile({ tiles }) {
   if (!tiles || tiles.length === 0) return null;
@@ -10,19 +9,19 @@ export default function Tile({ tiles }) {
         const content = (
           <div className="flex flex-col items-center justify-center w-full h-full text-center">
             <span className="text-gray-400 text-sm mb-1">
-              {formatValue(tile.label)}
+              {tile.label}
             </span>
             <span className="font-bold text-lg text-blue-300">
-              {formatValue(tile.value)}
+              {tile.value}
             </span>
             {tile.sub && (
               <span className="text-gray-400 text-xs">
-                {formatValue(tile.sub)}
+                {tile.sub}
               </span>
             )}
             {tile.album && (
               <span className="text-blue-400 text-xs">
-                {formatValue(tile.album)}
+                {tile.album}
               </span>
             )}
           </div>
