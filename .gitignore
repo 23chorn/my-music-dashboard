@@ -30,3 +30,7 @@ scripts/queryDB.js
 backend/scripts
 /spotify-data
 *.jpeg
+
+# Logs
+logs/
+*.log

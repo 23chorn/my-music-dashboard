@@ -1,82 +1,108 @@
-require('dotenv').config({path: '.env'});
-const express = require('express');
-const cors = require('cors');
-const app = express();
-const { 
-  fetchAllRecentTracks
-} = require('./src/services/lastfm');
-const {
-  getLastTimestamp,
-  addPlaysDeduped,
-  getUniqueCounts
-} = require('./src/db/db');
+import dotenv from "dotenv";
+dotenv.config({ path: '.env' });
 
+import express from "express";
+import cors from "cors";
+import morgan from "morgan";
+import logger from "./src/utils/logger.js";
+import { fetchAllRecentTracks } from "./src/services/lastfm.js";
+import { getLastTimestamp, addPlaysDeduped, getUniqueCounts } from "./src/db/db.js";
+import topArtistsRouter from "./src/routes/topArtists.js";
+import topTracksRouter from "./src/routes/topTracks.js";
+import topAlbumsRouter from "./src/routes/topAlbums.js";
+import recentTracksRouter from "./src/routes/recentTracks.js";
+import searchRouter from "./src/routes/search.js";
+import artistRouter from "./src/routes/artist.js";
+
+const app = express();
+
+app.use(morgan("combined", { stream: logger.stream }));
 app.use(cors());
 app.use(express.json());
 
+// Log server startup and environment
+logger.info(`Starting server in ${process.env.NODE_ENV || "development"} mode`);
+logger.info(`Listening on port ${process.env.PORT || 3001}`);
+
 // POST recent plays
 app.post('/api/recent-tracks', (req, res) => {
+  logger.info(`Received POST /api/recent-tracks with ${Array.isArray(req.body.tracks) ? req.body.tracks.length : 0} tracks`);
   const { tracks } = req.body;
-  if (!Array.isArray(tracks)) return res.status(400).json({ error: 'tracks must be an array' });
+  if (!Array.isArray(tracks)) {
+    logger.warn("tracks is not an array");
+    return res.status(400).json({ error: 'tracks must be an array' });
+  }
   addPlaysDeduped(tracks, err => {
-    if (err) return res.status(500).json({ error: 'DB error' });
+    if (err) {
+      logger.error("Error adding deduped plays:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info("Successfully added deduped plays");
     res.json({ success: true });
   });
 });
 
 app.get('/api/unique-counts', async (req, res) => {
+  logger.info("GET /api/unique-counts called");
   try {
-    // 1. Get latest timestamp from DB
     getLastTimestamp(async(err, lastTimestamp) => {
-      if (err) return res.status(500).json({ error: 'DB error' });
-      if (!lastTimestamp) return res.status(404).json({ error: 'No tracks found' });
+      if (err) {
+        logger.error("Error getting last timestamp:", err);
+        return res.status(500).json({ error: 'DB error' });
+      }
+      if (!lastTimestamp) {
+        logger.warn("No tracks found in DB");
+        return res.status(404).json({ error: 'No tracks found' });
+      }
 
-      // 2. Fetch new tracks from Last.fm since lastTimestamp
       const newTracks = await fetchAllRecentTracks({ from: lastTimestamp });
+      logger.info(`Fetched ${newTracks.length} new tracks from Last.fm`);
 
-      // 3. Insert only new tracks into DB (use your deduplication logic)
       addPlaysDeduped(newTracks, (err2) => {
-        if (err2) return res.status(500).json({ error: 'DB error' });
+        if (err2) {
+          logger.error("Error adding deduped tracks:", err2);
+          return res.status(500).json({ error: 'DB error' });
+        }
 
-        // 4. Get unique counts from DB
         getUniqueCounts((err3, uniqueCounts) => {
-          if (err3) return res.status(500).json({ error: 'DB error' });
-          res.json( uniqueCounts );
+          if (err3) {
+            logger.error("Error getting unique counts:", err3);
+            return res.status(500).json({ error: 'DB error' });
+          }
+          logger.info("Returning unique counts");
+          res.json(uniqueCounts);
         });
       });
     });
   } catch (e) {
+    logger.error("Failed to fetch from Last.fm:", e);
     res.status(500).json({ error: 'Failed to fetch from Last.fm' });
   }
 });
 
 // Top Artists
-const topArtistsRouter = require('./src/routes/topArtists');
 app.use('/api/top-artists', topArtistsRouter);
 
 // Top Tracks
-const topTracksRouter = require('./src/routes/topTracks');
 app.use('/api/top-tracks', topTracksRouter);
 
 // Top Albums
-const topAlbumsRouter = require('./src/routes/topAlbums');
 app.use('/api/top-albums', topAlbumsRouter);
 
 // Recent Tracks
-const recentTracksRouter = require('./src/routes/recentTracks');
 app.use('/api/recent-tracks', recentTracksRouter);
 
-const searchRouter = require('./src/routes/search');
 app.use('/api/search', searchRouter);
 
-const artistRouter = require('./src/routes/artist');
 app.use('/api/artist', artistRouter);
 
 app.get('/', (req, res) => {
+  logger.info("Root endpoint hit");
   res.send('🎵 My Music Dashboard API is running! Visit /api/top-artists, /api/top-tracks, /api/top-albums, or /api/recent-tracks for data.');
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
+  logger.info(`Server running on port ${PORT}`);
   console.log(`Server running on ${PORT}`);
 });

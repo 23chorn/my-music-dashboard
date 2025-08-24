@@ -1,20 +1,30 @@
-const sqlite3 = require('sqlite3').verbose();
-const util = require('util');
-const db = new sqlite3.Database(__dirname + '/../../data/recentTracks.db');
+import sqlite3 from 'sqlite3';
+import util from 'util';
+import path from 'path';
+import logger from '../utils/logger.js';
+
+// Fix for ES modules: get string path for sqlite3
+const dbPath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), '../../data/recentTracks.db');
+const db = new sqlite3.Database(dbPath);
+
 const dbGet = util.promisify(db.get).bind(db);
 const dbAll = util.promisify(db.all).bind(db);
 
-function getArtistInfo(artistId, callback) {
+export function getArtistInfo(artistId, callback) {
+  logger.info(`getArtistInfo called with artistId=${artistId}`);
   db.get(
     `SELECT id, name, image_url FROM artists WHERE id = ?`,
     [artistId],
     (err, artist) => {
+      if (err) logger.error(`getArtistInfo DB error: ${err}`);
+      else logger.info(`getArtistInfo returned: ${artist ? 'found' : 'not found'}`);
       callback(err, artist);
     }
   );
 }
 
-function getArtistRecentPlays(artistId, limit = 10, callback) {
+export function getArtistRecentPlays(artistId, limit = 10, callback) {
+  logger.info(`getArtistRecentPlays called with artistId=${artistId}, limit=${limit}`);
   db.all(
     `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
      FROM plays
@@ -25,12 +35,15 @@ function getArtistRecentPlays(artistId, limit = 10, callback) {
      LIMIT ?`,
     [artistId, limit],
     (err, plays) => {
+      if (err) logger.error(`getArtistRecentPlays DB error: ${err}`);
+      else logger.info(`getArtistRecentPlays returned ${plays.length} plays`);
       callback(err, plays);
     }
   );
 }
 
-function getArtistMilestones(artistId, callback) {
+export function getArtistMilestones(artistId, callback) {
+  logger.info(`getArtistMilestones called with artistId=${artistId}`);
   const milestones = [1, 100, 500, 1000, 5000];
   db.all(
     `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
@@ -41,6 +54,8 @@ function getArtistMilestones(artistId, callback) {
      ORDER BY plays.timestamp ASC`,
     [artistId],
     (err, allPlays) => {
+      if (err) logger.error(`getArtistMilestones DB error: ${err}`);
+      else logger.info(`getArtistMilestones returned ${allPlays.length} plays`);
       if (err) return callback(err);
       const milestonePlays = milestones
         .map(n => {
@@ -54,7 +69,9 @@ function getArtistMilestones(artistId, callback) {
   );
 }
 
-async function getArtistStats(artistId, callback) {
+// For async functions, log at start, error, and callback:
+export async function getArtistStats(artistId, callback) {
+  logger.info(`getArtistStats called with artistId=${artistId}`);
   try {
     // First and most recent play
     const row = await dbGet(
@@ -160,6 +177,7 @@ async function getArtistStats(artistId, callback) {
     const rank =
       artistRanks.findIndex(a => a.id === Number(artistId)) + 1; // 1-based rank
 
+    logger.info(`getArtistStats succeeded for artistId=${artistId}`);
     callback(null, {
       first_play: row.first_play,
       last_play: row.last_play,
@@ -173,11 +191,13 @@ async function getArtistStats(artistId, callback) {
       total_artists: artistRanks.length,
     });
   } catch (err) {
+    logger.error(`getArtistStats DB error: ${err}`);
     callback(err);
   }
 }
 
-function getArtistDailyPlays(artistId, days = 30, callback) {
+export function getArtistDailyPlays(artistId, days = 30, callback) {
+  logger.info(`getArtistDailyPlays called with artistId=${artistId}, days=${days}`);
   db.all(
     `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
      FROM plays
@@ -191,12 +211,15 @@ function getArtistDailyPlays(artistId, days = 30, callback) {
       `-${days - 1} days`
     ],
     (err, rows) => {
+      if (err) logger.error(`getArtistDailyPlays DB error: ${err}`);
+      else logger.info(`getArtistDailyPlays returned ${rows.length} rows`);
       callback(err, rows);
     }
   );
 }
 
-function getAllArtistsWithPlaycount(callback) {
+export function getAllArtistsWithPlaycount(callback) {
+  logger.info(`getAllArtistsWithPlaycount called`);
   db.all(
     `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
      FROM artists
@@ -206,16 +229,9 @@ function getAllArtistsWithPlaycount(callback) {
      ORDER BY artists.name ASC`,
     [],
     (err, rows) => {
+      if (err) logger.error(`getAllArtistsWithPlaycount DB error: ${err}`);
+      else logger.info(`getAllArtistsWithPlaycount returned ${rows.length} artists`);
       callback(err, rows);
     }
   );
 }
-
-module.exports = {
-  getArtistInfo,
-  getArtistRecentPlays,
-  getArtistStats,
-  getArtistMilestones,
-  getArtistDailyPlays,
-  getAllArtistsWithPlaycount,
-};

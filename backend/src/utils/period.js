@@ -1,5 +1,8 @@
-function getPeriodTimestamp(period) {
+import logger from '../utils/logger.js';
+
+export function getPeriodTimestamp(period) {
   const now = Math.floor(Date.now() / 1000);
+  logger.info(`getPeriodTimestamp called with period="${period}"`);
   switch (period) {
     case "7day":
       return now - 7 * 24 * 60 * 60;
@@ -16,5 +19,3 @@ function getPeriodTimestamp(period) {
       return 0;
   }
 }
-
-module.exports = { getPeriodTimestamp };
