@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export default function ListTile({ label, value, sub, link, album }) {
   const mainContent = (
     <span>
-      <span className="font-semibold text-blue-300">{label}</span>
+      <span className="font-bold text-lg text-blue-400">{label}</span>
       {value && (
         <>
           {" — "}

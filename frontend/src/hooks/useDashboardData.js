@@ -20,10 +20,10 @@ export default function useDashboardData() {
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
   const [playCount, setPlayCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
-  const [artistLimit, setArtistLimit] = useState(10);
-  const [trackLimit, setTrackLimit] = useState(10);
-  const [albumLimit, setAlbumLimit] = useState(10);
-  const [recentLimit, setRecentLimit] = useState(10);
+  const [artistLimit, setArtistLimit] = useState(5);
+  const [trackLimit, setTrackLimit] = useState(5);
+  const [albumLimit, setAlbumLimit] = useState(5);
+  const [recentLimit, setRecentLimit] = useState(5);
 
   async function fetchUniqueCounts() {
     try {

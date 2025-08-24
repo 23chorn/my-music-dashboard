@@ -263,7 +263,7 @@ function getUniqueCounts(callback) {
   });
 }
 
-function getTopArtists(limit = 10, period = "overall", callback) {
+function getTopArtists(limit = 5, period = "overall", callback) {
   const fromTimestamp = getPeriodTimestamp(period);
   const query = `
     SELECT artists.id, artists.name, artists.image_url, COUNT(*) AS playcount
@@ -286,7 +286,7 @@ function getTopArtists(limit = 10, period = "overall", callback) {
   });
 }
 
-function getTopTracks(limit = 10, period = "overall", callback) {
+function getTopTracks(limit = 5, period = "overall", callback) {
   const fromTimestamp = getPeriodTimestamp(period);
   const query = `
     SELECT tracks.id, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
@@ -311,7 +311,7 @@ function getTopTracks(limit = 10, period = "overall", callback) {
   });
 }
 
-function getTopAlbums(limit = 10, period = "overall", callback) {
+function getTopAlbums(limit = 5, period = "overall", callback) {
   const fromTimestamp = getPeriodTimestamp(period);
   const query = `
     SELECT albums.id, albums.name AS album, artists.name AS artist, albums.image_url, COUNT(*) AS playcount
@@ -336,7 +336,7 @@ function getTopAlbums(limit = 10, period = "overall", callback) {
   });
 }
 
-function getRecentTracks(limit = 10, callback) {
+function getRecentTracks(limit = 5, callback) {
   const query = `
     SELECT plays.timestamp, tracks.name AS track, artists.name AS artist, albums.name AS album
     FROM plays

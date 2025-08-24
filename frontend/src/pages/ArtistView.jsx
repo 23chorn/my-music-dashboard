@@ -120,8 +120,8 @@ export default function ArtistView() {
           limit={trackLimit}
           setLimit={setTrackLimit}
           mapper={track => ({
-            label: track.track,
-            value: track.artist,
+            label: track.artist,
+            value: track.track,
             sub: `${track.playcount ?? 0} plays`
           })}
           layout='grid'
@@ -140,8 +140,8 @@ export default function ArtistView() {
           limit={albumLimit}
           setLimit={setAlbumLimit}
           mapper={album => ({
-            label: album.album,
-            value: album.artist,
+            label: album.artist,
+            value: album.album,
             sub: `${album.playcount ?? 0} plays`
           })}
           layout='grid'
@@ -158,7 +158,6 @@ export default function ArtistView() {
           showLimit={true}
           mapper={track => ({
             label: track.track,
-            value: track.artist,
             album: track.album,
             sub: track.timestamp
               ? new Date(track.timestamp * 1000).toLocaleString()

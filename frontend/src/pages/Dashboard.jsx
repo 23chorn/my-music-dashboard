@@ -73,8 +73,8 @@ export default function Dashboard() {
         limit={trackLimit}
         setLimit={setTrackLimit}
         mapper={track => ({
-          label: track.track,
-          value: track.artist,
+          label: track.artist,
+          value: track.track,
           sub: `${track.playcount ?? 0} plays`
         })}
         layout='grid'
