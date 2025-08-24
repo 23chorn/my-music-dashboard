@@ -6,13 +6,14 @@ import cors from "cors";
 import morgan from "morgan";
 import logger from "./src/utils/logger.js";
 import { fetchAllRecentTracks } from "./src/services/lastfm.js";
-import { getLastTimestamp, addPlaysDeduped, getUniqueCounts } from "./src/db/db.js";
+import { getLastTimestamp, addPlaysDeduped, getUniqueCounts, getRecentTracks } from "./src/db/db.js";
 import topArtistsRouter from "./src/routes/topArtists.js";
 import topTracksRouter from "./src/routes/topTracks.js";
 import topAlbumsRouter from "./src/routes/topAlbums.js";
 import recentTracksRouter from "./src/routes/recentTracks.js";
 import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
+import albumRouter from "./src/routes/album.js";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.post('/api/recent-tracks', (req, res) => {
       return res.status(500).json({ error: 'DB error' });
     }
     logger.info("Successfully added deduped plays");
+    // Removed getRecentTracks call here
     res.json({ success: true });
   });
 });
@@ -95,6 +97,8 @@ app.use('/api/recent-tracks', recentTracksRouter);
 app.use('/api/search', searchRouter);
 
 app.use('/api/artist', artistRouter);
+
+app.use('/api/album', albumRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");

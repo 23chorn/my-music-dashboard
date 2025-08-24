@@ -49,7 +49,14 @@ export default function SearchResultsDropdown({
         <ul>
           {results.albums.length === 0 && <li className="text-gray-400">No albums found.</li>}
           {results.albums.map(album => (
-            <li key={album.id} className="mb-1 px-2 py-2 hover:bg-gray-800 rounded text-sm sm:text-base">
+            <li
+              key={album.id}
+              className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
+              onClick={() => {
+                if (onClose) onClose();
+                if (navigate) navigate(`/album/${album.id}`);
+              }}
+            >
               {album.name}
             </li>
           ))}

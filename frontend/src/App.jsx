@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import ArtistView from "./pages/ArtistView";
+import AlbumView from "./pages/AlbumView";
 import ExploreView from "./pages/ExploreView";
 import SearchBar from "./components/SearchBar";
 import SearchResultsDropdown from "./components/SearchResultsDropdown";
@@ -75,6 +76,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/artist/:id" element={<ArtistView />} />
+          <Route path="/album/:id" element={<AlbumView />} />
           <Route path="/explore" element={<ExploreView />} />
         </Routes>
       </main>

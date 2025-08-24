@@ -291,8 +291,8 @@ export function getTopArtists(limit = 5, period = "overall", callback) {
   });
 }
 
-export function getTopTracks({ limit = 5, period = "overall", artistId = null }, callback) {
-  logger.info(`getTopTracks called with limit=${limit}, period=${period}, artistId=${artistId}`);
+export function getTopTracks({ limit = 5, period = "overall", artistId = null, albumId = null }, callback) {
+  logger.info(`getTopTracks called with limit=${limit}, period=${period}, artistId=${artistId}, albumId=${albumId}`);
   const fromTimestamp = getPeriodTimestamp(period);
   let query = `
     SELECT tracks.id AS trackId, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
@@ -307,6 +307,10 @@ export function getTopTracks({ limit = 5, period = "overall", artistId = null },
   if (artistId) {
     query += ` AND tracks.artist_id = ?`;
     params.push(artistId);
+  }
+  if (albumId) {
+    query += ` AND tracks.album_id = ?`;
+    params.push(albumId);
   }
 
   query += `

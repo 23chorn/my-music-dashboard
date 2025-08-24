@@ -30,8 +30,7 @@ export async function getTopAlbumsFromServer(limit = 5, period = "overall") {
 
 // Get recent tracks
 export async function getRecentTracksFromServer(limit = 5) {
-  const cacheBust = Date.now();
-  const res = await fetch(`${API_BASE_URL}/api/recent-tracks?limit=${limit}&_=${cacheBust}`);
+  const res = await fetch(`${API_BASE_URL}/api/recent-tracks?limit=${limit}`);
   if (!res.ok) throw new Error('Failed to fetch recent tracks');
   return await res.json();
 }

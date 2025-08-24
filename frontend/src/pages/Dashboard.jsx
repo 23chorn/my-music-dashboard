@@ -94,7 +94,8 @@ export default function Dashboard() {
         mapper={album => ({
           label: album.artist,
           value: album.album,
-          sub: formatValue(`${album.playcount ?? 0} plays`)
+          sub: formatValue(`${album.playcount ?? 0} plays`),
+          link: album.albumId ? `/album/${album.albumId}` : undefined
         })}
         layout='grid'
         collapsible={true}
