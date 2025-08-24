@@ -4,7 +4,7 @@ export default function SidePanel({ children, collapsed, setCollapsed }) {
   return (
     <aside
       className={`bg-gray-900 text-white transition-all duration-300
-        ${collapsed ? "w-16" : "w-48"}
+        ${collapsed ? "w-14 sm:w-16" : "w-40 sm:w-48"}
         h-screen fixed top-0 left-0 z-20 flex flex-col`}
     >
       <button
@@ -12,10 +12,10 @@ export default function SidePanel({ children, collapsed, setCollapsed }) {
         onClick={() => setCollapsed(!collapsed)}
         aria-label="Toggle menu"
       >
-        <FaBars />
+        <FaBars size={20} />
       </button>
       <div className={`${collapsed ? "hidden" : ""} mt-10`}>
-        <h1 className="text-xl font-bold mb-8 px-4 py-2 text-gray-200 bg-gray-800 rounded">
+        <h1 className="text-lg sm:text-xl font-bold mb-8 px-2 sm:px-4 py-2 text-gray-200 bg-gray-800 rounded">
           My Music Stats
         </h1>
         {children}

@@ -1,15 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
-import { searchAll } from "./data/searchApi";
-import SidePanel from "./components/SidePanel";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import ArtistView from "./pages/ArtistView";
 import ExploreView from "./pages/ExploreView";
 import SearchBar from "./components/SearchBar";
 import SearchResultsDropdown from "./components/SearchResultsDropdown";
+import MenuButton from "./components/MenuButton";
 
 function AppContent() {
-  const [collapsed, setCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -28,9 +26,7 @@ function AppContent() {
         setSearchResults(null);
       }
     }
-    if (searchResults) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -39,6 +35,7 @@ function AppContent() {
   async function handleSearch(query) {
     setSearchLoading(true);
     try {
+      const { searchAll } = await import("./data/searchApi");
       const results = await searchAll(query);
       setSearchResults(results);
     } catch {
@@ -48,31 +45,12 @@ function AppContent() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-950">
-      <SidePanel collapsed={collapsed} setCollapsed={setCollapsed}>
-        <nav className="flex flex-col gap-4 px-2">
-          <Link
-            to="/"
-            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium transition ${
-              window.location.pathname === "/" ? "border-l-4 border-blue-500" : ""
-            }`}
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/explore"
-            className={`px-4 py-2 rounded bg-gray-800 hover:bg-gray-700 text-blue-400 font-medium transition ${
-              window.location.pathname === "/explore" ? "border-l-4 border-blue-500" : ""
-            }`}
-          >
-            Explore
-          </Link>
-        </nav>
-      </SidePanel>
-      <div className={`w-full flex flex-col transition-all duration-300 ${collapsed ? "ml-16" : "ml-64"}`}>
-        {/* Attach search bar and dropdown together */}
-        <div className="flex justify-center mt-6 mb-4">
-          <div className="relative w-full max-w-xl">
+    <div className="flex min-h-screen bg-gray-950 w-full flex-col">
+      {/* Responsive header bar for menu and search */}
+      <div className="w-full flex flex-col sm:flex-row items-start justify-between px-2 sm:px-6 pt-4 gap-4">
+        <MenuButton />
+        <div className="w-full max-w-xl">
+          <div className="relative w-full">
             <SearchBar
               onSearch={handleSearch}
               ref={searchBarRef}
@@ -92,14 +70,14 @@ function AppContent() {
             />
           </div>
         </div>
-        <main className="flex-1 p-4">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/artist/:id" element={<ArtistView />} />
-            <Route path="/explore" element={<ExploreView />} />
-          </Routes>
-        </main>
       </div>
+      <main className="flex-1 p-4 w-full">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/artist/:id" element={<ArtistView />} />
+          <Route path="/explore" element={<ExploreView />} />
+        </Routes>
+      </main>
     </div>
   );
 }

@@ -43,16 +43,6 @@
   color: #888;
 }
 
-.react-calendar-heatmap .heatmap .color-scale-1,
-.react-calendar-heatmap .heatmap .color-scale-2,
-.react-calendar-heatmap .heatmap .color-scale-3,
-.react-calendar-heatmap .heatmap .color-scale-4,
-.react-calendar-heatmap .heatmap .color-empty {
-  rx: 4;
-  ry: 4;
-  width: 16x;
-  height: 16px;
-}
 
 /* Make heatmap squares smaller */
 .react-calendar-heatmap .heatmap rect {

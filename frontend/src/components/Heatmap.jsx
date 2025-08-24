@@ -4,7 +4,7 @@ import 'react-calendar-heatmap/dist/styles.css';
 import { getArtistDailyPlays } from "../data/artistApi";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
-export default function ArtistHeatmap({ artistId, days = 30, defaultOpen = true }) {
+export default function Heatmap({ artistId, days = 30, defaultOpen = true }) {
   const [dailyPlays, setDailyPlays] = useState([]);
   const [open, setOpen] = useState(defaultOpen);
 
@@ -29,7 +29,7 @@ export default function ArtistHeatmap({ artistId, days = 30, defaultOpen = true 
     <div className="bg-gray-900 rounded-lg p-4 shadow">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-lg font-semibold text-blue-300">
-          Era Explorer: Heatmap of Plays (Past {days} Days)
+          Heatmap of Plays (Past {days} Days)
         </h3>
         <button
           className="p-1 rounded bg-gray-900 hover:bg-gray-800 transition ml-2"

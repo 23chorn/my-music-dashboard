@@ -10,7 +10,11 @@ const SearchBar = forwardRef(function SearchBar(
   };
 
   return (
-    <form ref={ref} className="flex items-center gap-2 mb-6" onSubmit={handleSubmit}>
+    <form
+      ref={ref}
+      className="flex flex-col sm:flex-row items-stretch gap-2 mb-6 w-full"
+      onSubmit={handleSubmit}
+    >
       <input
         type="text"
         className="px-4 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-blue-400 w-full"
@@ -20,7 +24,7 @@ const SearchBar = forwardRef(function SearchBar(
       />
       <button
         type="submit"
-        className="px-4 py-2 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+        className="px-4 py-2 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 transition w-full sm:w-auto"
       >
         Search
       </button>

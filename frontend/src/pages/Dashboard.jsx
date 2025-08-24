@@ -33,7 +33,7 @@ export default function Dashboard() {
       <SectionHeader
         image={imageUrl}
         title="Welcome to Chorn's Music Dashboard!"
-        subheader="Here you can find all your music statistics in one place."
+        subheader="An app for to track and map out my personal journey with music!"
       />
 
       <GroupedSection

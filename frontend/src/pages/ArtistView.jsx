@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import useArtistViewData from "../hooks/useArtistViewData";
-import ArtistHeatmap from "../components/Heatmap";
+import Heatmap from "../components/Heatmap";
 import GroupedSection from "../components/GroupedSection";
 import MilestoneSection from "../components/MilestoneSection";
 import SectionHeader from "../components/SectionHeader";
@@ -105,7 +105,6 @@ export default function ArtistView() {
 
       {milestones && milestones.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-blue-400">Milestones</h2>
           <MilestoneSection milestones={milestones} />
         </section>
       )}
@@ -171,8 +170,7 @@ export default function ArtistView() {
 
       {/* Era Explorer Section */}
       <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-4 text-blue-400">Era Explorer: Heatmap of Plays</h2>
-        {artist && <ArtistHeatmap artistId={artist.id} days={30} />}
+        {artist && <Heatmap artistId={artist.id} days={30} />}
       </section>
     </div>
   );

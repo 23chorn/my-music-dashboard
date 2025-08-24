@@ -36,8 +36,19 @@ export default function GroupedSection({
     ? items.slice(0, limit).map(mapper)
     : [];
 
+  // Separate collapse button so it stays next to the title
+  const collapseButton = collapsible && (
+    <button
+      className="p-1 rounded bg-gray-900 hover:bg-gray-800 transition ml-2"
+      onClick={() => setOpen(o => !o)}
+      aria-label={open ? "Collapse section" : "Expand section"}
+    >
+      {open ? <FaChevronUp /> : <FaChevronDown />}
+    </button>
+  );
+
   const controls = (
-    <div className="flex flex-wrap gap-4 items-center justify-end">
+    <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 items-center justify-end">
       {showPeriod && (
         <PeriodDropdown
           value={period ?? "overall"}
@@ -52,29 +63,24 @@ export default function GroupedSection({
           options={limitOptions}
         />
       )}
-      {collapsible && (
-        <button
-          className="p-1 rounded bg-gray-900 hover:bg-gray-800 transition ml-2"
-          onClick={() => setOpen(o => !o)}
-          aria-label={open ? "Collapse section" : "Expand section"}
-        >
-          {open ? <FaChevronUp /> : <FaChevronDown />}
-        </button>
-      )}
+      {/* Remove collapse button from here */}
     </div>
   );
 
   const content = (
     <>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-2xl font-semibold text-blue-400 text-center">{title}</h2>
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-2 gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+          <h2 className="text-lg sm:text-2xl font-semibold text-blue-400 text-center">{title}</h2>
+          {collapseButton}
+        </div>
         {controls}
       </div>
       {open && (
         layout === "grid" ? (
           <Tile tiles={mappedItems} />
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 sm:space-y-3">
             {mappedItems.map((item, idx) => (
               <Renderer key={idx} {...item} />
             ))}
@@ -85,6 +91,6 @@ export default function GroupedSection({
   );
 
   return (
-    <section className="mb-4">{content}</section>
+    <section className="mb-4 px-2 sm:px-4">{content}</section>
   );
 }

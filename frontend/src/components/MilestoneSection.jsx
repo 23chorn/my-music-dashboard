@@ -14,14 +14,16 @@ export default function MilestoneSection({ milestones }) {
   }));
 
   return (
-    <GroupedSection
-      title="Milestones"
-      items={milestoneTiles}
-      showPeriod={false}
-      showLimit={false}
-      mapper={tile => tile}
-      layout="list"
-      collapsible={true}
-    />
+    <div className="w-full px-2 sm:px-4">
+      <GroupedSection
+        title="Milestones"
+        items={milestoneTiles}
+        showPeriod={false}
+        showLimit={false}
+        mapper={tile => tile}
+        layout="list"
+        collapsible={true}
+      />
+    </div>
   );
 }
