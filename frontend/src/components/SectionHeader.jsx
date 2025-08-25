@@ -1,4 +1,6 @@
-export default function SectionHeader({ image, title, subheader }) {
+import { Link } from "react-router-dom";
+
+export default function SectionHeader({ image, title, subheader, subheaderLink }) {
   return (
     <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-8">
       {image && (
@@ -11,7 +13,13 @@ export default function SectionHeader({ image, title, subheader }) {
       <div className="text-center sm:text-left w-full">
         <h1 className="text-2xl sm:text-4xl font-bold mb-2">{title}</h1>
         {subheader && (
-          <p className="text-base sm:text-lg text-gray-400">{subheader}</p>
+          subheaderLink ? (
+            <Link to={subheaderLink} className="text-base sm:text-lg text-gray-400 hover:underline">
+              {subheader}
+            </Link>
+          ) : (
+            <p className="text-base sm:text-lg text-gray-400">{subheader}</p>
+          )
         )}
       </div>
     </div>

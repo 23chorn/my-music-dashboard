@@ -15,7 +15,7 @@ export async function getAlbumInfo(albumId, callback) {
   logger.info(`getAlbumInfo called with albumId=${albumId}`);
   try {
     const album = await dbGet(
-      `SELECT albums.id, albums.name, albums.image_url, artists.name AS artist
+      `SELECT albums.id, albums.name, albums.image_url, artists.name AS artist, artists.id AS artist_id
        FROM albums
        JOIN artists ON albums.artist_id = artists.id
        WHERE albums.id = ?`,
@@ -34,7 +34,7 @@ export async function getAlbumTopTracks(albumId, limit, callback) {
   logger.info(`getAlbumTopTracks called with albumId=${albumId}, limit=${limit}`);
   try {
     const tracks = await dbAll(
-      `SELECT tracks.id, tracks.name AS track, artists.name AS artist, COUNT(plays.id) AS playcount
+      `SELECT tracks.id, tracks.name AS track, COUNT(plays.id) AS playcount
        FROM tracks
        JOIN artists ON tracks.artist_id = artists.id
        LEFT JOIN plays ON plays.track_id = tracks.id
@@ -56,7 +56,7 @@ export async function getAlbumRecentPlays(albumId, limit, callback) {
   logger.info(`getAlbumRecentPlays called with albumId=${albumId}, limit=${limit}`);
   try {
     const plays = await dbAll(
-      `SELECT plays.timestamp, tracks.name AS track, artists.name AS artist, albums.name AS album
+      `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
        FROM plays
        JOIN tracks ON plays.track_id = tracks.id
        LEFT JOIN artists ON tracks.artist_id = artists.id

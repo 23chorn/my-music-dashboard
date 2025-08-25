@@ -72,7 +72,12 @@ export default function AlbumView() {
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4">
-      <SectionHeader image={album.image_url} title={album.name} subtitle={album.artist} />
+      <SectionHeader
+        image={album.image_url}
+        title={album.name}
+        subheader={album.artist}
+        subheaderLink={album.artist_id ? `/artist/${album.artist_id}` : undefined}
+      />
 
       <GroupedSection
         title="Album Stats"
@@ -95,7 +100,6 @@ export default function AlbumView() {
           setLimit={setTrackLimit}
           mapper={track => ({
             label: track.track,
-            value: track.artist,
             sub: formatValue(`${track.playcount ?? 0} plays`)
           })}
           layout='list'
@@ -112,7 +116,6 @@ export default function AlbumView() {
           showLimit={true}
           mapper={track => ({
             label: track.track,
-            value: track.artist,
             sub: track.timestamp
               ? new Date(track.timestamp * 1000).toLocaleString()
               : "Now Playing"
