@@ -153,7 +153,8 @@ export default function ArtistView() {
           mapper={album => ({
             label: album.artist,
             value: album.album,
-            sub: formatValue(`${album.playcount ?? 0} plays`)
+            sub: formatValue(`${album.playcount ?? 0} plays`),
+            link: album.albumId ? `/album/${album.albumId}` : undefined
           })}
           layout='grid'
           collapsible={true}
@@ -170,6 +171,7 @@ export default function ArtistView() {
           mapper={track => ({
             label: track.track,
             album: track.album,
+            value: track.artist,
             sub: track.timestamp
               ? new Date(track.timestamp * 1000).toLocaleString()
               : "Now Playing"

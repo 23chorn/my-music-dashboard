@@ -10,66 +10,71 @@ const db = new sqlite3.Database(dbPath);
 const dbGet = util.promisify(db.get).bind(db);
 const dbAll = util.promisify(db.all).bind(db);
 
-export function getArtistInfo(artistId, callback) {
+export async function getArtistInfo(artistId, callback) {
   logger.info(`getArtistInfo called with artistId=${artistId}`);
-  db.get(
-    `SELECT id, name, image_url FROM artists WHERE id = ?`,
-    [artistId],
-    (err, artist) => {
-      if (err) logger.error(`getArtistInfo DB error: ${err}`);
-      else logger.info(`getArtistInfo returned: ${artist ? 'found' : 'not found'}`);
-      callback(err, artist);
-    }
-  );
+  try {
+    const artist = await dbGet(
+      `SELECT id, name, image_url FROM artists WHERE id = ?`,
+      [artistId]
+    );
+    logger.info(`getArtistInfo returned: ${artist ? 'found' : 'not found'}`);
+    callback(null, artist);
+  } catch (err) {
+    logger.error(`getArtistInfo DB error: ${err}`);
+    callback(err);
+  }
 }
 
-export function getArtistRecentPlays(artistId, limit = 10, callback) {
+export async function getArtistRecentPlays(artistId, limit, callback) {
   logger.info(`getArtistRecentPlays called with artistId=${artistId}, limit=${limit}`);
-  db.all(
-    `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
-     FROM plays
-     JOIN tracks ON plays.track_id = tracks.id
-     LEFT JOIN albums ON tracks.album_id = albums.id
-     WHERE tracks.artist_id = ?
-     ORDER BY plays.timestamp DESC
-     LIMIT ?`,
-    [artistId, limit],
-    (err, plays) => {
-      if (err) logger.error(`getArtistRecentPlays DB error: ${err}`);
-      else logger.info(`getArtistRecentPlays returned ${plays.length} plays`);
-      callback(err, plays);
-    }
-  );
+  try {
+    const plays = await dbAll(
+      `SELECT plays.timestamp, tracks.name AS track, albums.name AS album, artists.name AS artist
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       LEFT JOIN albums ON tracks.album_id = albums.id
+       LEFT JOIN artists ON tracks.artist_id = artists.id
+       WHERE tracks.artist_id = ?
+       ORDER BY plays.timestamp DESC
+       LIMIT ?`,
+      [artistId, limit]
+    );
+    logger.info(`getArtistRecentPlays returned ${plays.length} plays`);
+    callback(null, plays);
+  } catch (err) {
+    logger.error(`getArtistRecentPlays DB error: ${err}`);
+    callback(err);
+  }
 }
 
-export function getArtistMilestones(artistId, callback) {
+export async function getArtistMilestones(artistId, callback) {
   logger.info(`getArtistMilestones called with artistId=${artistId}`);
   const milestones = [1, 100, 500, 1000, 5000];
-  db.all(
-    `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
-     FROM plays
-     JOIN tracks ON plays.track_id = tracks.id
-     LEFT JOIN albums ON tracks.album_id = albums.id
-     WHERE tracks.artist_id = ?
-     ORDER BY plays.timestamp ASC`,
-    [artistId],
-    (err, allPlays) => {
-      if (err) logger.error(`getArtistMilestones DB error: ${err}`);
-      else logger.info(`getArtistMilestones returned ${allPlays.length} plays`);
-      if (err) return callback(err);
-      const milestonePlays = milestones
-        .map(n => {
-          const play = allPlays[n - 1];
-          if (!play) return null;
-          return { milestone: n, ...play };
-        })
-        .filter(Boolean);
-      callback(null, milestonePlays);
-    }
-  );
+  try {
+    const allPlays = await dbAll(
+      `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       LEFT JOIN albums ON tracks.album_id = albums.id
+       WHERE tracks.artist_id = ?
+       ORDER BY plays.timestamp ASC`,
+      [artistId]
+    );
+    logger.info(`getArtistMilestones returned ${allPlays.length} plays`);
+    const milestonePlays = milestones
+      .map(n => {
+        const play = allPlays[n - 1];
+        if (!play) return null;
+        return { milestone: n, ...play };
+      })
+      .filter(Boolean);
+    callback(null, milestonePlays);
+  } catch (err) {
+    logger.error(`getArtistMilestones DB error: ${err}`);
+    callback(err);
+  }
 }
 
-// For async functions, log at start, error, and callback:
 export async function getArtistStats(artistId, callback) {
   logger.info(`getArtistStats called with artistId=${artistId}`);
   try {
@@ -196,42 +201,46 @@ export async function getArtistStats(artistId, callback) {
   }
 }
 
-export function getArtistDailyPlays(artistId, days = 30, callback) {
+export async function getArtistDailyPlays(artistId, days = 30, callback) {
   logger.info(`getArtistDailyPlays called with artistId=${artistId}, days=${days}`);
-  db.all(
-    `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
-     FROM plays
-     JOIN tracks ON plays.track_id = tracks.id
-     WHERE tracks.artist_id = ?
-       AND plays.timestamp >= strftime('%s', 'now', ?)
-     GROUP BY day
-     ORDER BY day ASC`,
-    [
-      artistId,
-      `-${days - 1} days`
-    ],
-    (err, rows) => {
-      if (err) logger.error(`getArtistDailyPlays DB error: ${err}`);
-      else logger.info(`getArtistDailyPlays returned ${rows.length} rows`);
-      callback(err, rows);
-    }
-  );
+  try {
+    const rows = await dbAll(
+      `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       WHERE tracks.artist_id = ?
+         AND plays.timestamp >= strftime('%s', 'now', ?)
+       GROUP BY day
+       ORDER BY day ASC`,
+      [
+        artistId,
+        `-${days - 1} days`
+      ]
+    );
+    logger.info(`getArtistDailyPlays returned ${rows.length} rows`);
+    callback(null, rows);
+  } catch (err) {
+    logger.error(`getArtistDailyPlays DB error: ${err}`);
+    callback(err);
+  }
 }
 
-export function getAllArtistsWithPlaycount(callback) {
+export async function getAllArtistsWithPlaycount(callback) {
   logger.info(`getAllArtistsWithPlaycount called`);
-  db.all(
-    `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
-     FROM artists
-     LEFT JOIN tracks ON tracks.artist_id = artists.id
-     LEFT JOIN plays ON plays.track_id = tracks.id
-     GROUP BY artists.id
-     ORDER BY artists.name ASC`,
-    [],
-    (err, rows) => {
-      if (err) logger.error(`getAllArtistsWithPlaycount DB error: ${err}`);
-      else logger.info(`getAllArtistsWithPlaycount returned ${rows.length} artists`);
-      callback(err, rows);
-    }
-  );
+  try {
+    const rows = await dbAll(
+      `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
+       FROM artists
+       LEFT JOIN tracks ON tracks.artist_id = artists.id
+       LEFT JOIN plays ON plays.track_id = tracks.id
+       GROUP BY artists.id
+       ORDER BY artists.name ASC`,
+      []
+    );
+    logger.info(`getAllArtistsWithPlaycount returned ${rows.length} artists`);
+    callback(null, rows);
+  } catch (err) {
+    logger.error(`getAllArtistsWithPlaycount DB error: ${err}`);
+    callback(err);
+  }
 }

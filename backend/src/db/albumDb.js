@@ -11,61 +11,70 @@ const dbGet = util.promisify(db.get).bind(db);
 const dbAll = util.promisify(db.all).bind(db);
 
 // Get album info by albumId
-export function getAlbumInfo(albumId, callback) {
+export async function getAlbumInfo(albumId, callback) {
   logger.info(`getAlbumInfo called with albumId=${albumId}`);
-  db.get(
-    `SELECT albums.id, albums.name, albums.image_url, artists.name AS artist
-     FROM albums
-     JOIN artists ON albums.artist_id = artists.id
-     WHERE albums.id = ?`,
-    [albumId],
-    (err, album) => {
-      if (err) logger.error(`getAlbumInfo DB error: ${err}`);
-      else logger.info(`getAlbumInfo returned: ${album ? 'found' : 'not found'}`);
-      callback(err, album);
-    }
-  );
+  try {
+    const album = await dbGet(
+      `SELECT albums.id, albums.name, albums.image_url, artists.name AS artist
+       FROM albums
+       JOIN artists ON albums.artist_id = artists.id
+       WHERE albums.id = ?`,
+      [albumId]
+    );
+    logger.info(`getAlbumInfo returned: ${album ? 'found' : 'not found'}`);
+    callback(null, album);
+  } catch (err) {
+    logger.error(`getAlbumInfo DB error: ${err}`);
+    callback(err);
+  }
 }
 
 // Get top tracks for an album
-export function getAlbumTopTracks(albumId, limit = 10, callback) {
+export async function getAlbumTopTracks(albumId, limit, callback) {
   logger.info(`getAlbumTopTracks called with albumId=${albumId}, limit=${limit}`);
-  dbAll(
-    `SELECT tracks.id, tracks.name AS track, artists.name AS artist, COUNT(plays.id) AS playcount
-     FROM tracks
-     JOIN artists ON tracks.artist_id = artists.id
-     LEFT JOIN plays ON plays.track_id = tracks.id
-     WHERE tracks.album_id = ?
-     GROUP BY tracks.id
-     ORDER BY playcount DESC
-     LIMIT ?`,
-    [albumId, limit],
-    (err, tracks) => {
-      if (err) logger.error(`getAlbumTopTracks DB error: ${err}`);
-      else logger.info(`getAlbumTopTracks returned ${tracks.length} tracks`);
-      callback(err, tracks);
-    }
-  );
+  try {
+    const tracks = await dbAll(
+      `SELECT tracks.id, tracks.name AS track, artists.name AS artist, COUNT(plays.id) AS playcount
+       FROM tracks
+       JOIN artists ON tracks.artist_id = artists.id
+       LEFT JOIN plays ON plays.track_id = tracks.id
+       WHERE tracks.album_id = ?
+       GROUP BY tracks.id
+       ORDER BY playcount DESC
+       LIMIT ?`,
+      [albumId, limit]
+    );
+    logger.info(`getAlbumTopTracks returned ${tracks.length} tracks`);
+    callback(null, tracks);
+  } catch (err) {
+    logger.error(`getAlbumTopTracks DB error: ${err}`);
+    callback(err);
+  }
 }
 
-// Get recent plays for an album
-export function getAlbumRecentPlays(albumId, limit = 10, callback) {
+export async function getAlbumRecentPlays(albumId, limit, callback) {
   logger.info(`getAlbumRecentPlays called with albumId=${albumId}, limit=${limit}`);
-  dbAll(
-    `SELECT plays.timestamp, tracks.name AS track, artists.name AS artist
-     FROM plays
-     JOIN tracks ON plays.track_id = tracks.id
-     JOIN artists ON tracks.artist_id = artists.id
-     WHERE tracks.album_id = ?
-     ORDER BY plays.timestamp DESC
-     LIMIT ?`,
-    [albumId, limit],
-    (err, plays) => {
-      if (err) logger.error(`getAlbumRecentPlays DB error: ${err}`);
-      else logger.info(`getAlbumRecentPlays returned ${plays.length} plays`);
-      callback(err, plays);
-    }
-  );
+  try {
+    const plays = await dbAll(
+      `SELECT plays.timestamp, tracks.name AS track, artists.name AS artist, albums.name AS album
+       FROM plays
+       JOIN tracks ON plays.track_id = tracks.id
+       LEFT JOIN artists ON tracks.artist_id = artists.id
+       LEFT JOIN albums ON tracks.album_id = albums.id
+       WHERE tracks.album_id = ?
+       ORDER BY plays.timestamp DESC
+       LIMIT ?`,
+      [albumId, limit]
+    );
+    logger.info(`getAlbumRecentPlays callback called for albumId=${albumId}, plays=${JSON.stringify(plays)}`);
+    logger.info(`getAlbumRecentPlays returned ${plays.length} plays`);
+    logger.info(`getAlbumRecentPlays raw result: ${JSON.stringify(plays)}`);
+    if (!plays || plays.length === 0) logger.warn(`No recent plays found for albumId=${albumId}`);
+    callback(null, plays);
+  } catch (err) {
+    logger.error(`getAlbumRecentPlays DB error: ${err}`);
+    callback(err);
+  }
 }
 
 // Get album stats (total streams, first/last play, top day/year, rank)

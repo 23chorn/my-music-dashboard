@@ -94,8 +94,8 @@ export default function AlbumView() {
           limit={trackLimit}
           setLimit={setTrackLimit}
           mapper={track => ({
-            label: track.artist,
-            value: track.track,
+            label: track.track,
+            value: track.artist,
             sub: formatValue(`${track.playcount ?? 0} plays`)
           })}
           layout='list'
@@ -112,6 +112,7 @@ export default function AlbumView() {
           showLimit={true}
           mapper={track => ({
             label: track.track,
+            value: track.artist,
             sub: track.timestamp
               ? new Date(track.timestamp * 1000).toLocaleString()
               : "Now Playing"

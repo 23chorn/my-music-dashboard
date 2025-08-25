@@ -31,48 +31,33 @@ export default function useArtistViewData(id, {
   const [trackPeriod, setTrackPeriod] = useState(initialTrackPeriod);
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchInitialData() {
       setLoading(true);
       try {
         const [
           artistData,
-          tracks,
-          albums,
-          plays,
           statsData,
-          milestonesData
+          milestonesData,
+          daily
         ] = await Promise.all([
           getArtistInfo(id),
-          getArtistTopTracks(id),
-          getArtistTopAlbums(id),
-          getArtistRecentPlays(id),
           getArtistStats(id),
-          getArtistMilestones(id)
+          getArtistMilestones(id),
+          getArtistDailyPlays(id)
         ]);
         setArtist(artistData);
-        setTopTracks(tracks);
-        setTopAlbums(albums);
-        setRecentPlays(plays);
         setStats(statsData);
         setMilestones(milestonesData);
+        setDailyPlays(daily);
       } catch {
         setArtist(null);
+        setStats(null);
+        setMilestones([]);
+        setDailyPlays([]);
       }
       setLoading(false);
     }
-    if (id) fetchData();
-  }, [id]);
-
-  useEffect(() => {
-    async function fetchEraData() {
-      try {
-        const daily = await getArtistDailyPlays(id);
-        setDailyPlays(daily);
-      } catch {
-        setDailyPlays([]);
-      }
-    }
-    if (id) fetchEraData();
+    if (id) fetchInitialData();
   }, [id]);
 
   useEffect(() => {

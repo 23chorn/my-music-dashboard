@@ -45,10 +45,10 @@ router.get('/:id/top-tracks', (req, res) => {
 
 // Get recent plays for album
 router.get('/:id/recent-plays', (req, res) => {
-  const albumId = req.params.id;
+  const albumId = Number(req.params.id);
   const limit = Number(req.query.limit) || 10;
   logger.info(`GET /api/album/${albumId}/recent-plays?limit=${limit}`);
-  getAlbumRecentPlays(albumId, limit, (err, plays) => {
+  getAlbumRecentPlays( albumId, limit , (err, plays) => {
     if (err) {
       logger.error("DB error in getAlbumRecentPlays:", err);
       return res.status(500).json({ error: 'DB error' });
