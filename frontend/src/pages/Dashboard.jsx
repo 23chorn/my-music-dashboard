@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/GroupedSection";
 import PageLayout from "../components/layout/PageLayout";
 import SectionLoader from "../components/ui/SectionLoader";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
@@ -13,8 +14,11 @@ export default function Dashboard() {
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
     playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading, handleRefresh,
-    loading, artistsLoading, tracksLoading, albumsLoading, recentLoading
+    loading, artistsLoading, tracksLoading, albumsLoading, recentLoading,
+    syncing, syncNewTracks
   } = useDashboardData();
+
+  const [syncMessage, setSyncMessage] = useState("");
 
   useEffect(() => {
     document.title = "Chorn's Music Dashboard";
@@ -40,14 +44,47 @@ export default function Dashboard() {
       subheader="An app for me to track and map out my personal journey with music!"
     >
 
-      <GroupedSection
-        title="My Stats"
-        items={dashboardTiles}
-        showPeriod={false}
-        showLimit={false}
-        mapper={tile => tile}
-        layout="grid"
-      />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-2xl font-semibold text-blue-400">My Stats</h2>
+          <button
+            onClick={async () => {
+              try {
+                const result = await syncNewTracks();
+                setSyncMessage(`Synced ${result.addedPlays} new plays!`);
+                setTimeout(() => setSyncMessage(""), 3000);
+              } catch (error) {
+                setSyncMessage("Sync failed. Please try again.");
+                setTimeout(() => setSyncMessage(""), 3000);
+              }
+            }}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded font-medium transition"
+          >
+            {syncing ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Syncing...
+              </>
+            ) : (
+              "Sync New Tracks"
+            )}
+          </button>
+        </div>
+        {syncMessage && (
+          <div className="text-green-400 text-sm font-medium">
+            {syncMessage}
+          </div>
+        )}
+        <GroupedSection
+          title=""
+          items={dashboardTiles}
+          showPeriod={false}
+          showLimit={false}
+          mapper={tile => tile}
+          layout="grid"
+        />
+      </div>
 
       <SectionLoader loading={artistsLoading}>
         <GroupedSection

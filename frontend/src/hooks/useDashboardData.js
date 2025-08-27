@@ -5,6 +5,7 @@ import {
   getRecentTracksFromServer,
   getTopAlbumsFromServer,
   getUniqueCountsFromServer,
+  syncTracksFromServer,
 } from "../data/dashboardApi";
 
 export default function useDashboardData() {
@@ -25,6 +26,7 @@ export default function useDashboardData() {
   const [tracksLoading, setTracksLoading] = useState(false);
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [artistLimit, setArtistLimit] = useState(5);
   const [trackLimit, setTrackLimit] = useState(5);
   const [albumLimit, setAlbumLimit] = useState(5);
@@ -77,6 +79,32 @@ export default function useDashboardData() {
       setPlayCount("-");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function syncNewTracks() {
+    setSyncing(true);
+    try {
+      const result = await syncTracksFromServer();
+      console.log('Sync result:', result);
+      // Refresh data after sync
+      if (result.addedPlays > 0) {
+        // Refresh unique counts since new data was added
+        const uniqueCounts = await getUniqueCountsFromServer();
+        setUniqueArtists(uniqueCounts.uniqueArtistCount);
+        setUniqueTracks(uniqueCounts.uniqueTrackCount);
+        setUniqueAlbums(uniqueCounts.uniqueAlbumCount);
+        setPlayCount(uniqueCounts.playCount);
+        
+        // Refresh recent plays to show the latest tracks
+        await fetchRecent();
+      }
+      return result;
+    } catch (error) {
+      console.error('Error syncing tracks:', error);
+      throw error;
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -161,6 +189,7 @@ export default function useDashboardData() {
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
     playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading,
     loading, handleRefresh: fetchAllData,
-    artistsLoading, tracksLoading, albumsLoading, recentLoading
+    artistsLoading, tracksLoading, albumsLoading, recentLoading,
+    syncing, syncNewTracks
   };
 }

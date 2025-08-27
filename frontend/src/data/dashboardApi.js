@@ -41,3 +41,15 @@ export async function getUserInfoFromServer() {
   if (!res.ok) throw new Error('Failed to fetch user info');
   return await res.json();
 }
+
+// Sync new tracks from Last.fm
+export async function syncTracksFromServer() {
+  const res = await fetch(`${API_BASE_URL}/api/sync-tracks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error('Failed to sync tracks');
+  return await res.json();
+}

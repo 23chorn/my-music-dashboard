@@ -25,25 +25,6 @@ app.use(express.json());
 logger.info(`Starting server in ${process.env.NODE_ENV || "development"} mode`);
 logger.info(`Listening on port ${process.env.PORT || 3001}`);
 
-// POST recent plays
-app.post('/api/recent-tracks', (req, res) => {
-  logger.info(`Received POST /api/recent-tracks with ${Array.isArray(req.body.tracks) ? req.body.tracks.length : 0} tracks`);
-  const { tracks } = req.body;
-  if (!Array.isArray(tracks)) {
-    logger.warn("tracks is not an array");
-    return res.status(400).json({ error: 'tracks must be an array' });
-  }
-  addPlaysDeduped(tracks, err => {
-    if (err) {
-      logger.error("Error adding deduped plays:", err);
-      return res.status(500).json({ error: 'DB error' });
-    }
-    logger.info("Successfully added deduped plays");
-    // Removed getRecentTracks call here
-    res.json({ success: true });
-  });
-});
-
 app.get('/api/unique-counts', (req, res) => {
   logger.info("GET /api/unique-counts called");
   getUniqueCounts((err, uniqueCounts) => {
@@ -54,6 +35,49 @@ app.get('/api/unique-counts', (req, res) => {
     logger.info("Returning unique counts");
     res.json(uniqueCounts);
   });
+});
+
+// POST endpoint to sync new tracks from Last.fm
+app.post('/api/sync-tracks', async (req, res) => {
+  logger.info("POST /api/sync-tracks called");
+  try {
+    getLastTimestamp(async(err, lastTimestamp) => {
+      if (err) {
+        logger.error("Error getting last timestamp:", err);
+        return res.status(500).json({ error: 'DB error getting timestamp' });
+      }
+      if (!lastTimestamp) {
+        logger.warn("No tracks found in DB");
+        return res.status(404).json({ error: 'No tracks found' });
+      }
+
+      try {
+        const newTracks = await fetchAllRecentTracks({ from: lastTimestamp });
+        logger.info(`Fetched ${newTracks.length} new tracks from Last.fm`);
+
+        addPlaysDeduped(newTracks, (err2, insertedCount) => {
+          if (err2) {
+            logger.error("Error adding deduped tracks:", err2);
+            return res.status(500).json({ error: 'DB error adding tracks' });
+          }
+
+          logger.info(`Successfully synced ${insertedCount} new plays`);
+          res.json({ 
+            success: true, 
+            message: `Synced ${insertedCount} new plays from ${newTracks.length} tracks fetched`,
+            newTracks: newTracks.length,
+            addedPlays: insertedCount
+          });
+        });
+      } catch (fetchError) {
+        logger.error("Failed to fetch from Last.fm:", fetchError);
+        res.status(500).json({ error: 'Failed to fetch from Last.fm' });
+      }
+    });
+  } catch (e) {
+    logger.error("Unexpected error in sync-tracks:", e);
+    res.status(500).json({ error: 'Unexpected server error' });
+  }
 });
 
 // Top Artists
