@@ -23,6 +23,9 @@ export default function useArtistViewData(id, {
   const [stats, setStats] = useState(null);
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [albumsLoading, setAlbumsLoading] = useState(false);
+  const [tracksLoading, setTracksLoading] = useState(false);
   const [dailyPlays, setDailyPlays] = useState([]);
   const [recentLimit, setRecentLimit] = useState(initialRecentLimit);
   const [albumLimit, setAlbumLimit] = useState(initialAlbumLimit);
@@ -76,11 +79,14 @@ export default function useArtistViewData(id, {
   useEffect(() => {
     async function fetchRecentPlays() {
       if (!artist) return; // Wait until initial data is loaded
+      setRecentLoading(true);
       try {
         const plays = await getArtistRecentPlays(id, recentLimit);
         setRecentPlays(plays);
       } catch {
         setRecentPlays([]);
+      } finally {
+        setRecentLoading(false);
       }
     }
     if (id) fetchRecentPlays();
@@ -89,11 +95,14 @@ export default function useArtistViewData(id, {
   useEffect(() => {
     async function fetchTopAlbums() {
       if (!artist) return; // Wait until initial data is loaded
+      setAlbumsLoading(true);
       try {
         const albums = await getArtistTopAlbums(id, albumLimit, albumPeriod);
         setTopAlbums(albums);
       } catch {
         setTopAlbums([]);
+      } finally {
+        setAlbumsLoading(false);
       }
     }
     if (id) fetchTopAlbums();
@@ -102,11 +111,14 @@ export default function useArtistViewData(id, {
   useEffect(() => {
     async function fetchTopTracks() {
       if (!artist) return; // Wait until initial data is loaded
+      setTracksLoading(true);
       try {
         const tracks = await getArtistTopTracks(id, trackLimit, trackPeriod);
         setTopTracks(tracks);
       } catch {
         setTopTracks([]);
+      } finally {
+        setTracksLoading(false);
       }
     }
     if (id) fetchTopTracks();
@@ -130,6 +142,9 @@ export default function useArtistViewData(id, {
     trackLimit,
     setTrackLimit,
     trackPeriod,
-    setTrackPeriod
+    setTrackPeriod,
+    recentLoading,
+    albumsLoading,
+    tracksLoading
   };
 }

@@ -5,6 +5,7 @@ import GroupedSection from "../components/GroupedSection";
 import MilestoneSection from "../components/MilestoneSection";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
+import SectionLoader from "../components/ui/SectionLoader";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
@@ -27,7 +28,10 @@ export default function ArtistView() {
     trackLimit,
     setTrackLimit,
     trackPeriod,
-    setTrackPeriod
+    setTrackPeriod,
+    recentLoading,
+    albumsLoading,
+    tracksLoading
   } = useArtistViewData(id);
 
 
@@ -44,58 +48,64 @@ export default function ArtistView() {
         <MilestoneSection milestones={milestones} />
       )}
 
-      <GroupedSection
-        title="Top Albums"
-        items={topAlbums}
-        period={albumPeriod}
-        setPeriod={setAlbumPeriod}
-        showPeriod={true}
-        showLimit={true}
-        limit={albumLimit}
-        setLimit={setAlbumLimit}
-        mapper={album => ({
-          label: album.artist,
-          value: album.album,
-          sub: formatValue(`${album.playcount ?? 0} plays`),
-          link: album.albumId ? `/album/${album.albumId}` : undefined,
-          image: album.image
-        })}
-        layout='grid'
-        collapsible={true}
-      />
+      <SectionLoader loading={albumsLoading}>
+        <GroupedSection
+          title="Top Albums"
+          items={topAlbums}
+          period={albumPeriod}
+          setPeriod={setAlbumPeriod}
+          showPeriod={true}
+          showLimit={true}
+          limit={albumLimit}
+          setLimit={setAlbumLimit}
+          mapper={album => ({
+            label: album.artist,
+            value: album.album,
+            sub: formatValue(`${album.playcount ?? 0} plays`),
+            link: album.albumId ? `/album/${album.albumId}` : undefined,
+            image: album.image
+          })}
+          layout='grid'
+          collapsible={true}
+        />
+      </SectionLoader>
 
-      <GroupedSection
-        title="Top Tracks"
-        items={topTracks}
-        period={trackPeriod}
-        setPeriod={setTrackPeriod}
-        showPeriod={true}
-        showLimit={true}
-        limit={trackLimit}
-        setLimit={setTrackLimit}
-        mapper={track => ({
-          label: track.artist,
-          value: track.track,
-          sub: formatValue(`${track.playcount ?? 0} plays`)
-        })}
-        layout='grid'
-        collapsible={true}
-      />
+      <SectionLoader loading={tracksLoading}>
+        <GroupedSection
+          title="Top Tracks"
+          items={topTracks}
+          period={trackPeriod}
+          setPeriod={setTrackPeriod}
+          showPeriod={true}
+          showLimit={true}
+          limit={trackLimit}
+          setLimit={setTrackLimit}
+          mapper={track => ({
+            label: track.artist,
+            value: track.track,
+            sub: formatValue(`${track.playcount ?? 0} plays`)
+          })}
+          layout='grid'
+          collapsible={true}
+        />
+      </SectionLoader>
 
-      <GroupedSection
-        title="Recent Plays"
-        items={recentPlays}
-        limit={recentLimit}
-        setLimit={setRecentLimit}
-        showLimit={true}
-        mapper={track => ({
-          label: track.track,
-          album: track.album,
-          value: track.artist,
-          sub: formatDateTime(track.timestamp)
-        })}
-        collapsible={true}
-      />
+      <SectionLoader loading={recentLoading}>
+        <GroupedSection
+          title="Recent Plays"
+          items={recentPlays}
+          limit={recentLimit}
+          setLimit={setRecentLimit}
+          showLimit={true}
+          mapper={track => ({
+            label: track.track,
+            album: track.album,
+            value: track.artist,
+            sub: formatDateTime(track.timestamp)
+          })}
+          collapsible={true}
+        />
+      </SectionLoader>
 
       {/* Era Explorer Section */}
       {artist && <Heatmap artistId={artist.id} days={30} />}

@@ -21,6 +21,10 @@ export default function useDashboardData() {
   const [playCount, setPlayCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [artistsLoading, setArtistsLoading] = useState(false);
+  const [tracksLoading, setTracksLoading] = useState(false);
+  const [albumsLoading, setAlbumsLoading] = useState(false);
+  const [recentLoading, setRecentLoading] = useState(false);
   const [artistLimit, setArtistLimit] = useState(5);
   const [trackLimit, setTrackLimit] = useState(5);
   const [albumLimit, setAlbumLimit] = useState(5);
@@ -76,13 +80,79 @@ export default function useDashboardData() {
     }
   }
 
+  // Individual section fetch functions
+  async function fetchArtists() {
+    setArtistsLoading(true);
+    try {
+      const artists = await getTopArtistsFromServer(artistLimit, artistPeriod);
+      setTopArtists(artists);
+    } catch (error) {
+      console.error('Error fetching artists:', error);
+      setTopArtists([]);
+    } finally {
+      setArtistsLoading(false);
+    }
+  }
+
+  async function fetchTracks() {
+    setTracksLoading(true);
+    try {
+      const tracks = await getTopTracksFromServer(trackLimit, trackPeriod);
+      setTopTracks(tracks);
+    } catch (error) {
+      console.error('Error fetching tracks:', error);
+      setTopTracks([]);
+    } finally {
+      setTracksLoading(false);
+    }
+  }
+
+  async function fetchAlbums() {
+    setAlbumsLoading(true);
+    try {
+      const albums = await getTopAlbumsFromServer(albumLimit, albumPeriod);
+      setTopAlbums(albums);
+    } catch (error) {
+      console.error('Error fetching albums:', error);
+      setTopAlbums([]);
+    } finally {
+      setAlbumsLoading(false);
+    }
+  }
+
+  async function fetchRecent() {
+    setRecentLoading(true);
+    try {
+      const recent = await getRecentTracksFromServer(recentLimit);
+      setRecentTracks(recent);
+    } catch (error) {
+      console.error('Error fetching recent tracks:', error);
+      setRecentTracks([]);
+    } finally {
+      setRecentLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchAllData();
   }, []);
 
+  // Individual section updates when filters change
   useEffect(() => {
-    fetchAllData();
-  }, [artistPeriod, artistLimit, trackPeriod, trackLimit, albumPeriod, albumLimit, recentLimit]);
+    if (!loading) fetchArtists(); // Don't refetch during initial load
+  }, [artistPeriod, artistLimit]);
+
+  useEffect(() => {
+    if (!loading) fetchTracks();
+  }, [trackPeriod, trackLimit]);
+
+  useEffect(() => {
+    if (!loading) fetchAlbums();
+  }, [albumPeriod, albumLimit]);
+
+  useEffect(() => {
+    if (!loading) fetchRecent();
+  }, [recentLimit]);
 
   return {
     topArtists, setTopArtists, artistLimit, setArtistLimit, artistPeriod, setArtistPeriod,
@@ -90,6 +160,7 @@ export default function useDashboardData() {
     topAlbums, setTopAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
     playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading,
-    loading, handleRefresh: fetchAllData
+    loading, handleRefresh: fetchAllData,
+    artistsLoading, tracksLoading, albumsLoading, recentLoading
   };
 }

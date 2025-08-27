@@ -16,6 +16,8 @@ export default function useAlbumViewData(albumId, {
   const [recentPlays, setRecentPlays] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tracksLoading, setTracksLoading] = useState(false);
+  const [recentLoading, setRecentLoading] = useState(false);
   const [recentLimit, setRecentLimit] = useState(initialRecentLimit);
   const [trackLimit, setTrackLimit] = useState(initialTrackLimit);
   const [trackPeriod, setTrackPeriod] = useState(initialTrackPeriod);
@@ -50,11 +52,14 @@ export default function useAlbumViewData(albumId, {
   useEffect(() => {
     async function fetchTopTracks() {
       if (!album) return; // Wait until initial data is loaded
+      setTracksLoading(true);
       try {
         const tracks = await getAlbumTopTracks(albumId, trackLimit, trackPeriod);
         setTopTracks(tracks);
       } catch {
         setTopTracks([]);
+      } finally {
+        setTracksLoading(false);
       }
     }
     if (albumId) fetchTopTracks();
@@ -63,11 +68,14 @@ export default function useAlbumViewData(albumId, {
   useEffect(() => {
     async function fetchRecentPlays() {
       if (!album) return; // Wait until initial data is loaded
+      setRecentLoading(true);
       try {
         const plays = await getAlbumRecentPlays(albumId, recentLimit);
         setRecentPlays(plays);
       } catch {
         setRecentPlays([]);
+      } finally {
+        setRecentLoading(false);
       }
     }
     if (albumId) fetchRecentPlays();
@@ -84,6 +92,8 @@ export default function useAlbumViewData(albumId, {
     trackLimit,
     setTrackLimit,
     trackPeriod,
-    setTrackPeriod
+    setTrackPeriod,
+    tracksLoading,
+    recentLoading
   };
 }

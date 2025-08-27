@@ -3,6 +3,7 @@ import useAlbumViewData from "../hooks/useAlbumViewData";
 import GroupedSection from "../components/GroupedSection";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
+import SectionLoader from "../components/ui/SectionLoader";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
@@ -19,7 +20,9 @@ export default function AlbumView() {
     trackLimit,
     setTrackLimit,
     trackPeriod,
-    setTrackPeriod
+    setTrackPeriod,
+    tracksLoading,
+    recentLoading
   } = useAlbumViewData(id);
 
     
@@ -34,35 +37,39 @@ export default function AlbumView() {
     >
       <StatsSection stats={stats} type="album" title="Album Stats" />
 
-      <GroupedSection
-        title="Top Tracks"
-        items={topTracks}
-        period={trackPeriod}
-        setPeriod={setTrackPeriod}
-        showPeriod={true}
-        showLimit={true}
-        limit={trackLimit}
-        setLimit={setTrackLimit}
-        mapper={track => ({
-          label: track.track,
-          sub: formatValue(`${track.playcount ?? 0} plays`)
-        })}
-        layout='list'
-        collapsible={true}
-      />
+      <SectionLoader loading={tracksLoading}>
+        <GroupedSection
+          title="Top Tracks"
+          items={topTracks}
+          period={trackPeriod}
+          setPeriod={setTrackPeriod}
+          showPeriod={true}
+          showLimit={true}
+          limit={trackLimit}
+          setLimit={setTrackLimit}
+          mapper={track => ({
+            label: track.track,
+            sub: formatValue(`${track.playcount ?? 0} plays`)
+          })}
+          layout='list'
+          collapsible={true}
+        />
+      </SectionLoader>
 
-      <GroupedSection
-        title="Recent Plays"
-        items={recentPlays}
-        limit={recentLimit}
-        setLimit={setRecentLimit}
-        showLimit={true}
-        mapper={track => ({
-          label: track.track,
-          sub: formatDateTime(track.timestamp)
-        })}
-        collapsible={true}
-      />
+      <SectionLoader loading={recentLoading}>
+        <GroupedSection
+          title="Recent Plays"
+          items={recentPlays}
+          limit={recentLimit}
+          setLimit={setRecentLimit}
+          showLimit={true}
+          mapper={track => ({
+            label: track.track,
+            sub: formatDateTime(track.timestamp)
+          })}
+          collapsible={true}
+        />
+      </SectionLoader>
     </PageLayout>
     );
 }
