@@ -7,7 +7,7 @@ export default function SectionHeader({ image, title, subheader, subheaderLink }
         <img
           src={image}
           alt={title}
-          className="w-20 h-20 sm:w-28 sm:h-28 rounded-full shadow-lg object-cover mb-4 sm:mb-0"
+          className="w-20 h-20 sm:w-28 sm:h-28 rounded shadow-lg object-cover mb-4 sm:mb-0" // Changed to square
         />
       )}
       <div className="text-center sm:text-left w-full">

@@ -7,23 +7,32 @@ export default function Tile({ tiles }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
       {tiles.map((tile, idx) => {
         const content = (
-          <div className="flex flex-col items-center justify-center w-full h-full text-center">
-            <span className="text-gray-400 text-sm mb-1">
-              {tile.label}
-            </span>
-            <span className="font-bold text-lg text-blue-300">
-              {tile.value}
-            </span>
-            {tile.sub && (
-              <span className="text-gray-400 text-xs">
-                {tile.sub}
-              </span>
+          <div className="flex flex-row items-center justify-center w-full h-full text-center">
+            {tile.image && (
+              <img
+                src={tile.image}
+                alt={tile.label}
+                className="w-14 h-14 object-cover mr-4 rounded"
+              />
             )}
-            {tile.album && (
-              <span className="text-blue-400 text-xs">
-                {tile.album}
+            <div className="flex flex-col items-center justify-center flex-1">
+              <span className="text-gray-400 text-sm mb-1">
+                {tile.label}
               </span>
-            )}
+              <span className="font-bold text-lg text-blue-300">
+                {tile.value}
+              </span>
+              {tile.sub && (
+                <span className="text-gray-400 text-xs">
+                  {tile.sub}
+                </span>
+              )}
+              {tile.album && (
+                <span className="text-blue-400 text-xs">
+                  {tile.album}
+                </span>
+              )}
+            </div>
           </div>
         );
         if (tile.link && tile.link.startsWith("/")) {
@@ -31,7 +40,7 @@ export default function Tile({ tiles }) {
             <Link
               key={idx}
               to={tile.link}
-              className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center justify-center hover:bg-blue-900 transition text-center"
+              className="bg-gray-800 rounded-lg shadow p-4 flex items-center justify-center hover:bg-blue-900 transition text-center"
             >
               {content}
             </Link>
@@ -41,7 +50,7 @@ export default function Tile({ tiles }) {
             <a
               key={idx}
               href={tile.link}
-              className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center justify-center hover:bg-blue-900 transition text-center"
+              className="bg-gray-800 rounded-lg shadow p-4 flex items-center justify-center hover:bg-blue-900 transition text-center"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -52,7 +61,7 @@ export default function Tile({ tiles }) {
           return (
             <div
               key={idx}
-              className="bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center justify-center hover:bg-gray-700 transition text-center"
+              className="bg-gray-800 rounded-lg shadow p-4 flex items-center justify-center hover:bg-gray-700 transition text-center"
             >
               {content}
             </div>

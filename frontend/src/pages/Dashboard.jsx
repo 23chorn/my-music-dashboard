@@ -58,25 +58,8 @@ export default function Dashboard() {
         mapper={artist => ({
           value: artist.artist,
           sub: formatValue(`${artist.playcount ?? 0} plays`),
-          link: artist.artistId ? `/artist/${artist.artistId}` : undefined
-        })}
-        layout='grid'
-        collapsible={true}
-      />
-
-      <GroupedSection
-        title="Top Tracks"
-        items={topTracks}
-        period={trackPeriod}
-        setPeriod={setTrackPeriod}
-        showPeriod={true}
-        showLimit={true}
-        limit={trackLimit}
-        setLimit={setTrackLimit}
-        mapper={track => ({
-          label: track.artist,
-          value: track.track,
-          sub: formatValue(`${track.playcount ?? 0} plays`)
+          link: artist.artistId ? `/artist/${artist.artistId}` : undefined,
+          image: artist.image
         })}
         layout='grid'
         collapsible={true}
@@ -95,7 +78,26 @@ export default function Dashboard() {
           label: album.artist,
           value: album.album,
           sub: formatValue(`${album.playcount ?? 0} plays`),
-          link: album.albumId ? `/album/${album.albumId}` : undefined
+          link: album.albumId ? `/album/${album.albumId}` : undefined,
+          image: album.image
+        })}
+        layout='grid'
+        collapsible={true}
+      />
+
+      <GroupedSection
+        title="Top Tracks"
+        items={topTracks}
+        period={trackPeriod}
+        setPeriod={setTrackPeriod}
+        showPeriod={true}
+        showLimit={true}
+        limit={trackLimit}
+        setLimit={setTrackLimit}
+        mapper={track => ({
+          label: track.artist,
+          value: track.track,
+          sub: formatValue(`${track.playcount ?? 0} plays`)
         })}
         layout='grid'
         collapsible={true}

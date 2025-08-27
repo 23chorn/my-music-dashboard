@@ -1,12 +1,5 @@
 @import "tailwindcss";
 
-#root {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: left; /* or center if you prefer */
-}
-
 .logo {
   height: 6em;
   padding: 1.5em;

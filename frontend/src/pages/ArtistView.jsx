@@ -102,7 +102,7 @@ export default function ArtistView() {
   if (!artist) return <div className="p-4">Artist not found.</div>;
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4">
+    <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
       <SectionHeader image={artist.image_url} title={artist.name} />
 
       <GroupedSection
@@ -122,26 +122,6 @@ export default function ArtistView() {
 
       <section className="mb-8">
         <GroupedSection
-          title="Top Tracks"
-          items={topTracks}
-          period={trackPeriod}
-          setPeriod={setTrackPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={trackLimit}
-          setLimit={setTrackLimit}
-          mapper={track => ({
-            label: track.artist,
-            value: track.track,
-            sub: formatValue(`${track.playcount ?? 0} plays`)
-          })}
-          layout='grid'
-          collapsible={true}
-        />
-      </section>
-
-      <section className="mb-8">
-        <GroupedSection
           title="Top Albums"
           items={topAlbums}
           period={albumPeriod}
@@ -154,7 +134,28 @@ export default function ArtistView() {
             label: album.artist,
             value: album.album,
             sub: formatValue(`${album.playcount ?? 0} plays`),
-            link: album.albumId ? `/album/${album.albumId}` : undefined
+            link: album.albumId ? `/album/${album.albumId}` : undefined,
+            image: album.image
+          })}
+          layout='grid'
+          collapsible={true}
+        />
+      </section>
+
+      <section className="mb-8">
+        <GroupedSection
+          title="Top Tracks"
+          items={topTracks}
+          period={trackPeriod}
+          setPeriod={setTrackPeriod}
+          showPeriod={true}
+          showLimit={true}
+          limit={trackLimit}
+          setLimit={setTrackLimit}
+          mapper={track => ({
+            label: track.artist,
+            value: track.track,
+            sub: formatValue(`${track.playcount ?? 0} plays`)
           })}
           layout='grid'
           collapsible={true}

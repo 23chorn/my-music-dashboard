@@ -152,7 +152,7 @@ export default function ExploreView() {
   }));
 
   return (
-    <div className="p-4">
+    <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
       <SectionHeader
         title="Explore"
         subheader="Browse all artists by playcount or alphabetically."

@@ -71,7 +71,7 @@ export default function AlbumView() {
   if (!album) return <div className="p-4">Album not found.</div>;
 
   return (
-    <div className="w-full max-w-5xl mx-auto p-4">
+    <div className="w-full px-4">
       <SectionHeader
         image={album.image_url}
         title={album.name}
