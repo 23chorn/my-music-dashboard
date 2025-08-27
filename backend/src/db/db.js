@@ -394,3 +394,25 @@ export async function searchAll(query, callback) {
     callback(err);
   }
 }
+
+export async function getDailyPlaysAll(days) {
+  logger.info(`getDailyPlaysAll called with days=${days}`);
+  
+  const query = `
+    SELECT DATE(plays.timestamp, 'unixepoch') AS day,
+           COUNT(*) AS count
+    FROM plays
+    WHERE plays.timestamp >= strftime('%s', 'now', '-${days} days')
+    GROUP BY DATE(plays.timestamp, 'unixepoch')
+    ORDER BY day ASC
+  `;
+  
+  try {
+    const rows = await dbAll(query);
+    logger.info(`getDailyPlaysAll returned ${rows.length} daily records`);
+    return rows;
+  } catch (err) {
+    logger.error(`getDailyPlaysAll DB error: ${err}`);
+    throw err;
+  }
+}

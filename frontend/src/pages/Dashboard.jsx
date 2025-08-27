@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/GroupedSection";
+import DashboardHeatmap from "../components/DashboardHeatmap";
 import PageLayout from "../components/layout/PageLayout";
 import SectionLoader from "../components/ui/SectionLoader";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
@@ -13,7 +14,7 @@ export default function Dashboard() {
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading, handleRefresh,
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, handleRefresh,
     loading, artistsLoading, tracksLoading, albumsLoading, recentLoading,
     syncing, syncNewTracks
   } = useDashboardData();
@@ -165,6 +166,8 @@ export default function Dashboard() {
           collapsible={true}
         />
       </SectionLoader>
+
+      <DashboardHeatmap />
     </PageLayout>
   );
 }

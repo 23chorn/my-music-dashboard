@@ -20,7 +20,6 @@ export default function useDashboardData() {
   const [uniqueTracks, setUniqueTracks] = useState(null);
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
   const [playCount, setPlayCount] = useState(null);
-  const [uniqueLoading, setUniqueLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [artistsLoading, setArtistsLoading] = useState(false);
   const [tracksLoading, setTracksLoading] = useState(false);
@@ -32,20 +31,6 @@ export default function useDashboardData() {
   const [albumLimit, setAlbumLimit] = useState(5);
   const [recentLimit, setRecentLimit] = useState(5);
 
-  async function fetchUniqueCounts() {
-    try {
-      const data = await getUniqueCountsFromServer();
-      setUniqueArtists(data.uniqueArtistCount);
-      setUniqueTracks(data.uniqueTrackCount);
-      setUniqueAlbums(data.uniqueAlbumCount);
-      setPlayCount(data.playCount);
-    } catch (e) {
-      setUniqueArtists("-");
-      setUniqueTracks("-");
-      setUniqueAlbums("-");
-      setPlayCount("-");
-    }
-  }
 
   async function fetchAllData() {
     setLoading(true);
@@ -189,7 +174,7 @@ export default function useDashboardData() {
     topTracks, setTopTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, setTopAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading,
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks,
     loading, handleRefresh: fetchAllData,
     artistsLoading, tracksLoading, albumsLoading, recentLoading,
     syncing, syncNewTracks

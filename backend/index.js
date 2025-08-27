@@ -14,6 +14,7 @@ import recentTracksRouter from "./src/routes/recentTracks.js";
 import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
 import albumRouter from "./src/routes/album.js";
+import dailyPlaysRouter from "./src/routes/dailyPlays.js";
 
 const app = express();
 
@@ -97,6 +98,8 @@ app.use('/api/search', searchRouter);
 app.use('/api/artist', artistRouter);
 
 app.use('/api/album', albumRouter);
+
+app.use('/api/daily-plays', dailyPlaysRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");

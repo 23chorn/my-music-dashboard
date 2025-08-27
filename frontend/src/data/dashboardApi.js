@@ -53,3 +53,10 @@ export async function syncTracksFromServer() {
   if (!res.ok) throw new Error('Failed to sync tracks');
   return await res.json();
 }
+
+// Get daily play counts across all artists
+export async function getDailyPlaysFromServer(days = 90) {
+  const res = await fetch(`${API_BASE_URL}/api/daily-plays?days=${days}`);
+  if (!res.ok) throw new Error('Failed to fetch daily plays');
+  return await res.json();
+}

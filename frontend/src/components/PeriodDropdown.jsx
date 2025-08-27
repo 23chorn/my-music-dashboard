@@ -9,12 +9,12 @@ export default function PeriodDropdown({ value, onChange, options, label = "Peri
   ];
   const opts = options || defaultOptions;
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
-      <label className="mr-0 sm:mr-2 text-sm sm:text-base">{label}</label>
+    <div className="flex flex-col items-start gap-1">
+      <label className="text-xs text-gray-400">{label}</label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="bg-gray-700 text-white p-1 rounded w-full sm:w-auto"
+        className="bg-gray-700 text-white p-1 rounded text-sm"
       >
         {opts.map(opt => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>

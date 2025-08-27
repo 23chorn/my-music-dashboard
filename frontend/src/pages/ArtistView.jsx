@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import useArtistViewData from "../hooks/useArtistViewData";
-import Heatmap from "../components/Heatmap";
+import CustomHeatmap from "../components/CustomHeatmap";
 import GroupedSection from "../components/GroupedSection";
 import MilestoneSection from "../components/MilestoneSection";
 import PageLayout from "../components/layout/PageLayout";
@@ -108,7 +108,7 @@ export default function ArtistView() {
       </SectionLoader>
 
       {/* Era Explorer Section */}
-      {artist && <Heatmap artistId={artist.id} days={30} />}
+      {artist && <CustomHeatmap artistId={artist.id} days={90} />}
     </PageLayout>
   );
 }

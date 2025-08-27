@@ -36,11 +36,11 @@ export default function GroupedSection({
   // Separate collapse button so it stays next to the title
   const collapseButton = collapsible && (
     <button
-      className="p-1 rounded bg-gray-900 hover:bg-gray-800 transition ml-2"
+      className="p-0.5 hover:bg-gray-800 hover:bg-opacity-50 rounded transition ml-2 text-gray-400 hover:text-gray-300"
       onClick={() => setOpen(o => !o)}
       aria-label={open ? "Collapse section" : "Expand section"}
     >
-      {open ? <FaChevronUp /> : <FaChevronDown />}
+      {open ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
     </button>
   );
 
@@ -61,7 +61,12 @@ export default function GroupedSection({
     <>
       <div className="flex flex-col sm:flex-row items-center justify-between mb-2 gap-2">
         <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
-          <h2 className="text-lg sm:text-2xl font-semibold text-blue-400 text-center">{title}</h2>
+          <h2 
+            className={`text-lg sm:text-2xl font-semibold text-blue-400 text-center ${collapsible ? 'cursor-pointer hover:text-blue-300 transition-colors' : ''}`}
+            onClick={collapsible ? () => setOpen(o => !o) : undefined}
+          >
+            {title}
+          </h2>
           {collapseButton}
         </div>
         {controls}

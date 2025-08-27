@@ -20,7 +20,7 @@ export default function FilterControls({
   if (!showPeriod && !showLimit) return null;
 
   return (
-    <div className={`flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 items-center justify-end ${className}`}>
+    <div className={`flex gap-3 items-start justify-end ${className}`}>
       {showPeriod && (
         <PeriodDropdown
           value={period ?? "overall"}
