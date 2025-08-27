@@ -20,29 +20,36 @@ export default function useAlbumViewData(albumId, {
   const [trackLimit, setTrackLimit] = useState(initialTrackLimit);
   const [trackPeriod, setTrackPeriod] = useState(initialTrackPeriod);
 
-  // Fetch album info and stats on albumId change
+  // Fetch all data on albumId change
   useEffect(() => {
-    async function fetchInfoAndStats() {
+    async function fetchAllData() {
       setLoading(true);
       try {
-        const [albumData, statsData] = await Promise.all([
+        const [albumData, statsData, topTracksData, recentPlaysData] = await Promise.all([
           getAlbumInfo(albumId),
-          getAlbumStats(albumId)
+          getAlbumStats(albumId),
+          getAlbumTopTracks(albumId, trackLimit, trackPeriod),
+          getAlbumRecentPlays(albumId, recentLimit)
         ]);
         setAlbum(albumData);
         setStats(statsData);
+        setTopTracks(topTracksData);
+        setRecentPlays(recentPlaysData);
       } catch {
         setAlbum(null);
         setStats(null);
+        setTopTracks([]);
+        setRecentPlays([]);
       }
       setLoading(false);
     }
-    if (albumId) fetchInfoAndStats();
+    if (albumId) fetchAllData();
   }, [albumId]);
 
-  // Fetch top tracks when albumId, trackLimit, or trackPeriod change
+  // Refetch individual sections when their parameters change
   useEffect(() => {
     async function fetchTopTracks() {
+      if (!album) return; // Wait until initial data is loaded
       try {
         const tracks = await getAlbumTopTracks(albumId, trackLimit, trackPeriod);
         setTopTracks(tracks);
@@ -51,11 +58,11 @@ export default function useAlbumViewData(albumId, {
       }
     }
     if (albumId) fetchTopTracks();
-  }, [albumId, trackLimit, trackPeriod]);
+  }, [trackLimit, trackPeriod]);
 
-  // Fetch recent plays when albumId or recentLimit change
   useEffect(() => {
     async function fetchRecentPlays() {
+      if (!album) return; // Wait until initial data is loaded
       try {
         const plays = await getAlbumRecentPlays(albumId, recentLimit);
         setRecentPlays(plays);
@@ -64,7 +71,7 @@ export default function useAlbumViewData(albumId, {
       }
     }
     if (albumId) fetchRecentPlays();
-  }, [albumId, recentLimit]);
+  }, [recentLimit]);
 
   return {
     album,

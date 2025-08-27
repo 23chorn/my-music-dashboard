@@ -1,6 +1,7 @@
 import GroupedSection from "./GroupedSection";
 import { getOrdinalSuffix } from "../utils/ordinalSuffix";
 import { formatValue } from "../utils/numberFormat";
+import { formatDateTime } from "../utils/dateFormatter";
 
 export default function MilestoneSection({ milestones }) {
   if (!milestones || milestones.length === 0) return null;
@@ -9,22 +10,18 @@ export default function MilestoneSection({ milestones }) {
     label: formatValue(`${milestone.milestone}${getOrdinalSuffix(milestone.milestone)} play:`),
     value: milestone.track,
     album: milestone.album,
-    sub: milestone.timestamp
-      ? new Date(milestone.timestamp * 1000).toLocaleString()
-      : "N/A"
+    sub: formatDateTime(milestone.timestamp) || "N/A"
   }));
 
   return (
-    <div className="w-full px-2 sm:px-4">
-      <GroupedSection
-        title="Milestones"
-        items={milestoneTiles}
-        showPeriod={false}
-        showLimit={false}
-        mapper={tile => tile}
-        layout="list"
-        collapsible={true}
-      />
-    </div>
+    <GroupedSection
+      title="Milestones"
+      items={milestoneTiles}
+      showPeriod={false}
+      showLimit={false}
+      mapper={tile => tile}
+      layout="list"
+      collapsible={true}
+    />
   );
 }

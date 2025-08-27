@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllArtistsWithPlaycount } from "../data/artistApi"; 
 import ListTile from "../components/ListTile";
-import SectionHeader from "../components/SectionHeader";
+import PageLayout from "../components/layout/PageLayout";
 import GroupedSection from "../components/GroupedSection";
 
 const DATA_TYPES = [
@@ -76,11 +76,10 @@ export default function ExploreView() {
     }));
 
     return (
-      <div className="max-w-3xl mx-auto p-4">
-        <SectionHeader
-          title="Explore"
-          subheader="Browse all artists by playcount or alphabetically."
-        />
+      <PageLayout
+        title="Explore"
+        subheader="Browse all artists by playcount or alphabetically."
+      >
         <div className="mb-4 flex gap-4 items-center">
           {DATA_TYPES.map((type, idx) => (
             <button
@@ -139,7 +138,7 @@ export default function ExploreView() {
             </div>
           </>
         )}
-      </div>
+      </PageLayout>
     );
   }
 
@@ -152,11 +151,10 @@ export default function ExploreView() {
   }));
 
   return (
-    <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
-      <SectionHeader
-        title="Explore"
-        subheader="Browse all artists by playcount or alphabetically."
-      />
+    <PageLayout
+      title="Explore"
+      subheader="Browse all artists by playcount or alphabetically."
+    >
       <div className="mb-4 flex gap-4 items-center">
         {DATA_TYPES.map((type, idx) => (
           <button
@@ -212,6 +210,6 @@ export default function ExploreView() {
           Renderer={ListTile}
         />
       )}
-    </div>
+    </PageLayout>
   );
 }

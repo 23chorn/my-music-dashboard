@@ -31,37 +31,51 @@ export default function useArtistViewData(id, {
   const [trackPeriod, setTrackPeriod] = useState(initialTrackPeriod);
 
   useEffect(() => {
-    async function fetchInitialData() {
+    async function fetchAllData() {
       setLoading(true);
       try {
         const [
           artistData,
           statsData,
           milestonesData,
-          daily
+          daily,
+          recentPlaysData,
+          topAlbumsData,
+          topTracksData
         ] = await Promise.all([
           getArtistInfo(id),
           getArtistStats(id),
           getArtistMilestones(id),
-          getArtistDailyPlays(id)
+          getArtistDailyPlays(id),
+          getArtistRecentPlays(id, recentLimit),
+          getArtistTopAlbums(id, albumLimit, albumPeriod),
+          getArtistTopTracks(id, trackLimit, trackPeriod)
         ]);
         setArtist(artistData);
         setStats(statsData);
         setMilestones(milestonesData);
         setDailyPlays(daily);
+        setRecentPlays(recentPlaysData);
+        setTopAlbums(topAlbumsData);
+        setTopTracks(topTracksData);
       } catch {
         setArtist(null);
         setStats(null);
         setMilestones([]);
         setDailyPlays([]);
+        setRecentPlays([]);
+        setTopAlbums([]);
+        setTopTracks([]);
       }
       setLoading(false);
     }
-    if (id) fetchInitialData();
+    if (id) fetchAllData();
   }, [id]);
 
+  // Refetch individual sections when their parameters change
   useEffect(() => {
     async function fetchRecentPlays() {
+      if (!artist) return; // Wait until initial data is loaded
       try {
         const plays = await getArtistRecentPlays(id, recentLimit);
         setRecentPlays(plays);
@@ -70,10 +84,11 @@ export default function useArtistViewData(id, {
       }
     }
     if (id) fetchRecentPlays();
-  }, [id, recentLimit]);
+  }, [recentLimit]); // Removed id dependency to avoid initial refetch
 
   useEffect(() => {
     async function fetchTopAlbums() {
+      if (!artist) return; // Wait until initial data is loaded
       try {
         const albums = await getArtistTopAlbums(id, albumLimit, albumPeriod);
         setTopAlbums(albums);
@@ -82,10 +97,11 @@ export default function useArtistViewData(id, {
       }
     }
     if (id) fetchTopAlbums();
-  }, [id, albumLimit, albumPeriod]);
+  }, [albumLimit, albumPeriod]); // Removed id dependency to avoid initial refetch
 
   useEffect(() => {
     async function fetchTopTracks() {
+      if (!artist) return; // Wait until initial data is loaded
       try {
         const tracks = await getArtistTopTracks(id, trackLimit, trackPeriod);
         setTopTracks(tracks);
@@ -94,7 +110,7 @@ export default function useArtistViewData(id, {
       }
     }
     if (id) fetchTopTracks();
-  }, [id, trackLimit, trackPeriod]);
+  }, [trackLimit, trackPeriod]); // Removed id dependency to avoid initial refetch
 
   return {
     artist,

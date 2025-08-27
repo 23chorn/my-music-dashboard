@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/GroupedSection";
-import SectionHeader from "../components/SectionHeader";
+import PageLayout from "../components/layout/PageLayout";
 import { formatValue } from "../utils/numberFormat";
+import { formatDateTime } from "../utils/dateFormatter";
 
 export default function Dashboard() {
   const {
@@ -10,7 +11,8 @@ export default function Dashboard() {
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading, handleRefresh
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading, handleRefresh,
+    loading
   } = useDashboardData();
 
   useEffect(() => {
@@ -30,12 +32,12 @@ export default function Dashboard() {
       : "/pfp.jpeg";
 
   return (
-    <div className="space-y-10 px-2 sm:px-4 md:px-8 w-full min-w-0">
-      <SectionHeader
-        image={imageUrl}
-        title="Welcome to Chorn's Music Dashboard!"
-        subheader="An app for me to track and map out my personal journey with music!"
-      />
+    <PageLayout
+      loading={loading}
+      image={imageUrl}
+      title="Welcome to Chorn's Music Dashboard!"
+      subheader="An app for me to track and map out my personal journey with music!"
+    >
 
       <GroupedSection
         title="My Stats"
@@ -113,12 +115,10 @@ export default function Dashboard() {
           label: track.track,
           value: track.artist,
           album: track.album,
-          sub: track.timestamp
-            ? new Date(track.timestamp * 1000).toLocaleString()
-            : "Now Playing"
+          sub: formatDateTime(track.timestamp)
         })}
         collapsible={true}
       />
-    </div>
+    </PageLayout>
   );
 }

@@ -20,6 +20,7 @@ export default function useDashboardData() {
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
   const [playCount, setPlayCount] = useState(null);
   const [uniqueLoading, setUniqueLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [artistLimit, setArtistLimit] = useState(5);
   const [trackLimit, setTrackLimit] = useState(5);
   const [albumLimit, setAlbumLimit] = useState(5);
@@ -40,43 +41,42 @@ export default function useDashboardData() {
     }
   }
 
+  async function fetchAllData() {
+    setLoading(true);
+    try {
+      const [artists, tracks, albums, recent] = await Promise.all([
+        getTopArtistsFromServer(artistLimit, artistPeriod),
+        getTopTracksFromServer(trackLimit, trackPeriod),
+        getTopAlbumsFromServer(albumLimit, albumPeriod),
+        getRecentTracksFromServer(recentLimit)
+      ]);
+      
+      setTopArtists(artists);
+      setTopTracks(tracks);
+      setTopAlbums(albums);
+      setRecentTracks(recent);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchUniqueCounts();
+    fetchAllData();
   }, []);
 
   useEffect(() => {
-    async function fetchData() {
-      setTopArtists(await getTopArtistsFromServer(artistLimit, artistPeriod));
-    }
-    fetchData();
-  }, [artistPeriod, artistLimit]);
-
-  useEffect(() => {
-    async function fetchData() {
-      setTopTracks(await getTopTracksFromServer(trackLimit, trackPeriod));
-    }
-    fetchData();
-  }, [trackPeriod, trackLimit]);
-
-  useEffect(() => {
-    async function fetchRecentTracks() {
-      setRecentTracks(await getRecentTracksFromServer(recentLimit));
-    }
-    fetchRecentTracks();
-  }, [recentLimit]);
-
-  useEffect(() => {
-    async function fetchTopAlbums() {
-      setTopAlbums(await getTopAlbumsFromServer(albumLimit, albumPeriod));
-    }
-    fetchTopAlbums();
-  }, [albumPeriod, albumLimit]);
+    fetchAllData();
+  }, [artistPeriod, artistLimit, trackPeriod, trackLimit, albumPeriod, albumLimit, recentLimit]);
 
   return {
     topArtists, setTopArtists, artistLimit, setArtistLimit, artistPeriod, setArtistPeriod,
     topTracks, setTopTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, setTopAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, uniqueLoading,
+    loading, handleRefresh: fetchAllData
   };
 }

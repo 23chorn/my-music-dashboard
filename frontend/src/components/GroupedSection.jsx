@@ -1,8 +1,6 @@
-import CollapsibleSection from "./CollapsibleSection";
-import LimitDropdown from "./LimitDropdown";
-import PeriodDropdown from "./PeriodDropdown";
+import FilterControls from "./forms/FilterControls";
 import ListTile from "./ListTile";
-import Tile from "./Tile";
+import GridTile from "./tiles/GridTile";
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
@@ -25,7 +23,6 @@ export default function GroupedSection({
     { value: "12month", label: "Last 12 Months" },
   ],
   mapper,
-  Renderer = ListTile,
   layout = "list", // "list" or "grid"
   collapsible = false,
   defaultOpen = true,
@@ -48,23 +45,16 @@ export default function GroupedSection({
   );
 
   const controls = (
-    <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 items-center justify-end">
-      {showPeriod && (
-        <PeriodDropdown
-          value={period ?? "overall"}
-          onChange={setPeriod}
-          options={periodOptions}
-        />
-      )}
-      {showLimit && (
-        <LimitDropdown
-          value={limit}
-          onChange={setLimit}
-          options={limitOptions}
-        />
-      )}
-      {/* Remove collapse button from here */}
-    </div>
+    <FilterControls
+      showPeriod={showPeriod}
+      period={period}
+      setPeriod={setPeriod}
+      periodOptions={periodOptions}
+      showLimit={showLimit}
+      limit={limit}
+      setLimit={setLimit}
+      limitOptions={limitOptions}
+    />
   );
 
   const content = (
@@ -78,11 +68,15 @@ export default function GroupedSection({
       </div>
       {open && (
         layout === "grid" ? (
-          <Tile tiles={mappedItems} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            {mappedItems.map((item, idx) => (
+              <GridTile key={idx} {...item} />
+            ))}
+          </div>
         ) : (
           <ul className="space-y-2 sm:space-y-3">
             {mappedItems.map((item, idx) => (
-              <Renderer key={idx} {...item} />
+              <ListTile key={idx} {...item} />
             ))}
           </ul>
         )
@@ -91,6 +85,6 @@ export default function GroupedSection({
   );
 
   return (
-    <section className="mb-4 px-2 sm:px-4">{content}</section>
+    <section className="mb-4">{content}</section>
   );
 }

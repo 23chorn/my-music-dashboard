@@ -72,15 +72,13 @@ function AppContent() {
           </div>
         </div>
       </div>
-      <main className="flex-1 flex justify-center items-start w-full">
-        <div className="w-full max-w-5xl px-4">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/artist/:id" element={<ArtistView />} />
-            <Route path="/album/:id" element={<AlbumView />} />
-            <Route path="/explore" element={<ExploreView />} />
-          </Routes>
-        </div>
+      <main className="flex-1 w-full bg-gray-950">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/artist/:id" element={<ArtistView />} />
+          <Route path="/album/:id" element={<AlbumView />} />
+          <Route path="/explore" element={<ExploreView />} />
+        </Routes>
       </main>
     </div>
   );
