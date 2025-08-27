@@ -161,25 +161,27 @@ export default function useDashboardData() {
     }
   }
 
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
   useEffect(() => {
-    fetchAllData();
+    fetchAllData().finally(() => setInitialLoadComplete(true));
   }, []);
 
   // Individual section updates when filters change
   useEffect(() => {
-    if (!loading) fetchArtists(); // Don't refetch during initial load
+    if (initialLoadComplete) fetchArtists(); // Don't refetch during initial load
   }, [artistPeriod, artistLimit]);
 
   useEffect(() => {
-    if (!loading) fetchTracks();
+    if (initialLoadComplete) fetchTracks();
   }, [trackPeriod, trackLimit]);
 
   useEffect(() => {
-    if (!loading) fetchAlbums();
+    if (initialLoadComplete) fetchAlbums();
   }, [albumPeriod, albumLimit]);
 
   useEffect(() => {
-    if (!loading) fetchRecent();
+    if (initialLoadComplete) fetchRecent();
   }, [recentLimit]);
 
   return {
