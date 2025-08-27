@@ -44,42 +44,16 @@ app.post('/api/recent-tracks', (req, res) => {
   });
 });
 
-app.get('/api/unique-counts', async (req, res) => {
+app.get('/api/unique-counts', (req, res) => {
   logger.info("GET /api/unique-counts called");
-  try {
-    getLastTimestamp(async(err, lastTimestamp) => {
-      if (err) {
-        logger.error("Error getting last timestamp:", err);
-        return res.status(500).json({ error: 'DB error' });
-      }
-      if (!lastTimestamp) {
-        logger.warn("No tracks found in DB");
-        return res.status(404).json({ error: 'No tracks found' });
-      }
-
-      const newTracks = await fetchAllRecentTracks({ from: lastTimestamp });
-      logger.info(`Fetched ${newTracks.length} new tracks from Last.fm`);
-
-      addPlaysDeduped(newTracks, (err2) => {
-        if (err2) {
-          logger.error("Error adding deduped tracks:", err2);
-          return res.status(500).json({ error: 'DB error' });
-        }
-
-        getUniqueCounts((err3, uniqueCounts) => {
-          if (err3) {
-            logger.error("Error getting unique counts:", err3);
-            return res.status(500).json({ error: 'DB error' });
-          }
-          logger.info("Returning unique counts");
-          res.json(uniqueCounts);
-        });
-      });
-    });
-  } catch (e) {
-    logger.error("Failed to fetch from Last.fm:", e);
-    res.status(500).json({ error: 'Failed to fetch from Last.fm' });
-  }
+  getUniqueCounts((err, uniqueCounts) => {
+    if (err) {
+      logger.error("Error getting unique counts:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info("Returning unique counts");
+    res.json(uniqueCounts);
+  });
 });
 
 // Top Artists

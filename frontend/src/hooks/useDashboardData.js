@@ -44,26 +44,39 @@ export default function useDashboardData() {
   async function fetchAllData() {
     setLoading(true);
     try {
-      const [artists, tracks, albums, recent] = await Promise.all([
+      const [artists, tracks, albums, recent, uniqueCounts] = await Promise.all([
         getTopArtistsFromServer(artistLimit, artistPeriod),
         getTopTracksFromServer(trackLimit, trackPeriod),
         getTopAlbumsFromServer(albumLimit, albumPeriod),
-        getRecentTracksFromServer(recentLimit)
+        getRecentTracksFromServer(recentLimit),
+        getUniqueCountsFromServer()
       ]);
       
       setTopArtists(artists);
       setTopTracks(tracks);
       setTopAlbums(albums);
       setRecentTracks(recent);
+      setUniqueArtists(uniqueCounts.uniqueArtistCount);
+      setUniqueTracks(uniqueCounts.uniqueTrackCount);
+      setUniqueAlbums(uniqueCounts.uniqueAlbumCount);
+      setPlayCount(uniqueCounts.playCount);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Set fallback values on error
+      setTopArtists([]);
+      setTopTracks([]);
+      setTopAlbums([]);
+      setRecentTracks([]);
+      setUniqueArtists("-");
+      setUniqueTracks("-");
+      setUniqueAlbums("-");
+      setPlayCount("-");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchUniqueCounts();
     fetchAllData();
   }, []);
 
