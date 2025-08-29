@@ -63,11 +63,22 @@ app.post('/api/sync-tracks', async (req, res) => {
           }
 
           logger.info(`Successfully synced ${insertedCount} new plays`);
-          res.json({ 
-            success: true, 
-            message: `Synced ${insertedCount} new plays from ${newTracks.length} tracks fetched`,
-            newTracks: newTracks.length,
-            addedPlays: insertedCount
+          
+          // Add verification query to check if plays were actually saved
+          getUniqueCounts((verifyErr, counts) => {
+            if (verifyErr) {
+              logger.error("Error verifying sync:", verifyErr);
+            } else {
+              logger.info(`Post-sync verification: ${counts.playCount} total plays in DB`);
+            }
+            
+            res.json({ 
+              success: true, 
+              message: `Synced ${insertedCount} new plays from ${newTracks.length} tracks fetched`,
+              newTracks: newTracks.length,
+              addedPlays: insertedCount,
+              totalPlaysAfterSync: counts?.playCount || 'unknown'
+            });
           });
         });
       } catch (fetchError) {

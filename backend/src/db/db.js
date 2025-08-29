@@ -5,7 +5,15 @@ import { getPeriodTimestamp } from '../utils/period.js';
 import logger from '../utils/logger.js';
 
 const dbPath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), '../../data/recentTracks.db');
-const db = new sqlite3.Database(dbPath);
+logger.info(`Database path: ${dbPath}`);
+
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    logger.error(`Database connection error: ${err.message}`);
+  } else {
+    logger.info(`Connected to SQLite database at ${dbPath}`);
+  }
+});
 
 const dbGet = util.promisify(db.get).bind(db);
 const dbAll = util.promisify(db.all).bind(db);
