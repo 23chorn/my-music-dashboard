@@ -35,9 +35,31 @@ export async function fetchAllRecentTracks({ from }) {
 
     logger.info(`Last.fm response status: ${response.status}`);
     logger.info(`Last.fm response data keys: ${Object.keys(response.data)}`);
+    logger.info(`Last.fm full response data: ${JSON.stringify(response.data)}`);
 
-    const tracks = response.data.recenttracks?.track || [];
+    // Check if the response contains an error
+    if (response.data.error) {
+      logger.error(`Last.fm API error: ${response.data.error} - ${response.data.message}`);
+      throw new Error(`Last.fm API error: ${response.data.message}`);
+    }
+
+    const recentTracks = response.data.recenttracks;
+    if (!recentTracks) {
+      logger.error(`No recenttracks in response: ${JSON.stringify(response.data)}`);
+      return [];
+    }
+
+    let tracks = recentTracks.track || [];
+    
+    // Last.fm returns a single object if there's only 1 track, array if multiple
+    if (!Array.isArray(tracks)) {
+      logger.info(`Single track detected, converting to array`);
+      tracks = [tracks];
+    }
+    
     logger.info(`Received ${tracks.length} tracks from Last.fm`);
+    logger.info(`First track sample: ${JSON.stringify(tracks[0])}`);
+    
     // Map to your DB format if needed
     const mappedTracks = tracks.map(t => ({
       track: t.name,
