@@ -1,29 +1,40 @@
-import sqlite3 from 'sqlite3';
-import util from 'util';
-import path from 'path';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { getPeriodTimestamp } from '../utils/period.js';
 import logger from '../utils/logger.js';
 
-const dbPath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), '../../data/recentTracks.db');
-logger.info(`Database path: ${dbPath}`);
+// Create PostgreSQL connection pool (will be initialized later)
+let pool;
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    logger.error(`Database connection error: ${err.message}`);
-  } else {
-    logger.info(`Connected to SQLite database at ${dbPath}`);
-  }
-});
+export function initializeDatabase() {
+  logger.info(`Initializing PostgreSQL database connection`);
+  
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
 
-const dbGet = util.promisify(db.get).bind(db);
-const dbAll = util.promisify(db.all).bind(db);
+  // Test the connection
+  pool.connect((err, client, release) => {
+    if (err) {
+      logger.error(`Database connection error: ${err.message}`);
+      console.error('Database connection failed:', err);
+    } else {
+      logger.info(`Connected to PostgreSQL database`);
+      release();
+    }
+  });
+}
 
 export async function getLastTimestamp(callback) {
   logger.info('getLastTimestamp called');
   try {
-    const row = await dbGet(`SELECT MAX(timestamp) AS lastTimestamp FROM plays`);
-    logger.info(`getLastTimestamp returned: ${row.lastTimestamp}`);
-    callback(null, row.lastTimestamp);
+    const result = await pool.query(`SELECT MAX(played_at) AS lastTimestamp FROM plays`);
+    const lastTimestamp = result.rows[0]?.lasttimestamp 
+      ? Math.floor(new Date(result.rows[0].lasttimestamp).getTime() / 1000) 
+      : null;
+    logger.info(`getLastTimestamp returned: ${lastTimestamp}`);
+    callback(null, lastTimestamp);
   } catch (err) {
     logger.error(`getLastTimestamp DB error: ${err}`);
     callback(err);
@@ -32,193 +43,140 @@ export async function getLastTimestamp(callback) {
 
 export async function addPlaysDeduped(plays, callback) {
   logger.info(`addPlaysDeduped called with ${plays.length} plays`);
-  db.serialize(() => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
     let inserted = 0;
-    let errors = [];
-    let pending = plays.length;
 
-    if (pending === 0) {
+    if (plays.length === 0) {
       logger.info('No plays to insert.');
+      await client.query('COMMIT');
       return callback(null, 0);
     }
 
-    plays.forEach(play => {
-      db.get(
-        `SELECT id FROM artists WHERE name = ?`,
-        [play.artist],
-        (err, artistRow) => {
-          if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
+    for (const play of plays) {
+      try {
+        // Find or create artist
+        let artistResult = await client.query(
+          `SELECT id FROM artists WHERE name = $1`,
+          [play.artist]
+        );
+        
+        let artistId;
+        if (artistResult.rows.length === 0) {
+          const insertArtist = await client.query(
+            `INSERT INTO artists (name) VALUES ($1) RETURNING id`,
+            [play.artist]
+          );
+          artistId = insertArtist.rows[0].id;
+        } else {
+          artistId = artistResult.rows[0].id;
+        }
 
-          function insertArtist(cb) {
-            db.run(
-              `INSERT INTO artists (name) VALUES (?)`,
-              [play.artist],
-              function (err) { cb(err, this.lastID); }
+        let albumId = null;
+        if (play.album) {
+          // Find or create album
+          let albumResult = await client.query(
+            `SELECT id FROM albums WHERE name = $1`,
+            [play.album]
+          );
+          
+          if (albumResult.rows.length === 0) {
+            const insertAlbum = await client.query(
+              `INSERT INTO albums (name) VALUES ($1) RETURNING id`,
+              [play.album]
+            );
+            albumId = insertAlbum.rows[0].id;
+            
+            // Link album to artist
+            await client.query(
+              `INSERT INTO album_artists (album_id, artist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+              [albumId, artistId]
+            );
+          } else {
+            albumId = albumResult.rows[0].id;
+          }
+        }
+
+        // Find or create track
+        let trackResult = await client.query(
+          `SELECT id FROM tracks WHERE name = $1`,
+          [play.track]
+        );
+        
+        let trackId;
+        if (trackResult.rows.length === 0) {
+          const insertTrack = await client.query(
+            `INSERT INTO tracks (name) VALUES ($1) RETURNING id`,
+            [play.track]
+          );
+          trackId = insertTrack.rows[0].id;
+          
+          // Link track to artist
+          await client.query(
+            `INSERT INTO track_artists (track_id, artist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+            [trackId, artistId]
+          );
+          
+          // Link track to album if album exists
+          if (albumId) {
+            await client.query(
+              `INSERT INTO track_albums (track_id, album_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+              [trackId, albumId]
             );
           }
-
-          const artistId = artistRow ? artistRow.id : null;
-
-          function afterArtist(artistId) {
-            if (play.album) {
-              db.get(
-                `SELECT id FROM albums WHERE name = ? AND artist_id = ?`,
-                [play.album, artistId],
-                (err, albumRow) => {
-                  if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-
-                  function insertAlbum(cb) {
-                    db.run(
-                      `INSERT INTO albums (name, artist_id) VALUES (?, ?)`,
-                      [play.album, artistId],
-                      function (err) { cb(err, this.lastID); }
-                    );
-                  }
-
-                  const albumId = albumRow ? albumRow.id : null;
-
-                  function afterAlbum(albumId) {
-                    db.get(
-                      `SELECT id FROM tracks WHERE name = ? AND artist_id = ? AND album_id IS ?`,
-                      [play.track, artistId, albumId],
-                      (err, trackRow) => {
-                        if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-
-                        function insertTrack(cb) {
-                          db.run(
-                            `INSERT INTO tracks (name, artist_id, album_id) VALUES (?, ?, ?)`,
-                            [play.track, artistId, albumId],
-                            function (err) { cb(err, this.lastID); }
-                          );
-                        }
-
-                        const trackId = trackRow ? trackRow.id : null;
-
-                        function afterTrack(trackId) {
-                          db.get(
-                            `SELECT id FROM plays WHERE track_id = ? AND timestamp = ?`,
-                            [trackId, play.timestamp],
-                            (err, playRow) => {
-                              if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-                              if (!playRow) {
-                                db.run(
-                                  `INSERT INTO plays (track_id, timestamp) VALUES (?, ?)`,
-                                  [trackId, play.timestamp],
-                                  err => {
-                                    if (err) errors.push(err);
-                                    else inserted++;
-                                    if (--pending === 0) callback(errors.length ? errors : null, inserted);
-                                  }
-                                );
-                              } else {
-                                if (--pending === 0) callback(errors.length ? errors : null, inserted);
-                              }
-                            }
-                          );
-                        }
-
-                        if (trackId) afterTrack(trackId);
-                        else insertTrack((err, newTrackId) => {
-                          if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-                          afterTrack(newTrackId);
-                        });
-                      }
-                    );
-                  }
-
-                  if (albumId) afterAlbum(albumId);
-                  else insertAlbum((err, newAlbumId) => {
-                    if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-                    afterAlbum(newAlbumId);
-                  });
-                }
-              );
-            } else {
-              db.get(
-                `SELECT id FROM tracks WHERE name = ? AND artist_id = ? AND album_id IS NULL`,
-                [play.track, artistId],
-                (err, trackRow) => {
-                  if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-
-                  function insertTrack(cb) {
-                    db.run(
-                      `INSERT INTO tracks (name, artist_id, album_id) VALUES (?, ?, NULL)`,
-                      [play.track, artistId],
-                      function (err) { cb(err, this.lastID); }
-                    );
-                  }
-
-                  const trackId = trackRow ? trackRow.id : null;
-
-                  function afterTrack(trackId) {
-                    db.get(
-                      `SELECT id FROM plays WHERE track_id = ? AND timestamp = ?`,
-                      [trackId, play.timestamp],
-                      (err, playRow) => {
-                        if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-                        if (!playRow) {
-                          db.run(
-                            `INSERT INTO plays (track_id, timestamp) VALUES (?, ?)`,
-                            [trackId, play.timestamp],
-                            err => {
-                              if (err) errors.push(err);
-                              else inserted++;
-                              if (--pending === 0) callback(errors.length ? errors : null, inserted);
-                            }
-                          );
-                        } else {
-                          if (--pending === 0) callback(errors.length ? errors : null, inserted);
-                        }
-                      }
-                    );
-                  }
-
-                  if (trackId) afterTrack(trackId);
-                  else insertTrack((err, newTrackId) => {
-                    if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-                    afterTrack(newTrackId);
-                  });
-                }
-              );
-            }
-          }
-
-          if (artistId) afterArtist(artistId);
-          else insertArtist((err, newArtistId) => {
-            if (err) { errors.push(err); if (--pending === 0) callback(errors.length ? errors : null, inserted); return; }
-            afterArtist(newArtistId);
-          });
+        } else {
+          trackId = trackResult.rows[0].id;
         }
-      );
-    });
-  });
+
+        // Check if play already exists
+        const playExists = await client.query(
+          `SELECT id FROM plays WHERE track_id = $1 AND played_at = $2`,
+          [trackId, new Date(play.timestamp * 1000)]
+        );
+
+        if (playExists.rows.length === 0) {
+          await client.query(
+            `INSERT INTO plays (track_id, played_at) VALUES ($1, $2)`,
+            [trackId, new Date(play.timestamp * 1000)]
+          );
+          inserted++;
+        }
+      } catch (playError) {
+        logger.error(`Error inserting play: ${playError}`);
+      }
+    }
+
+    await client.query('COMMIT');
+    logger.info(`Successfully inserted ${inserted} plays`);
+    callback(null, inserted);
+    
+  } catch (err) {
+    await client.query('ROLLBACK');
+    logger.error(`addPlaysDeduped error: ${err}`);
+    callback(err);
+  } finally {
+    client.release();
+  }
 }
 
 export async function getUniqueCounts(callback) {
   logger.info('getUniqueCounts called');
   try {
-    const artistRow = await dbGet(
-      `SELECT COUNT(DISTINCT tracks.artist_id) AS uniqueArtistCount
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id`
-    );
-    const trackRow = await dbGet(
-      `SELECT COUNT(DISTINCT tracks.id || '|' || tracks.artist_id || '|' || tracks.album_id) AS uniqueTrackCount
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id`
-    );
-    const albumRow = await dbGet(
-      `SELECT COUNT(DISTINCT tracks.album_id) AS uniqueAlbumCount
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id`
-    );
-    const playRow = await dbGet(`SELECT COUNT(*) AS playCount FROM plays`);
+    const [artistCount, trackCount, albumCount, playCount] = await Promise.all([
+      pool.query(`SELECT COUNT(*) AS uniqueArtistCount FROM artists`),
+      pool.query(`SELECT COUNT(*) AS uniqueTrackCount FROM tracks`),
+      pool.query(`SELECT COUNT(*) AS uniqueAlbumCount FROM albums`),
+      pool.query(`SELECT COUNT(*) AS playCount FROM plays`)
+    ]);
+
     logger.info('getUniqueCounts returned counts');
     callback(null, {
-      uniqueArtistCount: artistRow?.uniqueArtistCount ?? 0,
-      uniqueTrackCount: trackRow?.uniqueTrackCount ?? 0,
-      uniqueAlbumCount: albumRow?.uniqueAlbumCount ?? 0,
-      playCount: playRow?.playCount ?? 0,
+      uniqueArtistCount: parseInt(artistCount.rows[0].uniqueartistcount),
+      uniqueTrackCount: parseInt(trackCount.rows[0].uniquetrackcount),
+      uniqueAlbumCount: parseInt(albumCount.rows[0].uniquealbumcount),
+      playCount: parseInt(playCount.rows[0].playcount),
     });
   } catch (err) {
     logger.error(`getUniqueCounts DB error: ${err}`);
@@ -229,24 +187,27 @@ export async function getUniqueCounts(callback) {
 export async function getTopArtists(limit, period = "overall", callback) {
   logger.info(`getTopArtists called with limit=${limit}, period=${period}`);
   const fromTimestamp = getPeriodTimestamp(period);
+  
   const query = `
-    SELECT artists.id, artists.name, artists.image_url, COUNT(*) AS playcount
-    FROM plays
-    JOIN tracks ON plays.track_id = tracks.id
-    JOIN artists ON tracks.artist_id = artists.id
-    WHERE plays.timestamp >= ?
-    GROUP BY artists.id
+    SELECT a.id, a.name, a.image_url, COUNT(*) AS playcount
+    FROM plays p
+    JOIN tracks t ON p.track_id = t.id
+    JOIN track_artists ta ON t.id = ta.track_id
+    JOIN artists a ON ta.artist_id = a.id
+    WHERE p.played_at >= $1
+    GROUP BY a.id, a.name, a.image_url
     ORDER BY playcount DESC
-    LIMIT ?
+    LIMIT $2
   `;
+  
   try {
-    const rows = await dbAll(query, [fromTimestamp, limit]);
-    logger.info(`getTopArtists returned ${rows.length} artists`);
-    callback(null, rows.map(row => ({
+    const result = await pool.query(query, [new Date(fromTimestamp * 1000), limit]);
+    logger.info(`getTopArtists returned ${result.rows.length} artists`);
+    callback(null, result.rows.map(row => ({
       artistId: row.id,
       artist: row.name,
       image: row.image_url,
-      playcount: row.playcount
+      playcount: parseInt(row.playcount)
     })));
   } catch (err) {
     logger.error(`getTopArtists DB error: ${err}`);
@@ -257,41 +218,48 @@ export async function getTopArtists(limit, period = "overall", callback) {
 export async function getTopTracks({ limit, period = "overall", artistId = null, albumId = null }, callback) {
   logger.info(`getTopTracks called with limit=${limit}, period=${period}, artistId=${artistId}, albumId=${albumId}`);
   const fromTimestamp = getPeriodTimestamp(period);
+  
   let query = `
-    SELECT tracks.id AS trackId, tracks.name AS track, artists.name AS artist, albums.name AS album, COUNT(*) AS playcount
-    FROM plays
-    JOIN tracks ON plays.track_id = tracks.id
-    JOIN artists ON tracks.artist_id = artists.id
-    LEFT JOIN albums ON tracks.album_id = albums.id
-    WHERE plays.timestamp >= ?
+    SELECT t.id, t.name as track_name, a.name as artist_name, COUNT(*) AS playcount
+    FROM plays p
+    JOIN tracks t ON p.track_id = t.id
+    JOIN track_artists ta ON t.id = ta.track_id
+    JOIN artists a ON ta.artist_id = a.id
+    WHERE p.played_at >= $1
   `;
-  const params = [fromTimestamp];
-
+  
+  const params = [new Date(fromTimestamp * 1000)];
+  let paramCount = 1;
+  
   if (artistId) {
-    query += ` AND tracks.artist_id = ?`;
+    paramCount++;
+    query += ` AND a.id = $${paramCount}`;
     params.push(artistId);
   }
+  
   if (albumId) {
-    query += ` AND tracks.album_id = ?`;
+    paramCount++;
+    query += ` AND EXISTS (
+      SELECT 1 FROM track_albums tal 
+      WHERE tal.track_id = t.id AND tal.album_id = $${paramCount}
+    )`;
     params.push(albumId);
   }
-
+  
   query += `
-    GROUP BY tracks.id
+    GROUP BY t.id, t.name, a.name
     ORDER BY playcount DESC
-    LIMIT ?
+    LIMIT $${paramCount + 1}
   `;
   params.push(limit);
-
+  
   try {
-    const rows = await dbAll(query, params);
-    logger.info(`getTopTracks returned ${rows.length} tracks`);
-    callback(null, rows.map(row => ({
-      trackId: row.trackId,
-      track: row.track,
-      artist: row.artist,
-      album: row.album,
-      playcount: row.playcount
+    const result = await pool.query(query, params);
+    logger.info(`getTopTracks returned ${result.rows.length} tracks`);
+    callback(null, result.rows.map(row => ({
+      track: row.track_name,
+      artist: row.artist_name,
+      playcount: parseInt(row.playcount)
     })));
   } catch (err) {
     logger.error(`getTopTracks DB error: ${err}`);
@@ -302,37 +270,43 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
 export async function getTopAlbums({ limit, period = "overall", artistId = null }, callback) {
   logger.info(`getTopAlbums called with limit=${limit}, period=${period}, artistId=${artistId}`);
   const fromTimestamp = getPeriodTimestamp(period);
+  
   let query = `
-    SELECT albums.id AS albumId, albums.name AS album, artists.name AS artist, albums.image_url AS image, COUNT(*) AS playcount
-    FROM plays
-    JOIN tracks ON plays.track_id = tracks.id
-    JOIN albums ON tracks.album_id = albums.id
-    JOIN artists ON albums.artist_id = artists.id
-    WHERE plays.timestamp >= ?
+    SELECT al.id, al.name as album_name, a.name as artist_name, al.image_url, COUNT(*) AS playcount
+    FROM plays p
+    JOIN tracks t ON p.track_id = t.id
+    JOIN track_albums ta ON t.id = ta.track_id
+    JOIN albums al ON ta.album_id = al.id
+    JOIN track_artists tar ON t.id = tar.track_id
+    JOIN artists a ON tar.artist_id = a.id
+    WHERE p.played_at >= $1
   `;
-  const params = [fromTimestamp];
-
+  
+  const params = [new Date(fromTimestamp * 1000)];
+  let paramCount = 1;
+  
   if (artistId) {
-    query += ` AND albums.artist_id = ?`;
+    paramCount++;
+    query += ` AND a.id = $${paramCount}`;
     params.push(artistId);
   }
-
+  
   query += `
-    GROUP BY albums.id
+    GROUP BY al.id, al.name, a.name, al.image_url
     ORDER BY playcount DESC
-    LIMIT ?
+    LIMIT $${paramCount + 1}
   `;
   params.push(limit);
-
+  
   try {
-    const rows = await dbAll(query, params);
-    logger.info(`getTopAlbums returned ${rows.length} albums`);
-    callback(null, rows.map(row => ({
-      albumId: row.albumId,
-      album: row.album,
-      artist: row.artist,
-      image: row.image,
-      playcount: row.playcount
+    const result = await pool.query(query, params);
+    logger.info(`getTopAlbums returned ${result.rows.length} albums`);
+    callback(null, result.rows.map(row => ({
+      albumId: row.id,
+      album: row.album_name,
+      artist: row.artist_name,
+      image: row.image_url,
+      playcount: parseInt(row.playcount)
     })));
   } catch (err) {
     logger.error(`getTopAlbums DB error: ${err}`);
@@ -342,63 +316,30 @@ export async function getTopAlbums({ limit, period = "overall", artistId = null 
 
 export async function getRecentTracks(limit, callback) {
   logger.info(`getRecentTracks called with limit=${limit}`);
+  
   const query = `
-    SELECT plays.timestamp, tracks.name AS track, artists.name AS artist, albums.name AS album
-    FROM plays
-    JOIN tracks ON plays.track_id = tracks.id
-    JOIN artists ON tracks.artist_id = artists.id
-    LEFT JOIN albums ON tracks.album_id = albums.id
-    ORDER BY plays.timestamp DESC
-    LIMIT ?
+    SELECT t.name as track_name, a.name as artist_name, al.name as album_name, p.played_at
+    FROM plays p
+    JOIN tracks t ON p.track_id = t.id
+    JOIN track_artists ta ON t.id = ta.track_id
+    JOIN artists a ON ta.artist_id = a.id
+    LEFT JOIN track_albums tal ON t.id = tal.track_id
+    LEFT JOIN albums al ON tal.album_id = al.id
+    ORDER BY p.played_at DESC
+    LIMIT $1
   `;
+  
   try {
-    const rows = await dbAll(query, [limit]);
-    logger.info(`getRecentTracks returned ${rows.length} tracks`);
-    callback(null, rows.map(row => ({
-      track: row.track,
-      artist: row.artist,
-      album: row.album,
-      timestamp: row.timestamp
+    const result = await pool.query(query, [limit]);
+    logger.info(`getRecentTracks returned ${result.rows.length} tracks`);
+    callback(null, result.rows.map(row => ({
+      track: row.track_name,
+      artist: row.artist_name,
+      album: row.album_name,
+      timestamp: Math.floor(new Date(row.played_at).getTime() / 1000)
     })));
   } catch (err) {
     logger.error(`getRecentTracks DB error: ${err}`);
-    callback(err);
-  }
-}
-
-export async function searchAll(query, callback) {
-  logger.info(`searchAll called with query="${query}"`);
-  const likeQuery = `%${query}%`;
-  try {
-    const artists = await dbAll(
-      `SELECT id, name FROM artists WHERE name LIKE ? LIMIT 10`,
-      [likeQuery]
-    );
-    const artistIds = artists.map(a => a.id);
-
-    let tracksQuery = `SELECT id, name FROM tracks WHERE name LIKE ?`;
-    let tracksParams = [likeQuery];
-    if (artistIds.length > 0) {
-      tracksQuery += ` OR artist_id IN (${artistIds.map(() => '?').join(',')})`;
-      tracksParams = [likeQuery, ...artistIds];
-    }
-    tracksQuery += ` LIMIT 10`;
-
-    let albumsQuery = `SELECT id, name FROM albums WHERE name LIKE ?`;
-    let albumsParams = [likeQuery];
-    if (artistIds.length > 0) {
-      albumsQuery += ` OR artist_id IN (${artistIds.map(() => '?').join(',')})`;
-      albumsParams = [likeQuery, ...artistIds];
-    }
-    albumsQuery += ` LIMIT 10`;
-
-    const tracks = await dbAll(tracksQuery, tracksParams);
-    const albums = await dbAll(albumsQuery, albumsParams);
-
-    logger.info(`searchAll returned ${artists.length} artists, ${tracks.length} tracks, ${albums.length} albums`);
-    callback(null, { artists, tracks, albums });
-  } catch (err) {
-    logger.error(`searchAll DB error: ${err}`);
     callback(err);
   }
 }
@@ -407,20 +348,133 @@ export async function getDailyPlaysAll(days) {
   logger.info(`getDailyPlaysAll called with days=${days}`);
   
   const query = `
-    SELECT DATE(plays.timestamp, 'unixepoch') AS day,
-           COUNT(*) AS count
+    SELECT DATE(played_at) AS day, COUNT(*) AS count
     FROM plays
-    WHERE plays.timestamp >= strftime('%s', 'now', '-${days} days')
-    GROUP BY DATE(plays.timestamp, 'unixepoch')
+    WHERE played_at >= NOW() - INTERVAL '${days} days'
+    GROUP BY DATE(played_at)
     ORDER BY day ASC
   `;
   
   try {
-    const rows = await dbAll(query);
-    logger.info(`getDailyPlaysAll returned ${rows.length} daily records`);
-    return rows;
+    const result = await pool.query(query);
+    logger.info(`getDailyPlaysAll returned ${result.rows.length} daily records`);
+    return result.rows.map(row => ({
+      day: row.day.toISOString().split('T')[0],
+      count: parseInt(row.count)
+    }));
   } catch (err) {
     logger.error(`getDailyPlaysAll DB error: ${err}`);
     throw err;
+  }
+}
+
+// Additional functions for the new schema features
+
+export async function getArtistById(artistId, callback) {
+  logger.info(`getArtistById called with artistId=${artistId}`);
+  
+  try {
+    const result = await pool.query(
+      `SELECT id, name, image_url FROM artists WHERE id = $1`,
+      [artistId]
+    );
+    
+    if (result.rows.length === 0) {
+      return callback(null, null);
+    }
+    
+    const artist = result.rows[0];
+    callback(null, {
+      id: artist.id,
+      name: artist.name,
+      image_url: artist.image_url
+    });
+  } catch (err) {
+    logger.error(`getArtistById DB error: ${err}`);
+    callback(err);
+  }
+}
+
+export async function getAlbumById(albumId, callback) {
+  logger.info(`getAlbumById called with albumId=${albumId}`);
+  
+  try {
+    const result = await pool.query(
+      `SELECT al.id, al.name, al.image_url, a.name as artist_name
+       FROM albums al
+       JOIN album_artists aa ON al.id = aa.album_id
+       JOIN artists a ON aa.artist_id = a.id
+       WHERE al.id = $1`,
+      [albumId]
+    );
+    
+    if (result.rows.length === 0) {
+      return callback(null, null);
+    }
+    
+    const album = result.rows[0];
+    callback(null, {
+      id: album.id,
+      name: album.name,
+      artist: album.artist_name,
+      image_url: album.image_url
+    });
+  } catch (err) {
+    logger.error(`getAlbumById DB error: ${err}`);
+    callback(err);
+  }
+}
+
+export async function searchAll(query, callback) {
+  logger.info(`searchAll called with query: ${query}`);
+  const likeQuery = `%${query}%`;
+  
+  try {
+    const [artistsResult, tracksResult, albumsResult] = await Promise.all([
+      pool.query(
+        `SELECT id, name, image_url FROM artists WHERE name ILIKE $1 LIMIT 10`,
+        [likeQuery]
+      ),
+      pool.query(
+        `SELECT t.name as track_name, a.name as artist_name
+         FROM tracks t
+         JOIN track_artists ta ON t.id = ta.track_id
+         JOIN artists a ON ta.artist_id = a.id
+         WHERE t.name ILIKE $1 LIMIT 10`,
+        [likeQuery]
+      ),
+      pool.query(
+        `SELECT al.id, al.name as album_name, a.name as artist_name, al.image_url
+         FROM albums al
+         JOIN album_artists aa ON al.id = aa.album_id
+         JOIN artists a ON aa.artist_id = a.id
+         WHERE al.name ILIKE $1 LIMIT 10`,
+        [likeQuery]
+      )
+    ]);
+
+    const artists = artistsResult.rows.map(row => ({
+      artistId: row.id,
+      artist: row.name,
+      image: row.image_url
+    }));
+    
+    const tracks = tracksResult.rows.map(row => ({
+      track: row.track_name,
+      artist: row.artist_name
+    }));
+    
+    const albums = albumsResult.rows.map(row => ({
+      albumId: row.id,
+      album: row.album_name,
+      artist: row.artist_name,
+      image: row.image_url
+    }));
+
+    logger.info(`searchAll returned ${artists.length} artists, ${tracks.length} tracks, ${albums.length} albums`);
+    callback(null, { artists, tracks, albums });
+  } catch (err) {
+    logger.error(`searchAll DB error: ${err}`);
+    callback(err);
   }
 }

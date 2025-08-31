@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/GroupedSection";
 import DashboardHeatmap from "../components/DashboardHeatmap";
@@ -20,6 +20,7 @@ export default function Dashboard() {
   } = useDashboardData();
 
   const [syncMessage, setSyncMessage] = useState("");
+  const heatmapRef = useRef();
 
   useEffect(() => {
     document.title = "Chorn's Music Dashboard";
@@ -53,6 +54,12 @@ export default function Dashboard() {
               try {
                 const result = await syncNewTracks();
                 setSyncMessage(`Synced ${result.addedPlays} new plays!`);
+                
+                // Refresh the heatmap data if new plays were added
+                if (result.addedPlays > 0 && heatmapRef.current) {
+                  heatmapRef.current.refresh();
+                }
+                
                 setTimeout(() => setSyncMessage(""), 3000);
               } catch (error) {
                 setSyncMessage("Sync failed. Please try again.");
@@ -167,7 +174,7 @@ export default function Dashboard() {
         />
       </SectionLoader>
 
-      <DashboardHeatmap />
+      <DashboardHeatmap ref={heatmapRef} />
     </PageLayout>
   );
 }

@@ -6,7 +6,9 @@ import cors from "cors";
 import morgan from "morgan";
 import logger from "./src/utils/logger.js";
 import { fetchAllRecentTracks } from "./src/services/lastfm.js";
-import { getLastTimestamp, addPlaysDeduped, getUniqueCounts, getRecentTracks } from "./src/db/db.js";
+import { initializeDatabase, getLastTimestamp, addPlaysDeduped, getUniqueCounts, getRecentTracks } from "./src/db/db.js";
+import { initializeArtistDatabase } from "./src/db/artistDb.js";
+import { initializeAlbumDatabase } from "./src/db/albumDb.js";
 import topArtistsRouter from "./src/routes/topArtists.js";
 import topTracksRouter from "./src/routes/topTracks.js";
 import topAlbumsRouter from "./src/routes/topAlbums.js";
@@ -21,6 +23,11 @@ const app = express();
 app.use(morgan("combined", { stream: logger.stream }));
 app.use(cors());
 app.use(express.json());
+
+// Initialize database connections
+initializeDatabase();
+initializeArtistDatabase();
+initializeAlbumDatabase();
 
 // Log server startup and environment
 logger.info(`Starting server in ${process.env.NODE_ENV || "development"} mode`);

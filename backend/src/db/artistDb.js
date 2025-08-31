@@ -1,22 +1,25 @@
-import sqlite3 from 'sqlite3';
-import util from 'util';
-import path from 'path';
+import pkg from 'pg';
+const { Pool } = pkg;
 import logger from '../utils/logger.js';
 
-// Fix for ES modules: get string path for sqlite3
-const dbPath = path.resolve(path.dirname(import.meta.url.replace('file://', '')), '../../data/recentTracks.db');
-const db = new sqlite3.Database(dbPath);
+// Use the same pool from db.js
+let pool;
 
-const dbGet = util.promisify(db.get).bind(db);
-const dbAll = util.promisify(db.all).bind(db);
+export function initializeArtistDatabase() {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  });
+}
 
 export async function getArtistInfo(artistId, callback) {
   logger.info(`getArtistInfo called with artistId=${artistId}`);
   try {
-    const artist = await dbGet(
-      `SELECT id, name, image_url FROM artists WHERE id = ?`,
+    const result = await pool.query(
+      `SELECT id, name, image_url FROM artists WHERE id = $1`,
       [artistId]
     );
+    const artist = result.rows[0] || null;
     logger.info(`getArtistInfo returned: ${artist ? 'found' : 'not found'}`);
     callback(null, artist);
   } catch (err) {
@@ -28,19 +31,21 @@ export async function getArtistInfo(artistId, callback) {
 export async function getArtistRecentPlays(artistId, limit, callback) {
   logger.info(`getArtistRecentPlays called with artistId=${artistId}, limit=${limit}`);
   try {
-    const plays = await dbAll(
-      `SELECT plays.timestamp, tracks.name AS track, albums.name AS album, artists.name AS artist
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       LEFT JOIN albums ON tracks.album_id = albums.id
-       LEFT JOIN artists ON tracks.artist_id = artists.id
-       WHERE tracks.artist_id = ?
-       ORDER BY plays.timestamp DESC
-       LIMIT ?`,
+    const result = await pool.query(
+      `SELECT EXTRACT(EPOCH FROM p.played_at) AS timestamp, t.name AS track, al.name AS album, a.name AS artist
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       LEFT JOIN track_albums tal ON t.id = tal.track_id
+       LEFT JOIN albums al ON tal.album_id = al.id
+       WHERE a.id = $1
+       ORDER BY p.played_at DESC
+       LIMIT $2`,
       [artistId, limit]
     );
-    logger.info(`getArtistRecentPlays returned ${plays.length} plays`);
-    callback(null, plays);
+    logger.info(`getArtistRecentPlays returned ${result.rows.length} plays`);
+    callback(null, result.rows);
   } catch (err) {
     logger.error(`getArtistRecentPlays DB error: ${err}`);
     callback(err);
@@ -51,15 +56,19 @@ export async function getArtistMilestones(artistId, callback) {
   logger.info(`getArtistMilestones called with artistId=${artistId}`);
   const milestones = [1, 100, 500, 1000, 5000];
   try {
-    const allPlays = await dbAll(
-      `SELECT plays.timestamp, tracks.name AS track, albums.name AS album
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       LEFT JOIN albums ON tracks.album_id = albums.id
-       WHERE tracks.artist_id = ?
-       ORDER BY plays.timestamp ASC`,
+    const result = await pool.query(
+      `SELECT EXTRACT(EPOCH FROM p.played_at) AS timestamp, t.name AS track, al.name AS album
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       LEFT JOIN track_albums tal ON t.id = tal.track_id
+       LEFT JOIN albums al ON tal.album_id = al.id
+       WHERE a.id = $1
+       ORDER BY p.played_at ASC`,
       [artistId]
     );
+    const allPlays = result.rows;
     logger.info(`getArtistMilestones returned ${allPlays.length} plays`);
     const milestonePlays = milestones
       .map(n => {
@@ -79,78 +88,98 @@ export async function getArtistStats(artistId, callback) {
   logger.info(`getArtistStats called with artistId=${artistId}`);
   try {
     // First and most recent play
-    const row = await dbGet(
-      `SELECT MIN(plays.timestamp) AS first_play, MAX(plays.timestamp) AS last_play
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?`,
+    const result = await pool.query(
+      `SELECT EXTRACT(EPOCH FROM MIN(p.played_at)) AS first_play, 
+              EXTRACT(EPOCH FROM MAX(p.played_at)) AS last_play
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1`,
       [artistId]
     );
+    const row = result.rows[0];
 
     // Total streams for this artist
-    const totalRow = await dbGet(
+    const totalResult = await pool.query(
       `SELECT COUNT(*) AS total_streams
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?`,
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1`,
       [artistId]
     );
+    const totalRow = totalResult.rows[0];
 
     // Total streams overall
-    const overallRow = await dbGet(
+    const overallResult = await pool.query(
       `SELECT COUNT(*) AS overall_streams FROM plays`
     );
+    const overallRow = overallResult.rows[0];
 
     const percent = overallRow.overall_streams
-      ? ((totalRow.total_streams / overallRow.overall_streams) * 100).toFixed(2)
+      ? ((parseInt(totalRow.total_streams) / parseInt(overallRow.overall_streams)) * 100).toFixed(2)
       : null;
 
     // Top day
-    const topDayRow = await dbGet(
-      `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?
-       GROUP BY day
+    const topDayResult = await pool.query(
+      `SELECT DATE(p.played_at) AS day, COUNT(*) AS count
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1
+       GROUP BY DATE(p.played_at)
        ORDER BY count DESC
        LIMIT 1`,
       [artistId]
     );
+    const topDayRow = topDayResult.rows[0];
 
     // Top month
-    const topMonthRow = await dbGet(
-      `SELECT strftime('%Y-%m', plays.timestamp, 'unixepoch') AS month, COUNT(*) AS count
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?
-       GROUP BY month
+    const topMonthResult = await pool.query(
+      `SELECT TO_CHAR(p.played_at, 'YYYY-MM') AS month, COUNT(*) AS count
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1
+       GROUP BY TO_CHAR(p.played_at, 'YYYY-MM')
        ORDER BY count DESC
        LIMIT 1`,
       [artistId]
     );
+    const topMonthRow = topMonthResult.rows[0];
 
     // Top year
-    const topYearRow = await dbGet(
-      `SELECT strftime('%Y', plays.timestamp, 'unixepoch') AS year, COUNT(*) AS count
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?
-       GROUP BY year
+    const topYearResult = await pool.query(
+      `SELECT EXTRACT(YEAR FROM p.played_at) AS year, COUNT(*) AS count
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1
+       GROUP BY EXTRACT(YEAR FROM p.played_at)
        ORDER BY count DESC
        LIMIT 1`,
       [artistId]
     );
+    const topYearRow = topYearResult.rows[0];
 
     // Longest streak
-    const streakRows = await dbAll(
-      `SELECT DATE(plays.timestamp, 'unixepoch') AS day
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?
-       GROUP BY day
+    const streakResult = await pool.query(
+      `SELECT DATE(p.played_at) AS day
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1
+       GROUP BY DATE(p.played_at)
        ORDER BY day ASC`,
       [artistId]
     );
+    const streakRows = streakResult.rows;
     let longestStreak = 0;
     let currentStreak = 0;
     let prevDate = null;
@@ -171,26 +200,28 @@ export async function getArtistStats(artistId, callback) {
     });
 
     // Rank among all artists
-    const artistRanks = await dbAll(
-      `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
-       FROM artists
-       LEFT JOIN tracks ON tracks.artist_id = artists.id
-       LEFT JOIN plays ON plays.track_id = tracks.id
-       GROUP BY artists.id
+    const artistRanksResult = await pool.query(
+      `SELECT a.id, a.name, COUNT(p.id) AS playcount
+       FROM artists a
+       LEFT JOIN track_artists ta ON a.id = ta.artist_id
+       LEFT JOIN tracks t ON ta.track_id = t.id
+       LEFT JOIN plays p ON t.id = p.track_id
+       GROUP BY a.id, a.name
        ORDER BY playcount DESC`
     );
+    const artistRanks = artistRanksResult.rows;
     const rank =
-      artistRanks.findIndex(a => a.id === Number(artistId)) + 1; // 1-based rank
+      artistRanks.findIndex(a => parseInt(a.id) === parseInt(artistId)) + 1; // 1-based rank
 
     logger.info(`getArtistStats succeeded for artistId=${artistId}`);
     callback(null, {
-      first_play: row.first_play,
-      last_play: row.last_play,
-      total_streams: totalRow.total_streams,
+      first_play: parseInt(row.first_play),
+      last_play: parseInt(row.last_play),
+      total_streams: parseInt(totalRow.total_streams),
       percent_of_total: percent,
-      top_day: topDayRow,
-      top_month: topMonthRow,
-      top_year: topYearRow,
+      top_day: topDayRow ? { day: topDayRow.day, count: parseInt(topDayRow.count) } : null,
+      top_month: topMonthRow ? { month: topMonthRow.month, count: parseInt(topMonthRow.count) } : null,
+      top_year: topYearRow ? { year: parseInt(topYearRow.year), count: parseInt(topYearRow.count) } : null,
       longest_streak: longestStreak,
       rank: rank > 0 ? rank : null,
       total_artists: artistRanks.length,
@@ -204,21 +235,23 @@ export async function getArtistStats(artistId, callback) {
 export async function getArtistDailyPlays(artistId, days = 30, callback) {
   logger.info(`getArtistDailyPlays called with artistId=${artistId}, days=${days}`);
   try {
-    const rows = await dbAll(
-      `SELECT DATE(plays.timestamp, 'unixepoch') AS day, COUNT(*) AS count
-       FROM plays
-       JOIN tracks ON plays.track_id = tracks.id
-       WHERE tracks.artist_id = ?
-         AND plays.timestamp >= strftime('%s', 'now', ?)
-       GROUP BY day
+    const result = await pool.query(
+      `SELECT DATE(p.played_at) AS day, COUNT(*) AS count
+       FROM plays p
+       JOIN tracks t ON p.track_id = t.id
+       JOIN track_artists ta ON t.id = ta.track_id
+       JOIN artists a ON ta.artist_id = a.id
+       WHERE a.id = $1
+         AND p.played_at >= NOW() - INTERVAL '${days - 1} days'
+       GROUP BY DATE(p.played_at)
        ORDER BY day ASC`,
-      [
-        artistId,
-        `-${days - 1} days`
-      ]
+      [artistId]
     );
-    logger.info(`getArtistDailyPlays returned ${rows.length} rows`);
-    callback(null, rows);
+    logger.info(`getArtistDailyPlays returned ${result.rows.length} rows`);
+    callback(null, result.rows.map(row => ({
+      day: row.day.toISOString().split('T')[0],
+      count: parseInt(row.count)
+    })));
   } catch (err) {
     logger.error(`getArtistDailyPlays DB error: ${err}`);
     callback(err);
@@ -228,17 +261,21 @@ export async function getArtistDailyPlays(artistId, days = 30, callback) {
 export async function getAllArtistsWithPlaycount(callback) {
   logger.info(`getAllArtistsWithPlaycount called`);
   try {
-    const rows = await dbAll(
-      `SELECT artists.id, artists.name, COUNT(plays.id) AS playcount
-       FROM artists
-       LEFT JOIN tracks ON tracks.artist_id = artists.id
-       LEFT JOIN plays ON plays.track_id = tracks.id
-       GROUP BY artists.id
-       ORDER BY artists.name ASC`,
-      []
+    const result = await pool.query(
+      `SELECT a.id, a.name, COUNT(p.id) AS playcount
+       FROM artists a
+       LEFT JOIN track_artists ta ON a.id = ta.artist_id
+       LEFT JOIN tracks t ON ta.track_id = t.id
+       LEFT JOIN plays p ON t.id = p.track_id
+       GROUP BY a.id, a.name
+       ORDER BY a.name ASC`
     );
-    logger.info(`getAllArtistsWithPlaycount returned ${rows.length} artists`);
-    callback(null, rows);
+    logger.info(`getAllArtistsWithPlaycount returned ${result.rows.length} artists`);
+    callback(null, result.rows.map(row => ({
+      id: parseInt(row.id),
+      name: row.name,
+      playcount: parseInt(row.playcount)
+    })));
   } catch (err) {
     logger.error(`getAllArtistsWithPlaycount DB error: ${err}`);
     callback(err);

@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
 import { getDailyPlaysFromServer } from "../data/dashboardApi";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
-export default function DashboardHeatmap({ defaultOpen = true }) {
+const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = true }, ref) {
   const [dailyPlays, setDailyPlays] = useState([]);
   const [open, setOpen] = useState(defaultOpen);
   const [screenSize, setScreenSize] = useState('large');
@@ -35,17 +35,23 @@ export default function DashboardHeatmap({ defaultOpen = true }) {
 
   const days = getDaysForScreen();
 
-  useEffect(() => {
-    async function fetchPlays() {
-      try {
-        const plays = await getDailyPlaysFromServer(days);
-        setDailyPlays(plays);
-      } catch {
-        setDailyPlays([]);
-      }
+  const fetchPlays = async () => {
+    try {
+      const plays = await getDailyPlaysFromServer(days);
+      setDailyPlays(plays);
+    } catch {
+      setDailyPlays([]);
     }
+  };
+
+  useEffect(() => {
     fetchPlays();
   }, [days]);
+
+  // Expose refresh function to parent component
+  useImperativeHandle(ref, () => ({
+    refresh: fetchPlays
+  }));
 
   // Create a map of dates to counts for quick lookup
   const playsMap = dailyPlays.reduce((acc, play) => {
@@ -217,4 +223,6 @@ export default function DashboardHeatmap({ defaultOpen = true }) {
       )}
     </div>
   );
-}
+});
+
+export default DashboardHeatmap;
