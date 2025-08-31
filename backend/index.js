@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config({ path: '.env' });
 
+// Set timezone for the application
+process.env.TZ = process.env.TZ || 'Europe/London';
+
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -9,6 +12,7 @@ import { fetchAllRecentTracks } from "./src/services/lastfm.js";
 import { initializeDatabase, getLastTimestamp, addPlaysDeduped, getUniqueCounts, getRecentTracks } from "./src/db/db.js";
 import { initializeArtistDatabase } from "./src/db/artistDb.js";
 import { initializeAlbumDatabase } from "./src/db/albumDb.js";
+import { getTimezoneInfo } from "./src/utils/timezone.js";
 import topArtistsRouter from "./src/routes/topArtists.js";
 import topTracksRouter from "./src/routes/topTracks.js";
 import topAlbumsRouter from "./src/routes/topAlbums.js";
@@ -43,6 +47,14 @@ app.get('/api/unique-counts', (req, res) => {
     logger.info("Returning unique counts");
     res.json(uniqueCounts);
   });
+});
+
+// Timezone info endpoint for debugging
+app.get('/api/timezone-info', (req, res) => {
+  logger.info("GET /api/timezone-info called");
+  const timezoneInfo = getTimezoneInfo();
+  logger.info("Returning timezone info", timezoneInfo);
+  res.json(timezoneInfo);
 });
 
 // POST endpoint to sync new tracks from Last.fm

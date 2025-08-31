@@ -1,6 +1,7 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 import { getPeriodTimestamp } from '../utils/period.js';
+import { formatTimestampForDB } from '../utils/timezone.js';
 import logger from '../utils/logger.js';
 
 // Create PostgreSQL connection pool (will be initialized later)
@@ -131,15 +132,16 @@ export async function addPlaysDeduped(plays, callback) {
         }
 
         // Check if play already exists
+        const playedAtDate = formatTimestampForDB(play.timestamp);
         const playExists = await client.query(
           `SELECT id FROM plays WHERE track_id = $1 AND played_at = $2`,
-          [trackId, new Date(play.timestamp * 1000)]
+          [trackId, playedAtDate]
         );
 
         if (playExists.rows.length === 0) {
           await client.query(
             `INSERT INTO plays (track_id, played_at) VALUES ($1, $2)`,
-            [trackId, new Date(play.timestamp * 1000)]
+            [trackId, playedAtDate]
           );
           inserted++;
         }

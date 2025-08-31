@@ -31,6 +31,10 @@ backend/scripts
 /spotify-data
 *.jpeg
 
+# SQLite databases (legacy - now using PostgreSQL)
+*.db
+backend/data
+
 # Logs
 logs/
 *.log
