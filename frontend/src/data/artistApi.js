@@ -6,19 +6,19 @@ export async function getArtistInfo(id) {
   return await res.json();
 }
 
-export async function getArtistTopTracks(id, limit = 5, period = 'overall') {
+export async function getArtistTopTracks(id, limit, period) {
   const res = await fetch(`${API_BASE_URL}/api/artist/${id}/top-tracks?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top tracks');
   return await res.json();
 }
 
-export async function getArtistTopAlbums(id, limit = 5, period = 'overall') {
+export async function getArtistTopAlbums(id, limit, period) {
   const res = await fetch(`${API_BASE_URL}/api/artist/${id}/top-albums?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top albums');
   return await res.json();
 }
 
-export async function getArtistRecentPlays(id, limit = 5) {
+export async function getArtistRecentPlays(id, limit) {
   const res = await fetch(`${API_BASE_URL}/api/artist/${id}/recent-plays?limit=${limit}`);
   if (!res.ok) throw new Error('Failed to fetch recent plays');
   return await res.json();
@@ -36,7 +36,7 @@ export async function getArtistMilestones(id) {
   return await res.json();
 }
 
-export async function getArtistDailyPlays(id, days = 30) {
+export async function getArtistDailyPlays(id, days) {
   const res = await fetch(`${API_BASE_URL}/api/artist/${id}/daily-plays?days=${days}`);
   if (!res.ok) throw new Error('Failed to fetch daily plays');
   return await res.json();

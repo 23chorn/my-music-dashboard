@@ -5,11 +5,12 @@ import {
   getAlbumRecentPlays,
   getAlbumStats
 } from "../data/albumApi";
+import { DEFAULT_LIMITS, DEFAULT_PERIODS } from "../config/appConfig";
 
 export default function useAlbumViewData(albumId, {
-  initialRecentLimit = 5,
-  initialTrackLimit = 5,
-  initialTrackPeriod = "overall"
+  initialRecentLimit = DEFAULT_LIMITS.albumView.recent,
+  initialTrackLimit = DEFAULT_LIMITS.albumView.tracks,
+  initialTrackPeriod = DEFAULT_PERIODS.albumView.tracks
 } = {}) {
   const [album, setAlbum] = useState(null);
   const [topTracks, setTopTracks] = useState([]);

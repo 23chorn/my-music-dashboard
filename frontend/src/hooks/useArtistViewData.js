@@ -8,13 +8,14 @@ import {
   getArtistMilestones,
   getArtistDailyPlays
 } from "../data/artistApi";
+import { DEFAULT_LIMITS, DEFAULT_PERIODS } from "../config/appConfig";
 
 export default function useArtistViewData(id, {
-  initialRecentLimit = 5,
-  initialAlbumLimit = 5,
-  initialAlbumPeriod = "overall",
-  initialTrackLimit = 5,
-  initialTrackPeriod = "overall"
+  initialRecentLimit = DEFAULT_LIMITS.artistView.recent,
+  initialAlbumLimit = DEFAULT_LIMITS.artistView.albums,
+  initialAlbumPeriod = DEFAULT_PERIODS.artistView.albums,
+  initialTrackLimit = DEFAULT_LIMITS.artistView.tracks,
+  initialTrackPeriod = DEFAULT_PERIODS.artistView.tracks
 } = {}) {
   const [artist, setArtist] = useState(null);
   const [topTracks, setTopTracks] = useState([]);

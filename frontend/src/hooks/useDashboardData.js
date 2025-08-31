@@ -7,15 +7,16 @@ import {
   getUniqueCountsFromServer,
   syncTracksFromServer,
 } from "../data/dashboardApi";
+import { DEFAULT_LIMITS, DEFAULT_PERIODS } from "../config/appConfig";
 
 export default function useDashboardData() {
   const [topArtists, setTopArtists] = useState([]);
   const [topTracks, setTopTracks] = useState([]);
   const [recentTracks, setRecentTracks] = useState([]);
-  const [artistPeriod, setArtistPeriod] = useState("overall");
-  const [trackPeriod, setTrackPeriod] = useState("overall");
+  const [artistPeriod, setArtistPeriod] = useState(DEFAULT_PERIODS.dashboard.artists);
+  const [trackPeriod, setTrackPeriod] = useState(DEFAULT_PERIODS.dashboard.tracks);
   const [topAlbums, setTopAlbums] = useState([]);
-  const [albumPeriod, setAlbumPeriod] = useState("overall");
+  const [albumPeriod, setAlbumPeriod] = useState(DEFAULT_PERIODS.dashboard.albums);
   const [uniqueArtists, setUniqueArtists] = useState(null);
   const [uniqueTracks, setUniqueTracks] = useState(null);
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
@@ -26,10 +27,10 @@ export default function useDashboardData() {
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [artistLimit, setArtistLimit] = useState(5);
-  const [trackLimit, setTrackLimit] = useState(5);
-  const [albumLimit, setAlbumLimit] = useState(5);
-  const [recentLimit, setRecentLimit] = useState(5);
+  const [artistLimit, setArtistLimit] = useState(DEFAULT_LIMITS.dashboard.artists);
+  const [trackLimit, setTrackLimit] = useState(DEFAULT_LIMITS.dashboard.tracks);
+  const [albumLimit, setAlbumLimit] = useState(DEFAULT_LIMITS.dashboard.albums);
+  const [recentLimit, setRecentLimit] = useState(DEFAULT_LIMITS.dashboard.recent);
 
 
   async function fetchAllData() {

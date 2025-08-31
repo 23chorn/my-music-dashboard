@@ -3,6 +3,7 @@ import ListTile from "./ListTile";
 import GridTile from "./tiles/GridTile";
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { LIMIT_OPTIONS, PERIOD_OPTIONS } from "../config/appConfig";
 
 export default function GroupedSection({
   title,
@@ -10,18 +11,11 @@ export default function GroupedSection({
   limit,
   setLimit,
   showLimit = false,
-  limitOptions = [5, 10, 15, 20, 25, 30, 40, 50],
+  limitOptions = LIMIT_OPTIONS,
   period,
   setPeriod,
   showPeriod = false,
-  periodOptions = [
-    { value: "overall", label: "All Time" },
-    { value: "7day", label: "Last 7 Days" },
-    { value: "1month", label: "Last Month" },
-    { value: "3month", label: "Last 3 Months" },
-    { value: "6month", label: "Last 6 Months" },
-    { value: "12month", label: "Last 12 Months" },
-  ],
+  periodOptions = PERIOD_OPTIONS,
   mapper,
   layout = "list", // "list" or "grid"
   collapsible = false,

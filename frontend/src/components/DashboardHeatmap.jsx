@@ -1,6 +1,7 @@
 import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
 import { getDailyPlaysFromServer } from "../data/dashboardApi";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { HEATMAP_CONFIG } from "../config/appConfig";
 
 const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = true }, ref) {
   const [dailyPlays, setDailyPlays] = useState([]);
@@ -26,10 +27,10 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
   // Get appropriate date range based on screen size
   const getDaysForScreen = () => {
     switch (screenSize) {
-      case 'small': return 90; // ~3 months
-      case 'medium': return 180; // ~6 months  
-      case 'large': return 365; // 1 year
-      default: return 365;
+      case 'small': return HEATMAP_CONFIG.dashboard.small; // ~3 months
+      case 'medium': return HEATMAP_CONFIG.dashboard.medium; // ~6 months  
+      case 'large': return HEATMAP_CONFIG.dashboard.large; // 1 year
+      default: return HEATMAP_CONFIG.dashboard.large;
     }
   };
 
