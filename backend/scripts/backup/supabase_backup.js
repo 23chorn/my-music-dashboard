@@ -3,10 +3,30 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// Only load dotenv if not in GitHub Actions
+if (!process.env.GITHUB_ACTIONS) {
+  dotenv.config();
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+// Validate environment variables
+if (!SUPABASE_URL) {
+  console.error('❌ SUPABASE_URL is not set');
+  console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
+  process.exit(1);
+}
+
+if (!SUPABASE_ANON_KEY) {
+  console.error('❌ SUPABASE_ANON_KEY is not set');
+  console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('SUPABASE')));
+  process.exit(1);
+}
+
+console.log('✅ Supabase configuration loaded');
+console.log(`📡 Supabase URL: ${SUPABASE_URL.substring(0, 30)}...`);
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 class SupabaseBackup {

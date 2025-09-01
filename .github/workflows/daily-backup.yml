@@ -2,16 +2,9 @@
 name: Daily Supabase Backup
 
 on:
-  # Run daily at 2 AM UTC
   schedule:
-    - cron: '0 2 * * *'
-  
-  # Allow manual trigger
-  workflow_dispatch:
-  
-  # Optional: trigger on main branch pushes (for testing)
-  # push:
-  #   branches: [ main ]
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   backup:
@@ -25,73 +18,154 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
         
     - name: Install dependencies
       run: |
+        echo "📦 Installing required packages..."
         npm install @supabase/supabase-js dotenv
         
+    - name: Verify backup script exists
+      run: |
+        if [ ! -f "backend/scripts/backup/supabase_backup.js" ]; then
+          echo "❌ Backup script not found at backend/scripts/backup/supabase_backup.js"
+          echo "Please ensure the backup script exists in your repository"
+          ls -la backend/scripts/ || echo "Backend scripts directory doesn't exist"
+          exit 1
+        fi
+        echo "✅ Backup script found"
+        
     - name: Create backup directory
-      run: mkdir -p supabase_backups
+      run: mkdir -p backend/supabase_backups
       
-    - name: Run backup script
+    - name: Debug environment and run backup script
+      working-directory: backend
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      run: node backend/scripts/backup/supabase_backup.js backup
-
-    - name: Compress backup files
+        GITHUB_ACTIONS: true
       run: |
-        cd supabase_backups
+        echo "🔍 Debug Info:"
+        echo "Working directory: $(pwd)"
+        echo "GITHUB_ACTIONS: $GITHUB_ACTIONS"
+        echo "SUPABASE_URL length: ${#SUPABASE_URL}"
+        echo "SUPABASE_ANON_KEY length: ${#SUPABASE_ANON_KEY}"
+        echo "SUPABASE_URL starts with: ${SUPABASE_URL:0:20}..."
+        echo ""
+        echo "🚀 Starting backup process..."
+        node scripts/backup/supabase_backup.js backup
+        
+    - name: Verify backup was created
+      run: |
+        if [ ! -d "backend/supabase_backups" ] || [ -z "$(ls -A backend/supabase_backups)" ]; then
+          echo "❌ No backup was created"
+          exit 1
+        fi
+        echo "✅ Backup created successfully"
+        ls -la backend/supabase_backups/
+        
+    - name: Prepare backup archive
+      run: |
+        cd backend/supabase_backups
         BACKUP_DIR=$(ls -t | head -n1)
-        tar -czf "backup_$(date +%Y-%m-%d).tar.gz" "$BACKUP_DIR"
-        echo "BACKUP_FILE=backup_$(date +%Y-%m-%d).tar.gz" >> $GITHUB_ENV
-        echo "BACKUP_PATH=supabase_backups/backup_$(date +%Y-%m-%d).tar.gz" >> $GITHUB_ENV
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        ARCHIVE_NAME="supabase_backup_${TIMESTAMP}.tar.gz"
+        
+        echo "📦 Creating archive: $ARCHIVE_NAME"
+        tar -czf "$ARCHIVE_NAME" "$BACKUP_DIR"
+        
+        # Get backup stats
+        BACKUP_SIZE=$(du -sh "$BACKUP_DIR" | cut -f1)
+        RECORD_COUNT="0"
+        if [ -f "$BACKUP_DIR/manifest.json" ]; then
+          RECORD_COUNT=$(grep -o '"total_records":[0-9]*' "$BACKUP_DIR/manifest.json" | cut -d: -f2 || echo "0")
+        fi
+        
+        echo "BACKUP_DIR=$BACKUP_DIR" >> $GITHUB_ENV
+        echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+        echo "BACKUP_SIZE=$BACKUP_SIZE" >> $GITHUB_ENV
+        echo "RECORD_COUNT=$RECORD_COUNT" >> $GITHUB_ENV
+        echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+        
+        # Move archive to root for upload
+        mv "$ARCHIVE_NAME" "../../$ARCHIVE_NAME"
+        
+        echo "📊 Backup stats:"
+        echo "   Directory: $BACKUP_DIR"
+        echo "   Archive: $ARCHIVE_NAME"
+        echo "   Size: $BACKUP_SIZE"
+        echo "   Records: $RECORD_COUNT"
         
     - name: Upload backup to GitHub Releases
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: backup-${{ github.run_number }}-$(date +%Y%m%d)
-        name: Database Backup ${{ github.run_number }} - $(date +%Y-%m-%d)
+        tag_name: backup-${{ env.TIMESTAMP }}
+        name: 📦 Database Backup - $(date +%Y-%m-%d)
         body: |
-          Automated daily backup of Supabase database
+          ## 🗄️ Automated Supabase Database Backup
           
-          📅 **Date**: $(date +%Y-%m-%d %H:%M:%S UTC)
-          🔄 **Run**: ${{ github.run_number }}
-          📊 **Repository**: ${{ github.repository }}
+          **📅 Created**: $(date +%Y-%m-%d %H:%M:%S UTC)  
+          **📊 Records**: ${{ env.RECORD_COUNT }}
+          **💾 Size**: ${{ env.BACKUP_SIZE }}
+          **🔄 Workflow Run**: ${{ github.run_number }}
+          **📂 Backup ID**: ${{ env.TIMESTAMP }}
           
-          ## Files Included:
-          - All database tables in JSON format
+          ### 📋 Contents:
+          - Complete database dump (JSON format)
           - CSV exports for easy viewing
-          - Restore script for easy recovery
+          - Automated restore script  
           - Backup manifest with metadata
           
-          ## To Restore:
-          1. Download and extract the backup file
-          2. Update your .env with target Supabase credentials
-          3. Run `node restore.js` in the extracted folder
+          ### 🔄 How to Restore:
           
-        files: ${{ env.BACKUP_PATH }}
+          1. **Download** the backup archive below
+          2. **Extract** the archive: `tar -xzf supabase_backup_${{ env.TIMESTAMP }}.tar.gz`
+          3. **Navigate** to extracted folder: `cd backup_*/`
+          4. **Set up environment** file:
+             ```bash
+             echo "SUPABASE_URL=your_target_supabase_url" > .env
+             echo "SUPABASE_ANON_KEY=your_target_supabase_key" >> .env
+             ```
+          5. **Install dependencies**: `npm install @supabase/supabase-js dotenv`
+          6. **Run restore**: `node restore.js`
+          
+          ### ⚠️ Important:
+          - Restore will **replace all data** in target database
+          - Test in development environment first
+          - Ensure target database has same schema structure
+          
+          ---
+          *Automated backup via GitHub Actions*
+        files: ${{ env.ARCHIVE_NAME }}
         draft: false
         prerelease: false
         
-    - name: Keep only recent backups (cleanup)
+    - name: Cleanup old releases
       uses: dev-drprasad/delete-older-releases@v0.3.2
       with:
-        keep_latest: 30  # Keep last 30 backups
+        keep_latest: 30
         delete_tags: true
+        delete_tag_pattern: "backup-"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Notify on success (optional)
-      if: success()
+    - name: Report results
+      if: always()
       run: |
-        echo "✅ Backup completed successfully!"
-        echo "📦 Backup size: $(ls -lh ${{ env.BACKUP_PATH }} | awk '{print $5}')"
-        echo "🔗 Available at: https://github.com/${{ github.repository }}/releases"
-        
-    - name: Notify on failure (optional)  
-      if: failure()
-      run: |
-        echo "❌ Backup failed!"
-        echo "Check the workflow logs for details."
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ SUCCESS: Database backup completed!"
+          echo ""
+          echo "📊 Summary:"
+          echo "   Records backed up: ${{ env.RECORD_COUNT }}"
+          echo "   Backup size: ${{ env.BACKUP_SIZE }}"  
+          echo "   Archive: ${{ env.ARCHIVE_NAME }}"
+          echo ""
+          echo "🔗 Download from: https://github.com/${{ github.repository }}/releases/tag/backup-${{ env.TIMESTAMP }}"
+        else
+          echo "❌ FAILED: Backup process failed!"
+          echo ""
+          echo "🔍 Check the workflow logs above for error details"
+          echo "Common issues:"
+          echo "   - Missing SUPABASE_URL or SUPABASE_ANON_KEY secrets"
+          echo "   - Backup script not found at scripts/supabase_backup.js"
+          echo "   - Supabase API rate limiting or connectivity issues"
+        fi
