@@ -38,8 +38,8 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      run: node scripts/supabase_backup.js backup
-      
+      run: node scripts/backup/supabase_backup.js backup
+
     - name: Compress backup files
       run: |
         cd supabase_backups
