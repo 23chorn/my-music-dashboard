@@ -1,50 +1,34 @@
-import pkg from 'pg';
-const { Pool } = pkg;
 import logger from '../utils/logger.js';
+import { getPool } from './db.js';
 
-// Use existing database connection from main db.js
-import { initializeDatabase } from './db.js';
-
-// Create PostgreSQL connection pool (will be initialized later)
-let pool;
+// Use the shared pool from db.js
+function getSharedPool() {
+  return getPool();
+}
 
 export function initializeLegacySpotifyDatabase() {
-  logger.info(`Initializing Legacy Spotify PostgreSQL database connection`);
-  
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-  });
-
-  // Test the connection
-  pool.connect((err, client, release) => {
-    if (err) {
-      logger.error('Legacy Spotify database connection error:', err);
-    } else {
-      logger.info('Legacy Spotify database connection successful');
-      release();
-    }
-  });
+  // No longer needed - using shared pool
+  logger.info('Legacy Spotify database will use shared connection pool');
 }
 
 export class LegacySpotifyDatabaseService {
   async beginTransaction() {
-    await pool.query('BEGIN');
+    await getSharedPool().query('BEGIN');
   }
 
   async commitTransaction() {
-    await pool.query('COMMIT');
+    await getSharedPool().query('COMMIT');
   }
 
   async rollbackTransaction() {
-    await pool.query('ROLLBACK');
+    await getSharedPool().query('ROLLBACK');
   }
 
   // Find or create genre by name, return ID
   async findOrCreateGenre(genreName) {
     try {
       // First try to find existing genre
-      const existing = await pool.query(
+      const existing = await getSharedPool().query(
         'SELECT id FROM genres WHERE name = $1',
         [genreName]
       );
@@ -54,7 +38,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Create new genre
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         'INSERT INTO genres (name) VALUES ($1) RETURNING id',
         [genreName]
       );
@@ -70,7 +54,7 @@ export class LegacySpotifyDatabaseService {
   async findOrCreateArtist(artistData) {
     try {
       // First try to find by Spotify ID in external_ids
-      const externalId = await pool.query(
+      const externalId = await getSharedPool().query(
         `SELECT entity_id FROM external_ids 
          WHERE entity_type = 'artist' AND source = 'spotify' AND external_id = $1`,
         [artistData.spotifyId]
@@ -81,7 +65,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Try to find by name (case insensitive)
-      const existing = await pool.query(
+      const existing = await getSharedPool().query(
         'SELECT id FROM artists WHERE LOWER(name) = LOWER($1)',
         [artistData.name]
       );
@@ -93,14 +77,14 @@ export class LegacySpotifyDatabaseService {
         
         // Update image if we have one and it's missing
         if (artistData.image_url) {
-          await pool.query(
+          await getSharedPool().query(
             'UPDATE artists SET image_url = COALESCE(image_url, $1), last_fetched = NOW() WHERE id = $2',
             [artistData.image_url, artistId]
           );
         }
       } else {
         // Create new artist
-        const result = await pool.query(
+        const result = await getSharedPool().query(
           'INSERT INTO artists (name, image_url, last_fetched) VALUES ($1, $2, NOW()) RETURNING id',
           [artistData.name, artistData.image_url]
         );
@@ -108,7 +92,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Store Spotify ID mapping
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('artist', $1, 'spotify', $2) 
          ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
@@ -126,7 +110,7 @@ export class LegacySpotifyDatabaseService {
   async findOrCreateAlbum(albumData) {
     try {
       // First try to find by Spotify ID
-      const externalId = await pool.query(
+      const externalId = await getSharedPool().query(
         `SELECT entity_id FROM external_ids 
          WHERE entity_type = 'album' AND source = 'spotify' AND external_id = $1`,
         [albumData.spotifyId]
@@ -140,7 +124,7 @@ export class LegacySpotifyDatabaseService {
       const normalizedName = albumData.name.trim().replace(/\s+/g, ' ');
 
       // Try to find by normalized name (case insensitive)
-      const existing = await pool.query(
+      const existing = await getSharedPool().query(
         `SELECT id, name FROM albums 
          WHERE LOWER(TRIM(REGEXP_REPLACE(name, '\\s+', ' ', 'g'))) = LOWER($1)
          ORDER BY 
@@ -161,7 +145,7 @@ export class LegacySpotifyDatabaseService {
           existingName.toUpperCase() === existingName && // Existing is all caps
           albumData.name !== albumData.name.toUpperCase(); // New is not all caps
         
-        await pool.query(
+        await getSharedPool().query(
           `UPDATE albums SET 
            name = CASE WHEN $1 THEN $2 ELSE name END,
            image_url = COALESCE(image_url, $3), 
@@ -176,7 +160,7 @@ export class LegacySpotifyDatabaseService {
         }
       } else {
         // Create new album
-        const result = await pool.query(
+        const result = await getSharedPool().query(
           `INSERT INTO albums (name, image_url, release_date, last_fetched) 
            VALUES ($1, $2, $3, NOW()) RETURNING id`,
           [albumData.name, albumData.image_url, albumData.release_date]
@@ -185,7 +169,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Store Spotify ID mapping
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('album', $1, 'spotify', $2) 
          ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
@@ -203,7 +187,7 @@ export class LegacySpotifyDatabaseService {
   async findOrCreateTrack(trackData) {
     try {
       // First try to find by Spotify ID
-      const externalId = await pool.query(
+      const externalId = await getSharedPool().query(
         `SELECT entity_id FROM external_ids 
          WHERE entity_type = 'track' AND source = 'spotify' AND external_id = $1`,
         [trackData.spotifyId]
@@ -214,7 +198,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Try to find by name (case insensitive) - could match multiple, that's ok
-      const existing = await pool.query(
+      const existing = await getSharedPool().query(
         'SELECT id FROM tracks WHERE LOWER(name) = LOWER($1) LIMIT 1',
         [trackData.name]
       );
@@ -225,7 +209,7 @@ export class LegacySpotifyDatabaseService {
         trackId = existing.rows[0].id;
         
         // Update fields if they're missing or newer
-        await pool.query(
+        await getSharedPool().query(
           `UPDATE tracks SET 
            duration_ms = COALESCE(duration_ms, $1),
            popularity = GREATEST(COALESCE(popularity, 0), COALESCE($2, 0)),
@@ -235,7 +219,7 @@ export class LegacySpotifyDatabaseService {
         );
       } else {
         // Create new track
-        const result = await pool.query(
+        const result = await getSharedPool().query(
           `INSERT INTO tracks (name, duration_ms, popularity, last_fetched) 
            VALUES ($1, $2, $3, NOW()) RETURNING id`,
           [trackData.name, trackData.duration_ms, trackData.popularity]
@@ -244,7 +228,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Store Spotify ID mapping
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('track', $1, 'spotify', $2) 
          ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
@@ -261,7 +245,7 @@ export class LegacySpotifyDatabaseService {
   // Insert track-artist relationship
   async insertTrackArtistRelationship(trackId, artistId) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO track_artists (track_id, artist_id) 
          VALUES ($1, $2) 
          ON CONFLICT (track_id, artist_id) DO NOTHING`,
@@ -276,7 +260,7 @@ export class LegacySpotifyDatabaseService {
   // Insert track-album relationship
   async insertTrackAlbumRelationship(trackId, albumId, trackNumber = null, discNumber = null) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO track_albums (track_id, album_id, track_number, disc_number) 
          VALUES ($1, $2, $3, $4) 
          ON CONFLICT (track_id, album_id) DO UPDATE SET
@@ -293,7 +277,7 @@ export class LegacySpotifyDatabaseService {
   // Insert album-artist relationship
   async insertAlbumArtistRelationship(albumId, artistId) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO album_artists (album_id, artist_id) 
          VALUES ($1, $2) 
          ON CONFLICT (album_id, artist_id) DO NOTHING`,
@@ -308,7 +292,7 @@ export class LegacySpotifyDatabaseService {
   // Insert artist-genre relationship
   async insertArtistGenreRelationship(artistId, genreId) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO artist_genres (artist_id, genre_id) 
          VALUES ($1, $2) 
          ON CONFLICT (artist_id, genre_id) DO NOTHING`,
@@ -324,7 +308,7 @@ export class LegacySpotifyDatabaseService {
   async insertPlay(trackId, playedAt) {
     try {
       // Check for duplicate play (same track + timestamp within 1 minute)
-      const existing = await pool.query(
+      const existing = await getSharedPool().query(
         `SELECT id FROM plays 
          WHERE track_id = $1 
          AND ABS(EXTRACT(EPOCH FROM (played_at - $2))) < 60`,
@@ -335,7 +319,7 @@ export class LegacySpotifyDatabaseService {
         return false; // Duplicate play
       }
 
-      await pool.query(
+      await getSharedPool().query(
         'INSERT INTO plays (track_id, played_at) VALUES ($1, $2)',
         [trackId, playedAt]
       );
@@ -350,7 +334,7 @@ export class LegacySpotifyDatabaseService {
   // Get last sync timestamp
   async getLastSyncTimestamp() {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         'SELECT MAX(played_at) as last_sync FROM plays'
       );
       return result.rows[0]?.last_sync || null;

@@ -1,46 +1,33 @@
-import pkg from 'pg';
-const { Pool } = pkg;
 import logger from '../utils/logger.js';
+import { getPool } from './db.js';
 
-// Create PostgreSQL connection pool (will be initialized later)
-let pool;
+// Use the shared pool from db.js
+function getSharedPool() {
+  return getPool();
+}
 
 export function initializeSpotifyDatabase() {
-  logger.info(`Initializing Spotify PostgreSQL database connection`);
-  
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-  });
-
-  // Test the connection
-  pool.connect((err, client, release) => {
-    if (err) {
-      logger.error('Database connection error:', err);
-    } else {
-      logger.info('Spotify database connection successful');
-      release();
-    }
-  });
+  // No longer needed - using shared pool
+  logger.info('Spotify database will use shared connection pool');
 }
 
 export class SpotifyDatabaseService {
   async beginTransaction() {
-    await pool.query('BEGIN');
+    await getSharedPool().query('BEGIN');
   }
 
   async commitTransaction() {
-    await pool.query('COMMIT');
+    await getSharedPool().query('COMMIT');
   }
 
   async rollbackTransaction() {
-    await pool.query('ROLLBACK');
+    await getSharedPool().query('ROLLBACK');
   }
 
   // Genre operations
   async insertGenreIfNotExists(genreName) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `INSERT INTO genres (name) VALUES ($1) ON CONFLICT (name) DO NOTHING RETURNING id`,
         [genreName]
       );
@@ -54,7 +41,7 @@ export class SpotifyDatabaseService {
   // Artist operations
   async insertOrUpdateArtist(artist) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `INSERT INTO artists (id, name, spotify_uri, popularity, followers, image_url) 
          VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (id) DO UPDATE SET 
@@ -83,7 +70,7 @@ export class SpotifyDatabaseService {
   // Artist-Genre relationship
   async insertArtistGenreIfNotExists(artistId, genreName) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO artist_genres (artist_id, genre_name) 
          VALUES ($1, $2) 
          ON CONFLICT (artist_id, genre_name) DO NOTHING`,
@@ -98,7 +85,7 @@ export class SpotifyDatabaseService {
   // Album operations
   async insertOrUpdateAlbum(album) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `INSERT INTO albums (id, name, spotify_uri, release_date, release_date_precision, total_tracks, album_type, image_url) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (id) DO UPDATE SET 
@@ -131,7 +118,7 @@ export class SpotifyDatabaseService {
   // Album-Artist relationship
   async insertAlbumArtistIfNotExists(albumId, artistId) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO album_artists (album_id, artist_id) 
          VALUES ($1, $2) 
          ON CONFLICT (album_id, artist_id) DO NOTHING`,
@@ -146,7 +133,7 @@ export class SpotifyDatabaseService {
   // Track operations
   async insertOrUpdateTrack(track) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `INSERT INTO tracks (id, name, spotify_uri, duration_ms, explicit, popularity, preview_url, track_number, disc_number, is_local) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          ON CONFLICT (id) DO UPDATE SET 
@@ -183,7 +170,7 @@ export class SpotifyDatabaseService {
   // Track-Artist relationship
   async insertTrackArtistIfNotExists(trackId, artistId) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO track_artists (track_id, artist_id) 
          VALUES ($1, $2) 
          ON CONFLICT (track_id, artist_id) DO NOTHING`,
@@ -198,7 +185,7 @@ export class SpotifyDatabaseService {
   // Track-Album relationship
   async insertTrackAlbumIfNotExists(trackId, albumId) {
     try {
-      await pool.query(
+      await getSharedPool().query(
         `INSERT INTO track_albums (track_id, album_id) 
          VALUES ($1, $2) 
          ON CONFLICT (track_id, album_id) DO NOTHING`,
@@ -213,7 +200,7 @@ export class SpotifyDatabaseService {
   // Play operations
   async insertPlayIfNotExists(play) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `INSERT INTO plays (track_id, played_at, context_type, context_uri) 
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (track_id, played_at) DO NOTHING
@@ -235,7 +222,7 @@ export class SpotifyDatabaseService {
   // Utility functions for sync management
   async getLastSyncTimestamp() {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `SELECT MAX(played_at) as last_sync FROM plays`
       );
       return result.rows[0]?.last_sync || null;
@@ -258,7 +245,7 @@ export class SpotifyDatabaseService {
   // Check if track exists
   async trackExists(trackId) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `SELECT id FROM tracks WHERE id = $1`,
         [trackId]
       );
@@ -272,7 +259,7 @@ export class SpotifyDatabaseService {
   // Get artist with genres
   async getArtistWithGenres(artistId) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `SELECT 
            a.id, a.name, a.spotify_uri, a.popularity, a.followers, a.image_url,
            ARRAY_AGG(ag.genre_name) FILTER (WHERE ag.genre_name IS NOT NULL) as genres
@@ -292,7 +279,7 @@ export class SpotifyDatabaseService {
   // Get tracks with all related data
   async getTrackWithFullDetails(trackId) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `SELECT 
            t.id, t.name, t.spotify_uri, t.duration_ms, t.explicit, t.popularity,
            t.preview_url, t.track_number, t.disc_number, t.is_local,
@@ -318,7 +305,7 @@ export class SpotifyDatabaseService {
   // Clean up old data (if needed)
   async cleanupOldPlays(daysToKeep = 365) {
     try {
-      const result = await pool.query(
+      const result = await getSharedPool().query(
         `DELETE FROM plays WHERE played_at < NOW() - INTERVAL '${daysToKeep} days'`
       );
       logger.info(`Cleaned up ${result.rowCount} old plays (older than ${daysToKeep} days)`);

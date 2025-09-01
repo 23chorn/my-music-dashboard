@@ -1,21 +1,20 @@
-import pkg from 'pg';
-const { Pool } = pkg;
 import logger from '../utils/logger.js';
+import { getPool } from './db.js';
 
-// Use the same pool from db.js
-let pool;
+// Use the shared pool from db.js
+function getSharedPool() {
+  return getPool();
+}
 
 export function initializeArtistDatabase() {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-  });
+  // No longer needed - using shared pool
+  logger.info('Artist database will use shared connection pool');
 }
 
 export async function getArtistInfo(artistId, callback) {
   logger.info(`getArtistInfo called with artistId=${artistId}`);
   try {
-    const result = await pool.query(
+    const result = await getSharedPool().query(
       `SELECT id, name, image_url FROM artists WHERE id = $1`,
       [artistId]
     );
@@ -31,8 +30,8 @@ export async function getArtistInfo(artistId, callback) {
 export async function getArtistRecentPlays(artistId, limit, callback) {
   logger.info(`getArtistRecentPlays called with artistId=${artistId}, limit=${limit}`);
   try {
-    const result = await pool.query(
-      `SELECT EXTRACT(EPOCH FROM p.played_at) AS timestamp, t.name AS track, al.name AS album, a.name AS artist
+    const result = await getSharedPool().query(
+      `SELECT p.played_at, t.name AS track, al.name AS album, a.name AS artist
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
        JOIN track_artists ta ON t.id = ta.track_id
@@ -45,7 +44,12 @@ export async function getArtistRecentPlays(artistId, limit, callback) {
       [artistId, limit]
     );
     logger.info(`getArtistRecentPlays returned ${result.rows.length} plays`);
-    callback(null, result.rows);
+    callback(null, result.rows.map(row => ({
+      timestamp: Math.floor(new Date(row.played_at).getTime() / 1000),
+      track: row.track,
+      album: row.album,
+      artist: row.artist
+    })));
   } catch (err) {
     logger.error(`getArtistRecentPlays DB error: ${err}`);
     callback(err);
@@ -56,7 +60,7 @@ export async function getArtistMilestones(artistId, callback) {
   logger.info(`getArtistMilestones called with artistId=${artistId}`);
   const milestones = [1, 100, 500, 1000, 5000];
   try {
-    const result = await pool.query(
+    const result = await getSharedPool().query(
       `SELECT EXTRACT(EPOCH FROM p.played_at) AS timestamp, t.name AS track, al.name AS album
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -88,7 +92,7 @@ export async function getArtistStats(artistId, callback) {
   logger.info(`getArtistStats called with artistId=${artistId}`);
   try {
     // First and most recent play
-    const result = await pool.query(
+    const result = await getSharedPool().query(
       `SELECT EXTRACT(EPOCH FROM MIN(p.played_at)) AS first_play, 
               EXTRACT(EPOCH FROM MAX(p.played_at)) AS last_play
        FROM plays p
@@ -101,7 +105,7 @@ export async function getArtistStats(artistId, callback) {
     const row = result.rows[0];
 
     // Total streams for this artist
-    const totalResult = await pool.query(
+    const totalResult = await getSharedPool().query(
       `SELECT COUNT(*) AS total_streams
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -113,7 +117,7 @@ export async function getArtistStats(artistId, callback) {
     const totalRow = totalResult.rows[0];
 
     // Total streams overall
-    const overallResult = await pool.query(
+    const overallResult = await getSharedPool().query(
       `SELECT COUNT(*) AS overall_streams FROM plays`
     );
     const overallRow = overallResult.rows[0];
@@ -123,7 +127,7 @@ export async function getArtistStats(artistId, callback) {
       : null;
 
     // Top day
-    const topDayResult = await pool.query(
+    const topDayResult = await getSharedPool().query(
       `SELECT DATE(p.played_at) AS day, COUNT(*) AS count
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -138,7 +142,7 @@ export async function getArtistStats(artistId, callback) {
     const topDayRow = topDayResult.rows[0];
 
     // Top month
-    const topMonthResult = await pool.query(
+    const topMonthResult = await getSharedPool().query(
       `SELECT TO_CHAR(p.played_at, 'YYYY-MM') AS month, COUNT(*) AS count
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -153,7 +157,7 @@ export async function getArtistStats(artistId, callback) {
     const topMonthRow = topMonthResult.rows[0];
 
     // Top year
-    const topYearResult = await pool.query(
+    const topYearResult = await getSharedPool().query(
       `SELECT EXTRACT(YEAR FROM p.played_at) AS year, COUNT(*) AS count
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -168,7 +172,7 @@ export async function getArtistStats(artistId, callback) {
     const topYearRow = topYearResult.rows[0];
 
     // Longest streak
-    const streakResult = await pool.query(
+    const streakResult = await getSharedPool().query(
       `SELECT DATE(p.played_at) AS day
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -200,7 +204,7 @@ export async function getArtistStats(artistId, callback) {
     });
 
     // Rank among all artists
-    const artistRanksResult = await pool.query(
+    const artistRanksResult = await getSharedPool().query(
       `SELECT a.id, a.name, COUNT(p.id) AS playcount
        FROM artists a
        LEFT JOIN track_artists ta ON a.id = ta.artist_id
@@ -235,7 +239,7 @@ export async function getArtistStats(artistId, callback) {
 export async function getArtistDailyPlays(artistId, days = 30, callback) {
   logger.info(`getArtistDailyPlays called with artistId=${artistId}, days=${days}`);
   try {
-    const result = await pool.query(
+    const result = await getSharedPool().query(
       `SELECT DATE(p.played_at) AS day, COUNT(*) AS count
        FROM plays p
        JOIN tracks t ON p.track_id = t.id
@@ -261,7 +265,7 @@ export async function getArtistDailyPlays(artistId, days = 30, callback) {
 export async function getAllArtistsWithPlaycount(callback) {
   logger.info(`getAllArtistsWithPlaycount called`);
   try {
-    const result = await pool.query(
+    const result = await getSharedPool().query(
       `SELECT a.id, a.name, COUNT(p.id) AS playcount
        FROM artists a
        LEFT JOIN track_artists ta ON a.id = ta.artist_id
