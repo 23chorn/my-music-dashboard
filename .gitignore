@@ -35,6 +35,9 @@ backend/scripts/maintenance/*
 backend/scripts/migration/*
 backend/scripts/utilities/*
 
+# Supabase backups
+supabase_backups/*
+
 # SQLite databases (legacy - now using PostgreSQL)
 *.db
 backend/data
