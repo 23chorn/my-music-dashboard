@@ -10,6 +10,7 @@ import morgan from "morgan";
 import logger from "./src/utils/logger.js";
 import { fetchAllRecentTracks } from "./src/services/lastfm.js";
 import { initializeDatabase, getLastTimestamp, addPlaysDeduped, getUniqueCounts, getRecentTracks } from "./src/db/db.js";
+import UnifiedSyncService from "./src/services/unifiedSync.js";
 import { initializeArtistDatabase } from "./src/db/artistDb.js";
 import { initializeAlbumDatabase } from "./src/db/albumDb.js";
 import { getTimezoneInfo } from "./src/utils/timezone.js";
@@ -21,6 +22,7 @@ import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
 import albumRouter from "./src/routes/album.js";
 import dailyPlaysRouter from "./src/routes/dailyPlays.js";
+import spotifyRouter from "./src/routes/spotify.js";
 
 const app = express();
 
@@ -32,6 +34,9 @@ app.use(express.json());
 initializeDatabase();
 initializeArtistDatabase();
 initializeAlbumDatabase();
+
+// Initialize unified sync service
+const unifiedSync = new UnifiedSyncService();
 
 // Log server startup and environment
 logger.info(`Starting server in ${process.env.NODE_ENV || "development"} mode`);
@@ -57,57 +62,68 @@ app.get('/api/timezone-info', (req, res) => {
   res.json(timezoneInfo);
 });
 
-// POST endpoint to sync new tracks from Last.fm
+// POST endpoint to sync new tracks (unified Spotify/Last.fm)
 app.post('/api/sync-tracks', async (req, res) => {
   logger.info("POST /api/sync-tracks called");
+  
   try {
-    getLastTimestamp(async(err, lastTimestamp) => {
-      if (err) {
-        logger.error("Error getting last timestamp:", err);
-        return res.status(500).json({ error: 'DB error getting timestamp' });
-      }
-      if (!lastTimestamp) {
-        logger.warn("No tracks found in DB");
-        return res.status(404).json({ error: 'No tracks found' });
-      }
-
-      try {
-        const newTracks = await fetchAllRecentTracks({ from: lastTimestamp });
-        logger.info(`Fetched ${newTracks.length} new tracks from Last.fm`);
-
-        addPlaysDeduped(newTracks, (err2, insertedCount) => {
-          if (err2) {
-            logger.error("Error adding deduped tracks:", err2);
-            return res.status(500).json({ error: 'DB error adding tracks' });
-          }
-
-          logger.info(`Successfully synced ${insertedCount} new plays`);
-          
-          // Add verification query to check if plays were actually saved
-          getUniqueCounts((verifyErr, counts) => {
-            if (verifyErr) {
-              logger.error("Error verifying sync:", verifyErr);
-            } else {
-              logger.info(`Post-sync verification: ${counts.playCount} total plays in DB`);
-            }
-            
-            res.json({ 
-              success: true, 
-              message: `Synced ${insertedCount} new plays from ${newTracks.length} tracks fetched`,
-              newTracks: newTracks.length,
-              addedPlays: insertedCount,
-              totalPlaysAfterSync: counts?.playCount || 'unknown'
-            });
-          });
-        });
-      } catch (fetchError) {
-        logger.error("Failed to fetch from Last.fm:", fetchError);
-        res.status(500).json({ error: 'Failed to fetch from Last.fm' });
-      }
+    const { force = false } = req.body;
+    
+    const result = await unifiedSync.syncNewTracks({ force });
+    
+    logger.info(`Sync completed: ${result.addedPlays} new plays added using ${result.method}`);
+    
+    // Include sync status in response
+    const status = await unifiedSync.getStatus();
+    
+    res.json({
+      ...result,
+      status: status,
+      fallbackUsed: result.fallbackUsed || false
     });
-  } catch (e) {
-    logger.error("Unexpected error in sync-tracks:", e);
-    res.status(500).json({ error: 'Unexpected server error' });
+    
+  } catch (error) {
+    logger.error("Unified sync endpoint error:", error);
+    res.status(500).json({ 
+      error: 'Sync failed',
+      message: error.message,
+      method: unifiedSync.getCurrentMethod()
+    });
+  }
+});
+
+// GET sync method status
+app.get('/api/sync-status', async (req, res) => {
+  try {
+    const status = await unifiedSync.getStatus();
+    res.json(status);
+  } catch (error) {
+    logger.error("Error getting sync status:", error);
+    res.status(500).json({ error: 'Failed to get sync status' });
+  }
+});
+
+// POST switch sync method
+app.post('/api/switch-sync-method', async (req, res) => {
+  try {
+    const { method } = req.body;
+    
+    if (!method || (method !== 'spotify' && method !== 'lastfm')) {
+      return res.status(400).json({ 
+        error: 'Invalid method. Use "spotify" or "lastfm"' 
+      });
+    }
+    
+    const result = await unifiedSync.switchMethod(method);
+    logger.info(`Sync method switched to ${method}`);
+    
+    res.json(result);
+  } catch (error) {
+    logger.error("Error switching sync method:", error);
+    res.status(500).json({ 
+      error: 'Failed to switch sync method',
+      message: error.message 
+    });
   }
 });
 
@@ -130,6 +146,8 @@ app.use('/api/artist', artistRouter);
 app.use('/api/album', albumRouter);
 
 app.use('/api/daily-plays', dailyPlaysRouter);
+
+app.use('/api/spotify', spotifyRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");

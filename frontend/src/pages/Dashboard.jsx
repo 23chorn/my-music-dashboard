@@ -14,7 +14,7 @@ export default function Dashboard() {
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, handleRefresh,
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, totalListeningTime, playsWithoutDuration, repeatFactor, diversityScore, handleRefresh,
     loading, artistsLoading, tracksLoading, albumsLoading, recentLoading,
     syncing, syncNewTracks
   } = useDashboardData();
@@ -26,11 +26,50 @@ export default function Dashboard() {
     document.title = "Chorn's Music Dashboard";
   }, []);
 
+  // Format listening time from milliseconds to days
+  const formatListeningTime = (timeMs) => {
+    if (!timeMs) return "N/A";
+    
+    const totalDays = timeMs / (1000 * 60 * 60 * 24);
+    const days = Math.floor(totalDays);
+    const hours = Math.floor((totalDays - days) * 24);
+    
+    let formatted = "";
+    if (days > 0) {
+      formatted += `${days}d`;
+      if (hours > 0) formatted += ` ${hours}h`;
+    } else if (hours > 0) {
+      formatted = `${hours}h`;
+    } else {
+      const minutes = Math.floor((timeMs / (1000 * 60)) % 60);
+      formatted = `${minutes}m`;
+    }
+    
+    return formatted;
+  };
+
   const dashboardTiles = [
     { label: "Total Plays", value: formatValue(playCount) ?? "N/A" },
     { label: "Unique Artists", value: formatValue(uniqueArtists) ?? "N/A" },
     { label: "Unique Albums", value: formatValue(uniqueAlbums) ?? "N/A" },
     { label: "Unique Tracks", value: formatValue(uniqueTracks) ?? "N/A" },
+    { 
+      label: "Listening Time", 
+      value: formatListeningTime(totalListeningTime),
+      tooltip: playsWithoutDuration > 0 
+        ? `${formatValue(playsWithoutDuration)} plays missing duration data`
+        : "All plays have duration data"
+    },
+    {
+      label: "Repeat Factor",
+      value: repeatFactor ? `${repeatFactor}x` : "N/A",
+      tooltip: "Average plays per unique track - higher means you replay tracks more"
+    },
+    {
+      label: "Diversity Score",
+      value: diversityScore ? `${diversityScore}%` : "N/A",
+      tooltip: "How evenly you listen across different artists - 100% = perfectly diverse, 0% = only one artist"
+    }
   ];
 
   const imageUrl =

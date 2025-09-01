@@ -166,19 +166,57 @@ export async function addPlaysDeduped(plays, callback) {
 export async function getUniqueCounts(callback) {
   logger.info('getUniqueCounts called');
   try {
-    const [artistCount, trackCount, albumCount, playCount] = await Promise.all([
+    const [artistCount, trackCount, albumCount, playCount, listeningTime, repeatFactor, diversityScore] = await Promise.all([
       pool.query(`SELECT COUNT(*) AS uniqueArtistCount FROM artists`),
       pool.query(`SELECT COUNT(*) AS uniqueTrackCount FROM tracks`),
       pool.query(`SELECT COUNT(*) AS uniqueAlbumCount FROM albums`),
-      pool.query(`SELECT COUNT(*) AS playCount FROM plays`)
+      pool.query(`SELECT COUNT(*) AS playCount FROM plays`),
+      pool.query(`
+        SELECT 
+          COALESCE(SUM(t.duration_ms), 0) AS totalDurationMs,
+          COUNT(CASE WHEN t.duration_ms IS NULL THEN 1 END) AS playsWithoutDuration,
+          COUNT(*) AS totalPlays
+        FROM plays p
+        JOIN tracks t ON p.track_id = t.id
+      `),
+      pool.query(`
+        SELECT 
+          ROUND(COUNT(*)::numeric / COUNT(DISTINCT p.track_id)::numeric, 2) AS repeatFactor
+        FROM plays p
+      `),
+      pool.query(`
+        WITH artist_plays AS (
+          SELECT 
+            a.id,
+            COUNT(*) AS plays,
+            COUNT(*)::float / (SELECT COUNT(*) FROM plays)::float AS proportion
+          FROM plays p
+          JOIN tracks t ON p.track_id = t.id
+          JOIN track_artists ta ON t.id = ta.track_id
+          JOIN artists a ON ta.artist_id = a.id
+          GROUP BY a.id
+        ),
+        diversity_calc AS (
+          SELECT 
+            1 - SUM(proportion * proportion) AS diversity_index
+          FROM artist_plays
+        )
+        SELECT ROUND((diversity_index * 100)::numeric, 1) AS diversityScore
+        FROM diversity_calc
+      `)
     ]);
 
-    logger.info('getUniqueCounts returned counts');
+    logger.info('getUniqueCounts returned counts with listening time, repeat factor, and diversity score');
     callback(null, {
       uniqueArtistCount: parseInt(artistCount.rows[0].uniqueartistcount),
       uniqueTrackCount: parseInt(trackCount.rows[0].uniquetrackcount),
       uniqueAlbumCount: parseInt(albumCount.rows[0].uniquealbumcount),
       playCount: parseInt(playCount.rows[0].playcount),
+      totalListeningTimeMs: parseInt(listeningTime.rows[0].totaldurationms) || 0,
+      playsWithoutDuration: parseInt(listeningTime.rows[0].playswithoutduration) || 0,
+      totalPlays: parseInt(listeningTime.rows[0].totalplays) || 0,
+      repeatFactor: parseFloat(repeatFactor.rows[0].repeatfactor) || 0,
+      diversityScore: parseFloat(diversityScore.rows[0].diversityscore) || 0
     });
   } catch (err) {
     logger.error(`getUniqueCounts DB error: ${err}`);
@@ -327,13 +365,18 @@ export async function getRecentTracks(limit, callback) {
   logger.info(`getRecentTracks called with limit=${limit}`);
   
   const query = `
-    SELECT t.name as track_name, a.name as artist_name, al.name as album_name, p.played_at
+    SELECT 
+      t.name as track_name,
+      STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) as artist_names,
+      al.name as album_name,
+      p.played_at
     FROM plays p
     JOIN tracks t ON p.track_id = t.id
     JOIN track_artists ta ON t.id = ta.track_id
     JOIN artists a ON ta.artist_id = a.id
     LEFT JOIN track_albums tal ON t.id = tal.track_id
     LEFT JOIN albums al ON tal.album_id = al.id
+    GROUP BY t.id, t.name, al.name, p.played_at, p.id
     ORDER BY p.played_at DESC
     LIMIT $1
   `;
@@ -343,7 +386,7 @@ export async function getRecentTracks(limit, callback) {
     logger.info(`getRecentTracks returned ${result.rows.length} tracks`);
     callback(null, result.rows.map(row => ({
       track: row.track_name,
-      artist: row.artist_name,
+      artist: row.artist_names,
       album: row.album_name,
       timestamp: Math.floor(new Date(row.played_at).getTime() / 1000)
     })));

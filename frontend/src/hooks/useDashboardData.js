@@ -21,6 +21,10 @@ export default function useDashboardData() {
   const [uniqueTracks, setUniqueTracks] = useState(null);
   const [uniqueAlbums, setUniqueAlbums] = useState(null);
   const [playCount, setPlayCount] = useState(null);
+  const [totalListeningTime, setTotalListeningTime] = useState(null);
+  const [playsWithoutDuration, setPlaysWithoutDuration] = useState(null);
+  const [repeatFactor, setRepeatFactor] = useState(null);
+  const [diversityScore, setDiversityScore] = useState(null);
   const [loading, setLoading] = useState(true);
   const [artistsLoading, setArtistsLoading] = useState(false);
   const [tracksLoading, setTracksLoading] = useState(false);
@@ -52,6 +56,10 @@ export default function useDashboardData() {
       setUniqueTracks(uniqueCounts.uniqueTrackCount);
       setUniqueAlbums(uniqueCounts.uniqueAlbumCount);
       setPlayCount(uniqueCounts.playCount);
+      setTotalListeningTime(uniqueCounts.totalListeningTimeMs);
+      setPlaysWithoutDuration(uniqueCounts.playsWithoutDuration);
+      setRepeatFactor(uniqueCounts.repeatFactor);
+      setDiversityScore(uniqueCounts.diversityScore);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       // Set fallback values on error
@@ -63,6 +71,10 @@ export default function useDashboardData() {
       setUniqueTracks("-");
       setUniqueAlbums("-");
       setPlayCount("-");
+      setTotalListeningTime(0);
+      setPlaysWithoutDuration(0);
+      setRepeatFactor(0);
+      setDiversityScore(0);
     } finally {
       setLoading(false);
     }
@@ -81,6 +93,10 @@ export default function useDashboardData() {
         setUniqueTracks(uniqueCounts.uniqueTrackCount);
         setUniqueAlbums(uniqueCounts.uniqueAlbumCount);
         setPlayCount(uniqueCounts.playCount);
+        setTotalListeningTime(uniqueCounts.totalListeningTimeMs);
+        setPlaysWithoutDuration(uniqueCounts.playsWithoutDuration);
+        setRepeatFactor(uniqueCounts.repeatFactor);
+        setDiversityScore(uniqueCounts.diversityScore);
         
         // Refresh recent plays to show the latest tracks
         await fetchRecent();
@@ -175,7 +191,7 @@ export default function useDashboardData() {
     topTracks, setTopTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, setTopAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks,
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, totalListeningTime, playsWithoutDuration, repeatFactor, diversityScore,
     loading, handleRefresh: fetchAllData,
     artistsLoading, tracksLoading, albumsLoading, recentLoading,
     syncing, syncNewTracks

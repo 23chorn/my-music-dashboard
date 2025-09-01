@@ -1,9 +1,12 @@
 import BaseTile from "./BaseTile";
 
-export default function GridTile({ label, value, sub, album, image, link }) {
+export default function GridTile({ label, value, sub, album, image, link, tooltip }) {
   return (
     <BaseTile link={link}>
-      <div className="flex flex-col items-center justify-center w-full h-full text-center p-2 min-h-[120px]">
+      <div 
+        className="flex flex-col items-center justify-center w-full h-full text-center p-2 min-h-[120px]"
+        title={tooltip}
+      >
         {image && (
           <img
             src={image}
