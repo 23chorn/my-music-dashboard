@@ -26,10 +26,14 @@ dist-ssr
 .vite
 .env
 spotify-data/*
-scripts/queryDB.js
-backend/scripts
 /spotify-data
 *.jpeg
+
+# Scripts
+backend/scripts/enrichment/*
+backend/scripts/maintenance/*
+backend/scripts/migration/*
+backend/scripts/utilities/*
 
 # SQLite databases (legacy - now using PostgreSQL)
 *.db
