@@ -54,8 +54,8 @@ jobs:
         DRY_RUN: false
       run: |
         SYNC_TYPE="${{ github.event.inputs.sync_type || 'sync' }}"
-        echo "🔄 Running Spotify sync with type: $SYNC_TYPE"
-        node scripts/simpleSpotifySync.js $SYNC_TYPE
+        echo "🔄 Running unified sync with type: $SYNC_TYPE"
+        node scripts/githubActionsSync.js $SYNC_TYPE
         
     - name: Post-sync summary
       if: always()
