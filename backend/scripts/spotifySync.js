@@ -3,6 +3,7 @@
 import dotenv from 'dotenv';
 import SpotifySync from '../src/services/spotifySync.js';
 import { SpotifyDatabaseService, initializeSpotifyDatabase } from '../src/db/spotifyDb.js';
+import { initializeDatabase } from '../src/db/db.js';
 import logger from '../src/utils/logger.js';
 
 // Load environment variables
@@ -10,7 +11,8 @@ dotenv.config();
 
 class SpotifySyncScript {
   constructor() {
-    // Initialize database
+    // Initialize databases
+    initializeDatabase();
     initializeSpotifyDatabase();
     this.dbService = new SpotifyDatabaseService();
     this.spotifySync = new SpotifySync(this.dbService);

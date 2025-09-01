@@ -5,7 +5,14 @@ export function formatDate(timestamp) {
 
 export function formatDateTime(timestamp) {
   if (!timestamp) return "Now Playing";
-  return new Date(timestamp * 1000).toLocaleString();
+  return new Date(timestamp * 1000).toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
 }
 
 export function formatDayDate(dayString) {

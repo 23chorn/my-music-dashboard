@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "sync:test": "node scripts/scheduledSpotifySync.js test",
+    "sync:run": "node scripts/scheduledSpotifySync.js sync",
+    "sync:force": "node scripts/scheduledSpotifySync.js force",
+    "sync:status": "node scripts/scheduledSpotifySync.js status"
   },
   "keywords": [],
   "author": "",
