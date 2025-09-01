@@ -1,68 +1,38 @@
 import express from 'express';
 const router = express.Router();
-import SpotifySync from '../services/spotifySync.js';
-import { SpotifyDatabaseService, initializeSpotifyDatabase } from '../db/spotifyDb.js';
+import MusicSyncService from '../services/musicSync.js';
 import logger from '../utils/logger.js';
 
-// Initialize database and sync service
-initializeSpotifyDatabase();
-const dbService = new SpotifyDatabaseService();
-const spotifySync = new SpotifySync(dbService);
+// Use the main music sync service that handles both Spotify and Last.fm
+const musicSync = new MusicSyncService();
 
-// Initialize with stored tokens (you'll need to implement token storage)
-async function initializeSpotifySync() {
-  const accessToken = process.env.SPOTIFY_ACCESS_TOKEN;
-  const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
-  
-  if (accessToken && refreshToken) {
-    try {
-      await spotifySync.initialize(accessToken, refreshToken);
-      logger.info('Spotify sync initialized with stored tokens');
-    } catch (error) {
-      logger.error(`Failed to initialize Spotify sync: ${error.message}`);
-    }
-  } else {
-    logger.warn('Spotify tokens not found in environment variables');
+// Ensure music sync service is initialized
+async function ensureMusicSyncReady() {
+  try {
+    await musicSync.ensureInitialized();
+    logger.info('Music sync service ready for API requests');
+  } catch (error) {
+    logger.error(`Failed to initialize music sync: ${error.message}`);
   }
 }
 
 // Initialize on module load
-initializeSpotifySync();
+ensureMusicSyncReady();
 
-// GET /api/spotify/auth - Get authorization URL
+// GET /api/spotify/auth - Get authorization URL (placeholder)
 router.get('/auth', (req, res) => {
-  try {
-    const authUrl = spotifySync.getAuthorizationUrl();
-    res.json({ authUrl });
-  } catch (error) {
-    logger.error(`Error getting auth URL: ${error.message}`);
-    res.status(500).json({ error: 'Failed to generate authorization URL' });
-  }
+  res.json({ 
+    message: 'Spotify authorization is configured via environment variables',
+    tokensConfigured: !!(process.env.SPOTIFY_ACCESS_TOKEN && process.env.SPOTIFY_REFRESH_TOKEN)
+  });
 });
 
-// POST /api/spotify/callback - Handle authorization callback
+// POST /api/spotify/callback - Handle authorization callback (placeholder)
 router.post('/callback', async (req, res) => {
-  try {
-    const { code } = req.body;
-    
-    if (!code) {
-      return res.status(400).json({ error: 'Authorization code required' });
-    }
-    
-    const tokens = await spotifySync.handleAuthorizationCallback(code);
-    
-    // TODO: Store tokens securely (database, encrypted storage, etc.)
-    logger.info('Spotify tokens obtained - store them securely');
-    
-    res.json({ 
-      message: 'Authorization successful',
-      expiresIn: tokens.expiresIn
-    });
-    
-  } catch (error) {
-    logger.error(`Error handling callback: ${error.message}`);
-    res.status(500).json({ error: 'Authorization failed' });
-  }
+  res.json({ 
+    message: 'Spotify tokens should be configured via environment variables',
+    tokensConfigured: !!(process.env.SPOTIFY_ACCESS_TOKEN && process.env.SPOTIFY_REFRESH_TOKEN)
+  });
 });
 
 // POST /api/spotify/sync - Manual sync trigger
@@ -70,19 +40,20 @@ router.post('/sync', async (req, res) => {
   try {
     const { force = false } = req.body;
     
-    logger.info(`Manual Spotify sync triggered - force: ${force}`);
+    logger.info(`Manual music sync triggered - force: ${force}`);
     
-    const result = await spotifySync.syncRecentTracks({
-      forceFullSync: force,
-      saveToDatabase: true,
-      limit: 50
-    });
+    // Ensure service is ready
+    await musicSync.ensureInitialized();
+    
+    const result = await musicSync.syncNewTracks({ force });
     
     res.json({
       success: true,
-      message: `Sync completed: ${result.addedPlays} new plays added`,
+      message: result.message,
       addedPlays: result.addedPlays,
-      processedTracks: result.processedTracks
+      processedTracks: result.processedTracks,
+      method: result.method,
+      fallbackUsed: result.fallbackUsed
     });
     
   } catch (error) {
@@ -94,24 +65,24 @@ router.post('/sync', async (req, res) => {
   }
 });
 
-// GET /api/spotify/test - Test sync without saving
+// GET /api/spotify/test - Test sync status  
 router.get('/test', async (req, res) => {
   try {
-    const { limit = 10, force = false } = req.query;
+    logger.info(`Music sync test requested`);
     
-    logger.info(`Spotify test sync - limit: ${limit}, force: ${force}`);
+    // Just return status instead of doing a test sync
+    await musicSync.ensureInitialized();
+    const status = await musicSync.getStatus();
     
-    const result = await spotifySync.testSync(
-      parseInt(limit), 
-      force === 'true'
-    );
-    
-    res.json(result);
+    res.json({
+      ...status,
+      message: 'Music sync service is ready'
+    });
     
   } catch (error) {
-    logger.error(`Error during test sync: ${error.message}`);
+    logger.error(`Error during test: ${error.message}`);
     res.status(500).json({ 
-      error: 'Test sync failed',
+      error: 'Test failed',
       message: error.message
     });
   }
@@ -120,13 +91,10 @@ router.get('/test', async (req, res) => {
 // GET /api/spotify/status - Get sync status
 router.get('/status', async (req, res) => {
   try {
-    const lastSyncTimestamp = await dbService.getLastSyncTimestamp();
+    await musicSync.ensureInitialized();
+    const status = await musicSync.getStatus();
     
-    res.json({
-      lastSync: lastSyncTimestamp,
-      lastSyncFormatted: lastSyncTimestamp ? new Date(lastSyncTimestamp).toISOString() : null,
-      tokensConfigured: !!(process.env.SPOTIFY_ACCESS_TOKEN && process.env.SPOTIFY_REFRESH_TOKEN)
-    });
+    res.json(status);
     
   } catch (error) {
     logger.error(`Error getting sync status: ${error.message}`);

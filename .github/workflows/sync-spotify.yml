@@ -19,7 +19,7 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     
     defaults:
       run:
@@ -52,10 +52,13 @@ jobs:
         TZ: Europe/London
         SYNC_METHOD: spotify
         DRY_RUN: false
+        PGCONNECT_TIMEOUT: 10
+        PGCOMMAND_TIMEOUT: 30000
+        PGTIMEOUT: 10000
       run: |
         SYNC_TYPE="${{ github.event.inputs.sync_type || 'sync' }}"
-        echo "🔄 Running unified sync with type: $SYNC_TYPE"
-        node scripts/githubActionsSync.js $SYNC_TYPE
+        echo "🔄 Running music sync with type: $SYNC_TYPE"
+        node scripts/scheduledMusicSync.js $SYNC_TYPE
         
     - name: Post-sync summary
       if: always()

@@ -2,36 +2,54 @@
 
 import dotenv from 'dotenv';
 import { initializeDatabase } from '../src/db/db.js';
-import UnifiedSyncService from '../src/services/unifiedSync.js';
+import MusicSyncService from '../src/services/musicSync.js';
 import logger from '../src/utils/logger.js';
 
 // Load environment variables
 dotenv.config();
 
-class GitHubActionsSync {
+class ScheduledMusicSync {
   constructor() {
-    // Initialize main database connection
-    initializeDatabase();
+    // Initialize main database connection with retry
+    this.initializeDatabaseWithRetry();
     
-    // Use the same UnifiedSyncService that the UI uses
-    this.unifiedSync = new UnifiedSyncService();
+    // Use the same MusicSyncService that the UI uses
+    this.musicSync = new MusicSyncService();
+  }
+
+  async initializeDatabaseWithRetry(maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        initializeDatabase();
+        logger.info('Database initialization succeeded');
+        return;
+      } catch (error) {
+        logger.warn(`Database initialization attempt ${i + 1}/${maxRetries} failed: ${error.message}`);
+        if (i === maxRetries - 1) {
+          logger.error('Database initialization failed after all retries');
+          throw error;
+        }
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+      }
+    }
   }
 
   async runSync(options = {}) {
     const { mode = 'sync' } = options;
     
     try {
-      logger.info(`🔄 Starting GitHub Actions sync (mode: ${mode})`);
+      logger.info(`🔄 Starting scheduled music sync (mode: ${mode})`);
       
-      // Wait for UnifiedSync to initialize
-      await this.unifiedSync.ensureInitialized();
+      // Wait for MusicSync to initialize
+      await this.musicSync.ensureInitialized();
       
       const force = mode === 'force';
       
       // Use the same sync method as the UI
-      const result = await this.unifiedSync.syncNewTracks({ force });
+      const result = await this.musicSync.syncNewTracks({ force });
       
-      logger.info(`✅ GitHub Actions sync completed via ${result.method.toUpperCase()}`);
+      logger.info(`✅ Scheduled music sync completed via ${result.method.toUpperCase()}`);
       logger.info(`   Added plays: ${result.addedPlays}`);
       logger.info(`   Processed tracks: ${result.processedTracks}`);
       logger.info(`   Message: ${result.message}`);
@@ -44,15 +62,15 @@ class GitHubActionsSync {
       return result;
       
     } catch (error) {
-      logger.error(`❌ GitHub Actions sync failed: ${error.message}`);
+      logger.error(`❌ Scheduled music sync failed: ${error.message}`);
       throw error;
     }
   }
 
   async getStatus() {
     try {
-      await this.unifiedSync.ensureInitialized();
-      return await this.unifiedSync.getStatus();
+      await this.musicSync.ensureInitialized();
+      return await this.musicSync.getStatus();
     } catch (error) {
       logger.error(`Error getting sync status: ${error.message}`);
       throw error;
@@ -63,7 +81,7 @@ class GitHubActionsSync {
 // CLI interface
 async function main() {
   const command = process.argv[2] || 'sync';
-  const sync = new GitHubActionsSync();
+  const sync = new ScheduledMusicSync();
 
   try {
     switch (command) {
@@ -106,10 +124,10 @@ async function main() {
         break;
         
       default:
-        console.log('GitHub Actions Sync Script');
-        console.log('===========================');
+        console.log('Scheduled Music Sync Script');
+        console.log('============================');
         console.log('');
-        console.log('This script uses the same UnifiedSyncService as the UI.');
+        console.log('This script uses the same MusicSyncService as the UI.');
         console.log('');
         console.log('Commands:');
         console.log('  sync   - Run incremental sync (only new tracks)');
@@ -134,4 +152,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-export default GitHubActionsSync;
+export default ScheduledMusicSync;

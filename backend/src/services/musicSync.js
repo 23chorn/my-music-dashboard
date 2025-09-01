@@ -1,16 +1,16 @@
-import LegacySpotifySync from './legacySpotifySync.js';
+import SpotifyMusicSync from './spotifyMusicSync.js';
 import { fetchAllRecentTracks } from './lastfm.js';
 import { getLastTimestamp, addPlaysDeduped } from '../db/db.js';
 import logger from '../utils/logger.js';
 
-class UnifiedSyncService {
+class MusicSyncService {
   constructor() {
     this.syncMethod = process.env.SYNC_METHOD || 'lastfm';
     this.initialized = false;
     
     // Initialize Spotify components
     if (this.syncMethod === 'spotify') {
-      this.spotifySync = new LegacySpotifySync();
+      this.spotifySync = new SpotifyMusicSync();
       this.initializeAsync();
     } else {
       this.initialized = true;
@@ -29,7 +29,7 @@ class UnifiedSyncService {
     if (accessToken && refreshToken) {
       try {
         await this.spotifySync.initialize(accessToken, refreshToken);
-        logger.info('Unified sync initialized with Spotify');
+        logger.info('Music sync initialized with Spotify');
       } catch (error) {
         logger.error(`Failed to initialize Spotify in unified sync: ${error.message}`);
         // Fall back to Last.fm
@@ -61,7 +61,7 @@ class UnifiedSyncService {
     // Wait for initialization to complete
     await this.ensureInitialized();
     
-    logger.info(`Starting unified sync using ${this.syncMethod.toUpperCase()} method`);
+    logger.info(`Starting music sync using ${this.syncMethod.toUpperCase()} method`);
     
     try {
       if (this.syncMethod === 'spotify') {
@@ -193,7 +193,7 @@ class UnifiedSyncService {
     this.syncMethod = newMethod;
 
     if (newMethod === 'spotify' && !this.spotifySync) {
-      this.spotifySync = new LegacySpotifySync();
+      this.spotifySync = new SpotifyMusicSync();
       await this.initializeSpotify();
     }
 
@@ -240,4 +240,4 @@ class UnifiedSyncService {
   }
 }
 
-export default UnifiedSyncService;
+export default MusicSyncService;

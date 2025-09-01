@@ -10,7 +10,7 @@ import morgan from "morgan";
 import logger from "./src/utils/logger.js";
 import { fetchAllRecentTracks } from "./src/services/lastfm.js";
 import { initializeDatabase, getLastTimestamp, addPlaysDeduped, getUniqueCounts, getRecentTracks } from "./src/db/db.js";
-import UnifiedSyncService from "./src/services/unifiedSync.js";
+import MusicSyncService from "./src/services/musicSync.js";
 import { initializeArtistDatabase } from "./src/db/artistDb.js";
 import { initializeAlbumDatabase } from "./src/db/albumDb.js";
 import { getTimezoneInfo } from "./src/utils/timezone.js";
@@ -35,8 +35,8 @@ initializeDatabase();
 initializeArtistDatabase();
 initializeAlbumDatabase();
 
-// Initialize unified sync service
-const unifiedSync = new UnifiedSyncService();
+// Initialize music sync service
+const musicSync = new MusicSyncService();
 
 // Log server startup and environment
 logger.info(`Starting server in ${process.env.NODE_ENV || "development"} mode`);
@@ -69,12 +69,12 @@ app.post('/api/sync-tracks', async (req, res) => {
   try {
     const { force = false } = req.body;
     
-    const result = await unifiedSync.syncNewTracks({ force });
+    const result = await musicSync.syncNewTracks({ force });
     
     logger.info(`Sync completed: ${result.addedPlays} new plays added using ${result.method}`);
     
     // Include sync status in response
-    const status = await unifiedSync.getStatus();
+    const status = await musicSync.getStatus();
     
     res.json({
       ...result,
@@ -83,11 +83,11 @@ app.post('/api/sync-tracks', async (req, res) => {
     });
     
   } catch (error) {
-    logger.error("Unified sync endpoint error:", error);
+    logger.error("Music sync endpoint error:", error);
     res.status(500).json({ 
       error: 'Sync failed',
       message: error.message,
-      method: unifiedSync.getCurrentMethod()
+      method: musicSync.getCurrentMethod()
     });
   }
 });
@@ -95,7 +95,7 @@ app.post('/api/sync-tracks', async (req, res) => {
 // GET sync method status
 app.get('/api/sync-status', async (req, res) => {
   try {
-    const status = await unifiedSync.getStatus();
+    const status = await musicSync.getStatus();
     res.json(status);
   } catch (error) {
     logger.error("Error getting sync status:", error);
@@ -114,7 +114,7 @@ app.post('/api/switch-sync-method', async (req, res) => {
       });
     }
     
-    const result = await unifiedSync.switchMethod(method);
+    const result = await musicSync.switchMethod(method);
     logger.info(`Sync method switched to ${method}`);
     
     res.json(result);

@@ -3,7 +3,7 @@ import LegacySpotifyDataProcessor from './legacySpotifyDataProcessor.js';
 import { LegacySpotifyDatabaseService, initializeLegacySpotifyDatabase } from '../db/legacySpotifyDb.js';
 import logger from '../utils/logger.js';
 
-class LegacySpotifySync {
+class SpotifyMusicSync {
   constructor() {
     initializeLegacySpotifyDatabase();
     this.spotifyService = new SpotifyService();
@@ -14,7 +14,7 @@ class LegacySpotifySync {
   // Initialize with stored tokens
   async initialize(accessToken, refreshToken) {
     this.spotifyService.setTokens(accessToken, refreshToken);
-    logger.info('Legacy SpotifySync initialized with user tokens');
+    logger.info('Spotify music sync initialized with user tokens');
   }
 
   // Get the last sync timestamp from database
@@ -45,7 +45,7 @@ class LegacySpotifySync {
     } = options;
 
     try {
-      logger.info(`Starting legacy Spotify sync - forceFullSync: ${forceFullSync}, testMode: ${testMode}, limit: ${limit}`);
+      logger.info(`Starting Spotify sync - forceFullSync: ${forceFullSync}, testMode: ${testMode}, limit: ${limit}`);
 
       // Always get timestamp unless explicitly forcing full sync
       let after = null;
@@ -99,7 +99,7 @@ class LegacySpotifySync {
       if (saveToDatabase) {
         // Save to database
         const result = await this.saveProcessedData(processedData);
-        logger.info(`Legacy sync completed: ${result.addedPlays} new plays, ${result.processedTracks} tracks processed`);
+        logger.info(`Spotify sync completed: ${result.addedPlays} new plays, ${result.processedTracks} tracks processed`);
         return result;
       } else {
         // Return processed data without saving
@@ -211,7 +211,7 @@ class LegacySpotifySync {
         // Commit transaction
         await this.dbService.commitTransaction();
 
-        logger.info(`Legacy database sync completed: ${addedPlays} plays, ${processedTracks} tracks`);
+        logger.info(`Database sync completed: ${addedPlays} plays, ${processedTracks} tracks`);
         
         return { addedPlays, processedTracks };
 
@@ -237,4 +237,4 @@ class LegacySpotifySync {
   }
 }
 
-export default LegacySpotifySync;
+export default SpotifyMusicSync;
