@@ -66,19 +66,23 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
       
       // Generate 7 days for this week (Sunday = 0, Saturday = 6)
       for (let day = 0; day < 7; day++) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayDate = new Date(weekStart);
+        dayDate.setDate(weekStart.getDate() + day);
+        
+        const dateStr = dayDate.toISOString().split('T')[0];
         const count = playsMap[dateStr] || 0;
-        const isInRange = currentDate >= startDate && currentDate <= today;
-        const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
+        const isInRange = dayDate >= startDate && dayDate <= today;
+        const dayOfWeek = dayDate.getDay(); // 0 = Sunday, 6 = Saturday
         
         week.push({
           date: dateStr,
           count: isInRange ? count : null,
           dayOfWeek: dayOfWeek
         });
-        
-        currentDate.setDate(currentDate.getDate() + 1);
       }
+      
+      // Move to next week
+      currentDate.setDate(currentDate.getDate() + 7);
       weeks.push(week);
     }
     
@@ -86,6 +90,16 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
   };
 
   const { weeks, monthLabels } = generateGitHubStyleGrid();
+  
+  // Debug: Log the week containing Sep 1st
+  if (typeof window !== 'undefined') {
+    const sep1Week = weeks.find(week => 
+      week.some(day => day.date === '2025-09-01')
+    );
+    if (sep1Week) {
+      console.log('Week containing Sep 1st:', sep1Week.map(d => `${d.date} (row ${d.dayOfWeek})`));
+    }
+  }
 
   return (
     <div className="space-y-4">

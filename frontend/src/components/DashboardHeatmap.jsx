@@ -97,19 +97,23 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
       }
       
       for (let day = 0; day < 7; day++) {
-        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayDate = new Date(weekStart);
+        dayDate.setDate(weekStart.getDate() + day);
+        
+        const dateStr = dayDate.toISOString().split('T')[0];
         const count = playsMap[dateStr] || 0;
-        const isInRange = currentDate >= startDate && currentDate <= today;
-        const dayOfWeek = currentDate.getDay();
+        const isInRange = dayDate >= startDate && dayDate <= today;
+        const dayOfWeek = dayDate.getDay();
         
         week.push({
           date: dateStr,
           count: isInRange ? count : null,
           dayOfWeek: dayOfWeek
         });
-        
-        currentDate.setDate(currentDate.getDate() + 1);
       }
+      
+      // Move to next week
+      currentDate.setDate(currentDate.getDate() + 7);
       weeks.push(week);
     }
     
