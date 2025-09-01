@@ -222,11 +222,15 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
   const fromTimestamp = getPeriodTimestamp(period);
   
   let query = `
-    SELECT t.id, t.name as track_name, a.name as artist_name, COUNT(*) AS playcount
+    SELECT t.id, t.name as track_name, a.name as artist_name, 
+           al.id as album_id, al.name as album_name, al.image_url as album_image,
+           COUNT(*) AS playcount
     FROM plays p
     JOIN tracks t ON p.track_id = t.id
     JOIN track_artists ta ON t.id = ta.track_id
     JOIN artists a ON ta.artist_id = a.id
+    LEFT JOIN track_albums tal ON t.id = tal.track_id
+    LEFT JOIN albums al ON tal.album_id = al.id
     WHERE p.played_at >= $1
   `;
   
@@ -249,7 +253,7 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
   }
   
   query += `
-    GROUP BY t.id, t.name, a.name
+    GROUP BY t.id, t.name, a.name, al.id, al.name, al.image_url
     ORDER BY playcount DESC
     LIMIT $${paramCount + 1}
   `;
@@ -261,6 +265,9 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
     callback(null, result.rows.map(row => ({
       track: row.track_name,
       artist: row.artist_name,
+      albumId: row.album_id,
+      album: row.album_name,
+      albumImage: row.album_image,
       playcount: parseInt(row.playcount)
     })));
   } catch (err) {
@@ -350,10 +357,12 @@ export async function getDailyPlaysAll(days) {
   logger.info(`getDailyPlaysAll called with days=${days}`);
   
   const query = `
-    SELECT DATE(played_at) AS day, COUNT(*) AS count
+    SELECT 
+      to_char(played_at AT TIME ZONE 'Europe/London', 'YYYY-MM-DD') AS day, 
+      COUNT(*) AS count
     FROM plays
-    WHERE played_at >= NOW() - INTERVAL '${days} days'
-    GROUP BY DATE(played_at)
+    WHERE played_at AT TIME ZONE 'Europe/London' >= (NOW() AT TIME ZONE 'Europe/London') - INTERVAL '${days} days'
+    GROUP BY to_char(played_at AT TIME ZONE 'Europe/London', 'YYYY-MM-DD')
     ORDER BY day ASC
   `;
   
@@ -361,7 +370,7 @@ export async function getDailyPlaysAll(days) {
     const result = await pool.query(query);
     logger.info(`getDailyPlaysAll returned ${result.rows.length} daily records`);
     return result.rows.map(row => ({
-      day: row.day.toISOString().split('T')[0],
+      day: row.day,
       count: parseInt(row.count)
     }));
   } catch (err) {
@@ -434,43 +443,65 @@ export async function searchAll(query, callback) {
   try {
     const [artistsResult, tracksResult, albumsResult] = await Promise.all([
       pool.query(
-        `SELECT id, name, image_url FROM artists WHERE name ILIKE $1 LIMIT 10`,
+        `SELECT a.id, a.name, a.image_url, COUNT(p.id) as play_count
+         FROM artists a
+         LEFT JOIN track_artists ta ON a.id = ta.artist_id
+         LEFT JOIN plays p ON ta.track_id = p.track_id
+         WHERE a.name ILIKE $1
+         GROUP BY a.id, a.name, a.image_url
+         ORDER BY play_count DESC, a.name
+         LIMIT 10`,
         [likeQuery]
       ),
       pool.query(
-        `SELECT t.name as track_name, a.name as artist_name
+        `SELECT t.id, t.name as track_name, a.name as artist_name, COUNT(p.id) as play_count
          FROM tracks t
          JOIN track_artists ta ON t.id = ta.track_id
          JOIN artists a ON ta.artist_id = a.id
-         WHERE t.name ILIKE $1 LIMIT 10`,
+         LEFT JOIN plays p ON t.id = p.track_id
+         WHERE t.name ILIKE $1
+         GROUP BY t.id, t.name, a.name
+         ORDER BY play_count DESC, t.name
+         LIMIT 10`,
         [likeQuery]
       ),
       pool.query(
-        `SELECT al.id, al.name as album_name, a.name as artist_name, al.image_url
+        `SELECT al.id, al.name as album_name, a.name as artist_name, al.image_url,
+                CASE 
+                  WHEN a.name ILIKE $1 THEN 1 
+                  ELSE 2 
+                END as priority,
+                COUNT(p.id) as play_count
          FROM albums al
          JOIN album_artists aa ON al.id = aa.album_id
          JOIN artists a ON aa.artist_id = a.id
-         WHERE al.name ILIKE $1 LIMIT 10`,
+         LEFT JOIN track_albums ta ON al.id = ta.album_id
+         LEFT JOIN plays p ON ta.track_id = p.track_id
+         WHERE a.name ILIKE $1 OR al.name ILIKE $1
+         GROUP BY al.id, al.name, a.name, al.image_url, priority
+         ORDER BY priority, play_count DESC, a.name, al.name
+         LIMIT 10`,
         [likeQuery]
       )
     ]);
 
     const artists = artistsResult.rows.map(row => ({
-      artistId: row.id,
-      artist: row.name,
-      image: row.image_url
+      id: row.id,
+      name: row.name,
+      image_url: row.image_url
     }));
     
     const tracks = tracksResult.rows.map(row => ({
-      track: row.track_name,
-      artist: row.artist_name
+      id: row.id,
+      name: row.track_name,
+      artist_name: row.artist_name
     }));
     
     const albums = albumsResult.rows.map(row => ({
-      albumId: row.id,
-      album: row.album_name,
-      artist: row.artist_name,
-      image: row.image_url
+      id: row.id,
+      name: row.album_name,
+      artist_name: row.artist_name,
+      image_url: row.image_url
     }));
 
     logger.info(`searchAll returned ${artists.length} artists, ${tracks.length} tracks, ${albums.length} albums`);

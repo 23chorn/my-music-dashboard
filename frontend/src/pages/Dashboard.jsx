@@ -150,6 +150,8 @@ export default function Dashboard() {
           mapper={track => ({
             label: track.artist,
             value: track.track,
+            album: track.album,
+            image: track.albumImage,
             sub: formatValue(`${track.playcount ?? 0} plays`)
           })}
           layout='grid'

@@ -17,8 +17,8 @@ export default function SearchResultsDropdown({
       <div>
         <h3 className="font-bold mb-2 text-gray-200 text-base sm:text-lg">Artists</h3>
         <ul>
-          {results.artists.length === 0 && <li className="text-gray-400">No artists found.</li>}
-          {results.artists.map(artist => (
+          {(!results.artists || results.artists.length === 0) && <li className="text-gray-400">No artists found.</li>}
+          {results.artists && results.artists.map(artist => (
             <li
               key={artist.id}
               className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
@@ -36,8 +36,8 @@ export default function SearchResultsDropdown({
       <div className="mt-4">
         <h3 className="font-bold mb-2 text-gray-200 text-base sm:text-lg">Tracks</h3>
         <ul>
-          {results.tracks.length === 0 && <li className="text-gray-400">No tracks found.</li>}
-          {results.tracks.map(track => (
+          {(!results.tracks || results.tracks.length === 0) && <li className="text-gray-400">No tracks found.</li>}
+          {results.tracks && results.tracks.map(track => (
             <li key={track.id} className="mb-1 px-2 py-2 hover:bg-gray-800 rounded text-sm sm:text-base">
               {track.name}
             </li>
@@ -47,8 +47,8 @@ export default function SearchResultsDropdown({
       <div className="mt-4">
         <h3 className="font-bold mb-2 text-gray-200 text-base sm:text-lg">Albums</h3>
         <ul>
-          {results.albums.length === 0 && <li className="text-gray-400">No albums found.</li>}
-          {results.albums.map(album => (
+          {(!results.albums || results.albums.length === 0) && <li className="text-gray-400">No albums found.</li>}
+          {results.albums && results.albums.map(album => (
             <li
               key={album.id}
               className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
