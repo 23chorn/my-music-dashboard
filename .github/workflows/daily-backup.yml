@@ -1,0 +1,97 @@
+# .github/workflows/daily-backup.yml
+name: Daily Supabase Backup
+
+on:
+  # Run daily at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+  
+  # Optional: trigger on main branch pushes (for testing)
+  # push:
+  #   branches: [ main ]
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm install @supabase/supabase-js dotenv
+        
+    - name: Create backup directory
+      run: mkdir -p supabase_backups
+      
+    - name: Run backup script
+      env:
+        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      run: node scripts/supabase_backup.js backup
+      
+    - name: Compress backup files
+      run: |
+        cd supabase_backups
+        BACKUP_DIR=$(ls -t | head -n1)
+        tar -czf "backup_$(date +%Y-%m-%d).tar.gz" "$BACKUP_DIR"
+        echo "BACKUP_FILE=backup_$(date +%Y-%m-%d).tar.gz" >> $GITHUB_ENV
+        echo "BACKUP_PATH=supabase_backups/backup_$(date +%Y-%m-%d).tar.gz" >> $GITHUB_ENV
+        
+    - name: Upload backup to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: backup-${{ github.run_number }}-$(date +%Y%m%d)
+        name: Database Backup ${{ github.run_number }} - $(date +%Y-%m-%d)
+        body: |
+          Automated daily backup of Supabase database
+          
+          📅 **Date**: $(date +%Y-%m-%d %H:%M:%S UTC)
+          🔄 **Run**: ${{ github.run_number }}
+          📊 **Repository**: ${{ github.repository }}
+          
+          ## Files Included:
+          - All database tables in JSON format
+          - CSV exports for easy viewing
+          - Restore script for easy recovery
+          - Backup manifest with metadata
+          
+          ## To Restore:
+          1. Download and extract the backup file
+          2. Update your .env with target Supabase credentials
+          3. Run `node restore.js` in the extracted folder
+          
+        files: ${{ env.BACKUP_PATH }}
+        draft: false
+        prerelease: false
+        
+    - name: Keep only recent backups (cleanup)
+      uses: dev-drprasad/delete-older-releases@v0.3.2
+      with:
+        keep_latest: 30  # Keep last 30 backups
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Notify on success (optional)
+      if: success()
+      run: |
+        echo "✅ Backup completed successfully!"
+        echo "📦 Backup size: $(ls -lh ${{ env.BACKUP_PATH }} | awk '{print $5}')"
+        echo "🔗 Available at: https://github.com/${{ github.repository }}/releases"
+        
+    - name: Notify on failure (optional)  
+      if: failure()
+      run: |
+        echo "❌ Backup failed!"
+        echo "Check the workflow logs for details."
