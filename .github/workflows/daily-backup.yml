@@ -126,7 +126,13 @@ jobs:
              echo "SUPABASE_ANON_KEY=your_target_supabase_key" >> .env
              ```
           5. **Install dependencies**: `npm install @supabase/supabase-js dotenv`
-          6. **Run restore**: `node restore.js`
+          6. **Test restore** (optional): `node restore.js --dry-run`
+          7. **Run restore**: `node restore.js --confirm`
+          
+          ### 🧪 Safe Testing:
+          - Use `--dry-run` to preview what will be restored
+          - Use `--help` to see all available options
+          - Restore reassigns IDs but preserves all relationships
           
           ### ⚠️ Important:
           - Restore will **replace all data** in target database
