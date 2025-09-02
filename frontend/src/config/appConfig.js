@@ -54,12 +54,12 @@ export const DEFAULT_PERIODS = {
   },
   
   artistView: {
-    albums: "7day",
-    tracks: "7day"
+    albums: "overall",
+    tracks: "overall"
   },
   
   albumView: {
-    tracks: "7day"
+    tracks: "overall"
   }
 };
 
