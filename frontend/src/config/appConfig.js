@@ -29,6 +29,11 @@ export const DEFAULT_LIMITS = {
     recent: 5
   },
   
+  // Track view page
+  trackView: {
+    recent: 5
+  },
+  
   // Explore page (if needed)
   explore: {
     items: 20

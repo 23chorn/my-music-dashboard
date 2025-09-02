@@ -23,3 +23,9 @@ export async function getAlbumStats(id) {
   if (!res.ok) throw new Error('Failed to fetch album stats');
   return await res.json();
 }
+
+export async function getAllAlbumsWithPlaycount() {
+  const res = await fetch(`${API_BASE_URL}/api/album/all`);
+  if (!res.ok) throw new Error('Failed to fetch all albums');
+  return await res.json();
+}

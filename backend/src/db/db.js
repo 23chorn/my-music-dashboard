@@ -314,6 +314,7 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
     const result = await pool.query(query, params);
     logger.info(`getTopTracks returned ${result.rows.length} tracks`);
     callback(null, result.rows.map(row => ({
+      id: row.id,
       track: row.track_name,
       artist: row.artist_name,
       albumId: row.album_id,
@@ -378,18 +379,34 @@ export async function getRecentTracks(limit, callback) {
   logger.info(`getRecentTracks called with limit=${limit}`);
   
   const query = `
+    WITH ranked_albums AS (
+      SELECT 
+        t.id as track_id,
+        tal.album_id,
+        al.name as album_name,
+        al.release_date,
+        ROW_NUMBER() OVER (
+          PARTITION BY t.id 
+          ORDER BY 
+            al.release_date DESC NULLS LAST,
+            al.id DESC  -- Use higher ID as tiebreaker (more recent insert)
+        ) as album_rank
+      FROM tracks t
+      LEFT JOIN track_albums tal ON t.id = tal.track_id
+      LEFT JOIN albums al ON tal.album_id = al.id
+    )
     SELECT 
+      t.id as track_id,
       t.name as track_name,
       STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) as artist_names,
-      al.name as album_name,
+      ra.album_name,
       p.played_at
     FROM plays p
     JOIN tracks t ON p.track_id = t.id
     JOIN track_artists ta ON t.id = ta.track_id
     JOIN artists a ON ta.artist_id = a.id
-    LEFT JOIN track_albums tal ON t.id = tal.track_id
-    LEFT JOIN albums al ON tal.album_id = al.id
-    GROUP BY t.id, t.name, al.name, p.played_at, p.id
+    LEFT JOIN ranked_albums ra ON t.id = ra.track_id AND ra.album_rank = 1
+    GROUP BY t.id, t.name, ra.album_name, p.played_at, p.id
     ORDER BY p.played_at DESC
     LIMIT $1
   `;
@@ -398,6 +415,7 @@ export async function getRecentTracks(limit, callback) {
     const result = await pool.query(query, [limit]);
     logger.info(`getRecentTracks returned ${result.rows.length} tracks`);
     callback(null, result.rows.map(row => ({
+      id: row.track_id,
       track: row.track_name,
       artist: row.artist_names,
       album: row.album_name,

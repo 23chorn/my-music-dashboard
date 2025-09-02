@@ -38,7 +38,14 @@ export default function SearchResultsDropdown({
         <ul>
           {(!results.tracks || results.tracks.length === 0) && <li className="text-gray-400">No tracks found.</li>}
           {results.tracks && results.tracks.map(track => (
-            <li key={track.id} className="mb-1 px-2 py-2 hover:bg-gray-800 rounded text-sm sm:text-base">
+            <li 
+              key={track.id} 
+              className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
+              onClick={() => {
+                if (onClose) onClose();
+                if (navigate) navigate(`/track/${track.id}`);
+              }}
+            >
               {track.name}
             </li>
           ))}

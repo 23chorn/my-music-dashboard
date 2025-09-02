@@ -266,18 +266,19 @@ export async function getAllArtistsWithPlaycount(callback) {
   logger.info(`getAllArtistsWithPlaycount called`);
   try {
     const result = await getSharedPool().query(
-      `SELECT a.id, a.name, COUNT(p.id) AS playcount
+      `SELECT a.id, a.name, a.image_url, COUNT(p.id) AS playcount
        FROM artists a
        LEFT JOIN track_artists ta ON a.id = ta.artist_id
        LEFT JOIN tracks t ON ta.track_id = t.id
        LEFT JOIN plays p ON t.id = p.track_id
-       GROUP BY a.id, a.name
+       GROUP BY a.id, a.name, a.image_url
        ORDER BY a.name ASC`
     );
     logger.info(`getAllArtistsWithPlaycount returned ${result.rows.length} artists`);
     callback(null, result.rows.map(row => ({
       id: parseInt(row.id),
       name: row.name,
+      image_url: row.image_url,
       playcount: parseInt(row.playcount)
     })));
   } catch (err) {

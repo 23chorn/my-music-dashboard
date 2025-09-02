@@ -85,7 +85,8 @@ export default function ArtistView() {
             value: track.track,
             album: track.album,
             image: track.albumImage,
-            sub: formatValue(`${track.playcount ?? 0} plays`)
+            sub: formatValue(`${track.playcount ?? 0} plays`),
+            link: track.id ? `/track/${track.id}` : undefined
           })}
           layout='grid'
           collapsible={true}

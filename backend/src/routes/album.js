@@ -4,9 +4,23 @@ import logger from '../utils/logger.js';
 import {
   getAlbumInfo,
   getAlbumRecentPlays,
-  getAlbumStats
+  getAlbumStats,
+  getAllAlbumsWithPlaycount
 } from '../db/albumDb.js';
 import { getTopTracks } from '../db/db.js';
+
+// Get all albums with playcount for Explore page
+router.get('/all', (req, res) => {
+  logger.info("GET /api/album/all called");
+  getAllAlbumsWithPlaycount((err, rows) => {
+    if (err) {
+      logger.error("DB error in getAllAlbumsWithPlaycount:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info(`Returned ${rows.length} albums`);
+    res.json(rows);
+  });
+});
 
 // Get album info
 router.get('/:id', (req, res) => {

@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Dashboard from "../../pages/Dashboard";
 import ArtistView from "../../pages/ArtistView";
 import AlbumView from "../../pages/AlbumView";
+import TrackView from "../../pages/TrackView";
 import ExploreView from "../../pages/ExploreView";
 import AppHeader from "./AppHeader";
 
@@ -14,6 +15,7 @@ export default function AppLayout({ searchProps }) {
           <Route path="/" element={<Dashboard />} />
           <Route path="/artist/:id" element={<ArtistView />} />
           <Route path="/album/:id" element={<AlbumView />} />
+          <Route path="/track/:id" element={<TrackView />} />
           <Route path="/explore" element={<ExploreView />} />
         </Routes>
       </main>

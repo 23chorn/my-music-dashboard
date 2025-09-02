@@ -21,6 +21,7 @@ import recentTracksRouter from "./src/routes/recentTracks.js";
 import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
 import albumRouter from "./src/routes/album.js";
+import trackRouter from "./src/routes/track.js";
 import dailyPlaysRouter from "./src/routes/dailyPlays.js";
 import spotifyRouter from "./src/routes/spotify.js";
 
@@ -144,6 +145,8 @@ app.use('/api/search', searchRouter);
 app.use('/api/artist', artistRouter);
 
 app.use('/api/album', albumRouter);
+
+app.use('/api/track', trackRouter);
 
 app.use('/api/daily-plays', dailyPlaysRouter);
 

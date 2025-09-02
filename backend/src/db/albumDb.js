@@ -175,3 +175,29 @@ export async function getAlbumStats(albumId, callback) {
     callback(err);
   }
 }
+
+export async function getAllAlbumsWithPlaycount(callback) {
+  logger.info(`getAllAlbumsWithPlaycount called`);
+  try {
+    const result = await getSharedPool().query(
+      `SELECT al.id, al.name, al.image_url, COUNT(p.id) AS playcount
+       FROM albums al
+       LEFT JOIN track_albums ta ON al.id = ta.album_id
+       LEFT JOIN tracks t ON ta.track_id = t.id
+       LEFT JOIN plays p ON t.id = p.track_id
+       GROUP BY al.id, al.name, al.image_url
+       HAVING COUNT(p.id) > 0
+       ORDER BY al.name ASC`
+    );
+    logger.info(`getAllAlbumsWithPlaycount returned ${result.rows.length} albums`);
+    callback(null, result.rows.map(row => ({
+      id: parseInt(row.id),
+      name: row.name,
+      image_url: row.image_url,
+      playcount: parseInt(row.playcount)
+    })));
+  } catch (err) {
+    logger.error(`getAllAlbumsWithPlaycount DB error: ${err}`);
+    callback(err);
+  }
+}

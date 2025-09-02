@@ -191,7 +191,8 @@ export default function Dashboard() {
             value: track.track,
             album: track.album,
             image: track.albumImage,
-            sub: formatValue(`${track.playcount ?? 0} plays`)
+            sub: formatValue(`${track.playcount ?? 0} plays`),
+            link: track.id ? `/track/${track.id}` : undefined
           })}
           layout='grid'
           collapsible={true}
@@ -209,7 +210,8 @@ export default function Dashboard() {
             label: track.track,
             value: track.artist,
             album: track.album,
-            sub: formatDateTime(track.timestamp)
+            sub: formatDateTime(track.timestamp),
+            link: track.id ? `/track/${track.id}` : undefined
           })}
           collapsible={true}
         />
