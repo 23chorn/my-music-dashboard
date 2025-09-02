@@ -48,18 +48,18 @@ export const PERIOD_OPTIONS = [
 // Default periods for different sections
 export const DEFAULT_PERIODS = {
   dashboard: {
-    artists: "overall",
-    tracks: "overall", 
-    albums: "overall"
+    artists: "7day",
+    tracks: "7day",
+    albums: "7day"
   },
   
   artistView: {
-    albums: "overall",
-    tracks: "overall"
+    albums: "7day",
+    tracks: "7day"
   },
   
   albumView: {
-    tracks: "overall"
+    tracks: "7day"
   }
 };
 

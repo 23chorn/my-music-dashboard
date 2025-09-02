@@ -91,12 +91,16 @@ export class LegacySpotifyDatabaseService {
         artistId = result.rows[0].id;
       }
 
-      // Store Spotify ID mapping
+      // Store Spotify ID mapping (ensure proper URI format)
+      const spotifyUri = artistData.spotifyId.startsWith('spotify:') 
+        ? artistData.spotifyId 
+        : `spotify:artist:${artistData.spotifyId}`;
+        
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('artist', $1, 'spotify', $2) 
          ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
-        [artistId, artistData.spotifyId]
+        [artistId, spotifyUri]
       );
 
       return artistId;
@@ -168,12 +172,16 @@ export class LegacySpotifyDatabaseService {
         albumId = result.rows[0].id;
       }
 
-      // Store Spotify ID mapping
+      // Store Spotify ID mapping (ensure proper URI format)
+      const spotifyUri = albumData.spotifyId.startsWith('spotify:') 
+        ? albumData.spotifyId 
+        : `spotify:album:${albumData.spotifyId}`;
+        
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('album', $1, 'spotify', $2) 
          ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
-        [albumId, albumData.spotifyId]
+        [albumId, spotifyUri]
       );
 
       return albumId;
@@ -227,12 +235,16 @@ export class LegacySpotifyDatabaseService {
         trackId = result.rows[0].id;
       }
 
-      // Store Spotify ID mapping
+      // Store Spotify ID mapping (ensure proper URI format)
+      const spotifyUri = trackData.spotifyId.startsWith('spotify:') 
+        ? trackData.spotifyId 
+        : `spotify:track:${trackData.spotifyId}`;
+        
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('track', $1, 'spotify', $2) 
          ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
-        [trackId, trackData.spotifyId]
+        [trackId, spotifyUri]
       );
 
       return trackId;

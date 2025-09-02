@@ -241,9 +241,19 @@ class TrackArtistEnricher {
     const { id: trackId, name: trackName, spotify_uri } = track;
     const spotifyId = this.extractSpotifyId(spotify_uri);
     
-    logger.info(`🎵 Processing: "${trackName}" (${spotifyId})`);
+    logger.info(`🎵 Processing track ID ${trackId}: "${trackName}" (${spotifyId})`);
 
     try {
+      // First, check what artists this track already has
+      const existingArtists = await this.pool.query(
+        `SELECT a.id, a.name FROM artists a 
+         JOIN track_artists ta ON a.id = ta.artist_id 
+         WHERE ta.track_id = $1`,
+        [trackId]
+      );
+      
+      logger.info(`   📊 Track currently has ${existingArtists.rows.length} artists: ${existingArtists.rows.map(a => a.name).join(', ')}`);
+
       // Fetch track details from Spotify
       const spotifyTrack = await this.fetchSpotifyTrackDetails(spotifyId);
       if (!spotifyTrack) {
@@ -251,28 +261,51 @@ class TrackArtistEnricher {
         return;
       }
 
+      logger.info(`   🎤 Spotify says track has ${spotifyTrack.artists.length} artists: ${spotifyTrack.artists.map(a => a.name).join(', ')}`);
+
       // Process all artists for this track
       const artistIds = [];
+      let newArtistsAdded = 0;
+      
       for (const artistData of spotifyTrack.artists) {
         const artistId = await this.findOrCreateArtist(artistData);
         artistIds.push(artistId);
         
-        // Store track-artist relationship
-        await this.storeTrackArtistRelationship(trackId, artistId);
-        logger.info(`🔗 Linked artist: ${artistData.name} -> track: ${trackName}`);
+        if (this.testMode) {
+          logger.info(`   🧪 TEST: Would check if relationship exists and add if needed: ${artistData.name} -> track: ${trackName}`);
+          newArtistsAdded++;
+        } else {
+          // Check if this relationship already exists
+          const existingRelationship = await this.pool.query(
+            `SELECT 1 FROM track_artists WHERE track_id = $1 AND artist_id = $2`,
+            [trackId, artistId]
+          );
+
+          if (existingRelationship.rows.length === 0) {
+            // Store new track-artist relationship
+            await this.storeTrackArtistRelationship(trackId, artistId);
+            logger.info(`   ➕ Added new relationship: ${artistData.name} -> track: ${trackName}`);
+            newArtistsAdded++;
+          } else {
+            logger.info(`   ✅ Relationship already exists: ${artistData.name} -> track: ${trackName}`);
+          }
+        }
       }
 
-      // Clean the track name
+      // Clean the track name (only if it has featuring artists and we now have proper relationships)
       const { cleanedName, wasChanged, originalName } = this.cleanTrackName(trackName);
       
-      if (wasChanged) {
+      if (wasChanged && artistIds.length > 1) {
         await this.updateTrackName(trackId, cleanedName);
-        logger.info(`✨ Cleaned track name: "${originalName}" -> "${cleanedName}"`);
+        logger.info(`   ✨ Cleaned track name: "${originalName}" -> "${cleanedName}" (now has ${artistIds.length} artists)`);
         this.cleanedTracksCount++;
+      } else if (wasChanged) {
+        logger.info(`   ⏭️  Not cleaning track name "${originalName}" - only has ${artistIds.length} artist(s)`);
       }
 
       this.updatedCount++;
-      logger.info(`✅ Successfully processed track: ${trackName} (${artistIds.length} artists)`);
+      logger.info(`✅ Successfully processed track: ${trackName}`);
+      logger.info(`   📈 Results: ${artistIds.length} total artists, ${newArtistsAdded} new relationships added`);
 
     } catch (error) {
       logger.error(`❌ Error processing track ${trackName}: ${error.message}`);

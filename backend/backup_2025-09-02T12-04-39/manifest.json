@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-09-02T12-04-39",
+  "created": "2025-09-02T12:04:48.210Z",
+  "tables": {
+    "artists": {
+      "success": true,
+      "count": 1342,
+      "filename": "artists.json"
+    },
+    "albums": {
+      "success": true,
+      "count": 2980,
+      "filename": "albums.json"
+    },
+    "tracks": {
+      "success": true,
+      "count": 12394,
+      "filename": "tracks.json"
+    },
+    "genres": {
+      "success": true,
+      "count": 299,
+      "filename": "genres.json"
+    },
+    "plays": {
+      "success": true,
+      "count": 119705,
+      "filename": "plays.json"
+    },
+    "external_ids": {
+      "success": true,
+      "count": 12700,
+      "filename": "external_ids.json"
+    },
+    "artist_genres": {
+      "success": true,
+      "count": 1921,
+      "filename": "artist_genres.json"
+    },
+    "track_artists": {
+      "success": true,
+      "count": 12443,
+      "filename": "track_artists.json"
+    },
+    "track_albums": {
+      "success": true,
+      "count": 11607,
+      "filename": "track_albums.json"
+    },
+    "album_artists": {
+      "success": true,
+      "count": 2980,
+      "filename": "album_artists.json"
+    }
+  },
+  "total_records": 178371
+}
