@@ -31,12 +31,14 @@ export const DEFAULT_LIMITS = {
   
   // Track view page
   trackView: {
-    recent: 5
+    recent: 5,
+    dailyPlaysDays: 90  // Days for daily plays chart
   },
   
-  // Explore page (if needed)
+  // Explore page
   explore: {
-    items: 20
+    pageSize: 25,  // Items per page in explore view
+    items: 20      // Legacy - keeping for backwards compatibility
   }
 };
 
@@ -79,6 +81,13 @@ export const HEATMAP_CONFIG = {
   artist: {
     days: 90      // 90 days for artist-specific heatmaps
   }
+};
+
+// Alphabetical category configuration
+export const ALPHA_CATEGORIES = {
+  letters: Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)), // A-Z
+  other: "#", // Non-alphabetic
+  defaultCategory: "A"
 };
 
 // Grid configuration

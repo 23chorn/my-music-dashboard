@@ -1,9 +1,9 @@
-import FilterControls from "./forms/FilterControls";
-import ListTile from "./ListTile";
-import GridTile from "./tiles/GridTile";
+import FilterControls from "../forms/FilterControls";
+import ListTile from "../tiles/ListTile";
+import GridTile from "../tiles/GridTile";
 import { useState } from "react";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { LIMIT_OPTIONS, PERIOD_OPTIONS } from "../config/appConfig";
+import { LIMIT_OPTIONS, PERIOD_OPTIONS } from "../../config/appConfig";
 
 export default function GroupedSection({
   title,

@@ -24,8 +24,24 @@ export async function getAlbumStats(id) {
   return await res.json();
 }
 
-export async function getAllAlbumsWithPlaycount() {
-  const res = await fetch(`${API_BASE_URL}/api/album/all`);
+export async function getAllAlbumsWithPlaycount(options = {}) {
+  const { page = 1, limit = 50, sortBy = 'alpha', alphaCategory = null, minPlays = null, maxPlays = null } = options;
+  
+  const params = new URLSearchParams();
+  params.set('page', page.toString());
+  params.set('limit', limit.toString());
+  params.set('sortBy', sortBy);
+  if (alphaCategory) {
+    params.set('alphaCategory', alphaCategory);
+  }
+  if (minPlays !== null) {
+    params.set('minPlays', minPlays.toString());
+  }
+  if (maxPlays !== null) {
+    params.set('maxPlays', maxPlays.toString());
+  }
+  
+  const res = await fetch(`${API_BASE_URL}/api/album/all?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch all albums');
   return await res.json();
 }

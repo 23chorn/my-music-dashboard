@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import useDashboardData from "../hooks/useDashboardData";
-import GroupedSection from "../components/GroupedSection";
-import DashboardHeatmap from "../components/DashboardHeatmap";
+import GroupedSection from "../components/sections/GroupedSection";
+import DashboardHeatmap from "../components/charts/DashboardHeatmap";
 import PageLayout from "../components/layout/PageLayout";
 import SectionLoader from "../components/ui/SectionLoader";
 import LoadingSpinner from "../components/ui/LoadingSpinner";

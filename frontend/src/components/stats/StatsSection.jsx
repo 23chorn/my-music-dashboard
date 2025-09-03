@@ -1,4 +1,4 @@
-import GroupedSection from "../GroupedSection";
+import GroupedSection from "../sections/GroupedSection";
 import { createStatsSection } from "../../utils/statsFormatter";
 
 export default function StatsSection({ stats, type = 'artist', title = 'Stats' }) {

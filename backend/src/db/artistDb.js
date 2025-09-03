@@ -262,18 +262,113 @@ export async function getArtistDailyPlays(artistId, days = 30, callback) {
   }
 }
 
-export async function getAllArtistsWithPlaycount(callback) {
-  logger.info(`getAllArtistsWithPlaycount called`);
+export async function getAllArtistsWithPlaycount(options = {}, callback) {
+  // Handle backward compatibility - if first param is callback
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  
+  const { page = 1, limit = 50, sortBy = 'alpha', alphaCategory = null, minPlays = null, maxPlays = null } = options;
+  logger.info(`getAllArtistsWithPlaycount called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
+  
   try {
-    const result = await getSharedPool().query(
-      `SELECT a.id, a.name, a.image_url, COUNT(p.id) AS playcount
-       FROM artists a
-       LEFT JOIN track_artists ta ON a.id = ta.artist_id
-       LEFT JOIN tracks t ON ta.track_id = t.id
-       LEFT JOIN plays p ON t.id = p.track_id
-       GROUP BY a.id, a.name, a.image_url
-       ORDER BY a.name ASC`
-    );
+    let query;
+    let queryParams = [];
+    let paramCount = 0;
+
+    if (sortBy === 'plays') {
+      // Sort by playcount descending with pagination
+      let havingClause = 'HAVING COUNT(p.id) > 0';
+      
+      if (minPlays !== null || maxPlays !== null) {
+        const conditions = [];
+        if (minPlays !== null) {
+          conditions.push(`COUNT(p.id) >= $${++paramCount}`);
+          queryParams.push(minPlays);
+        }
+        if (maxPlays !== null) {
+          conditions.push(`COUNT(p.id) <= $${++paramCount}`);
+          queryParams.push(maxPlays);
+        }
+        havingClause = `HAVING ${conditions.join(' AND ')}`;
+      }
+      
+      query = `
+        SELECT a.id, a.name, a.image_url, COUNT(p.id) AS playcount
+        FROM artists a
+        LEFT JOIN track_artists ta ON a.id = ta.artist_id
+        LEFT JOIN tracks t ON ta.track_id = t.id
+        LEFT JOIN plays p ON t.id = p.track_id
+        GROUP BY a.id, a.name, a.image_url
+        ${havingClause}
+        ORDER BY playcount DESC, a.name ASC
+        LIMIT $${++paramCount} OFFSET $${++paramCount}
+      `;
+      queryParams.push(limit, (page - 1) * limit);
+    } else {
+      // Alphabetical sorting with category filtering
+      let havingClause = 'HAVING COUNT(p.id) > 0';
+      
+      if (minPlays !== null || maxPlays !== null) {
+        const conditions = [];
+        if (minPlays !== null) {
+          conditions.push(`COUNT(p.id) >= $${++paramCount}`);
+          queryParams.push(minPlays);
+        }
+        if (maxPlays !== null) {
+          conditions.push(`COUNT(p.id) <= $${++paramCount}`);
+          queryParams.push(maxPlays);
+        }
+        havingClause = `HAVING ${conditions.join(' AND ')}`;
+      }
+      
+      if (alphaCategory && alphaCategory !== '#') {
+        query = `
+          SELECT a.id, a.name, a.image_url, COUNT(p.id) AS playcount
+          FROM artists a
+          LEFT JOIN track_artists ta ON a.id = ta.artist_id
+          LEFT JOIN tracks t ON ta.track_id = t.id
+          LEFT JOIN plays p ON t.id = p.track_id
+          WHERE UPPER(a.name) LIKE $${++paramCount}
+          GROUP BY a.id, a.name, a.image_url
+          ${havingClause}
+          ORDER BY a.name ASC
+          LIMIT $${++paramCount} OFFSET $${++paramCount}
+        `;
+        queryParams.push(`${alphaCategory}%`, limit, (page - 1) * limit);
+      } else if (alphaCategory === '#') {
+        query = `
+          SELECT a.id, a.name, a.image_url, COUNT(p.id) AS playcount
+          FROM artists a
+          LEFT JOIN track_artists ta ON a.id = ta.artist_id
+          LEFT JOIN tracks t ON ta.track_id = t.id
+          LEFT JOIN plays p ON t.id = p.track_id
+          WHERE NOT (UPPER(a.name) ~ '^[A-Z]')
+          GROUP BY a.id, a.name, a.image_url
+          ${havingClause}
+          ORDER BY a.name ASC
+          LIMIT $${++paramCount} OFFSET $${++paramCount}
+        `;
+        queryParams.push(limit, (page - 1) * limit);
+      } else {
+        // Default alphabetical sort
+        query = `
+          SELECT a.id, a.name, a.image_url, COUNT(p.id) AS playcount
+          FROM artists a
+          LEFT JOIN track_artists ta ON a.id = ta.artist_id
+          LEFT JOIN tracks t ON ta.track_id = t.id
+          LEFT JOIN plays p ON t.id = p.track_id
+          GROUP BY a.id, a.name, a.image_url
+          ${havingClause}
+          ORDER BY a.name ASC
+          LIMIT $${++paramCount} OFFSET $${++paramCount}
+        `;
+        queryParams.push(limit, (page - 1) * limit);
+      }
+    }
+
+    const result = await getSharedPool().query(query, queryParams);
     logger.info(`getAllArtistsWithPlaycount returned ${result.rows.length} artists`);
     callback(null, result.rows.map(row => ({
       id: parseInt(row.id),

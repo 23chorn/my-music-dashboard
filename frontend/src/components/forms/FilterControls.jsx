@@ -1,5 +1,5 @@
-import LimitDropdown from "../LimitDropdown";
-import PeriodDropdown from "../PeriodDropdown";
+import LimitDropdown from "../controls/LimitDropdown";
+import PeriodDropdown from "../controls/PeriodDropdown";
 
 export default function FilterControls({
   // Period props

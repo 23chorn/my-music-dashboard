@@ -3,7 +3,7 @@ import useTrackViewData from "../hooks/useTrackViewData";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
-import GroupedSection from "../components/GroupedSection";
+import GroupedSection from "../components/sections/GroupedSection";
 import TrackInfoSection from "../components/track/TrackInfoSection";
 import { formatDateTime } from "../utils/dateFormatter";
 

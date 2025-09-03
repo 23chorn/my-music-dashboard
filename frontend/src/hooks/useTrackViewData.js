@@ -14,7 +14,7 @@ export default function useTrackViewData(trackId) {
   const [statsLoading, setStatsLoading] = useState(false);
   
   const [recentLimit, setRecentLimit] = useState(DEFAULT_LIMITS.trackView.recent);
-  const [dailyPlaysDays, setDailyPlaysDays] = useState(90);
+  const [dailyPlaysDays, setDailyPlaysDays] = useState(DEFAULT_LIMITS.trackView.dailyPlaysDays);
 
   // Fetch track info
   useEffect(() => {

@@ -26,7 +26,7 @@ class TrackService {
     return response.json();
   }
 
-  async getTrackDailyPlays(trackId, days = 90) {
+  async getTrackDailyPlays(trackId, days = 90) { // Default maintained for backwards compatibility
     const response = await fetch(`${API_BASE_URL}/api/track/${trackId}/daily-plays?days=${days}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch track daily plays: ${response.statusText}`);

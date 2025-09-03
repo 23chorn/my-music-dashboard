@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import SearchBar from "../SearchBar";
-import SearchResultsDropdown from "../SearchResultsDropdown";
-import MenuButton from "../MenuButton";
+import SearchBar from "../navigation/SearchBar";
+import SearchResultsDropdown from "../navigation/SearchResultsDropdown";
+import MenuButton from "../navigation/MenuButton";
 
 export default function AppHeader({ 
   onSearch, 

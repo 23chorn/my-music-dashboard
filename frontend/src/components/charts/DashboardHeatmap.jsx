@@ -1,7 +1,7 @@
 import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
-import { getDailyPlaysFromServer } from "../data/dashboardApi";
+import { getDailyPlaysFromServer } from "../../data/dashboardApi";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import { HEATMAP_CONFIG } from "../config/appConfig";
+import { HEATMAP_CONFIG } from "../../config/appConfig";
 
 const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = true }, ref) {
   const [dailyPlays, setDailyPlays] = useState([]);

@@ -254,17 +254,105 @@ export function getTrackDailyPlays(trackId, days, callback) {
     });
 }
 
-export async function getAllTracksWithPlaycount(callback) {
-  logger.info(`getAllTracksWithPlaycount called`);
+export async function getAllTracksWithPlaycount(options = {}, callback) {
+  // Handle backward compatibility - if first param is callback
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  
+  const { page = 1, limit = 50, sortBy = 'alpha', alphaCategory = null, minPlays = null, maxPlays = null } = options;
+  logger.info(`getAllTracksWithPlaycount called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
+  
   try {
-    const result = await pool().query(
-      `SELECT t.id, t.name, COUNT(p.id) AS playcount
-       FROM tracks t
-       LEFT JOIN plays p ON t.id = p.track_id
-       GROUP BY t.id, t.name
-       HAVING COUNT(p.id) > 0
-       ORDER BY t.name ASC`
-    );
+    let query;
+    let queryParams = [];
+    let paramCount = 0;
+
+    if (sortBy === 'plays') {
+      // Sort by playcount descending with pagination
+      let havingClause = 'HAVING COUNT(p.id) > 0';
+      
+      if (minPlays !== null || maxPlays !== null) {
+        const conditions = [];
+        if (minPlays !== null) {
+          conditions.push(`COUNT(p.id) >= $${++paramCount}`);
+          queryParams.push(minPlays);
+        }
+        if (maxPlays !== null) {
+          conditions.push(`COUNT(p.id) <= $${++paramCount}`);
+          queryParams.push(maxPlays);
+        }
+        havingClause = `HAVING ${conditions.join(' AND ')}`;
+      }
+      
+      query = `
+        SELECT t.id, t.name, COUNT(p.id) AS playcount
+        FROM tracks t
+        LEFT JOIN plays p ON t.id = p.track_id
+        GROUP BY t.id, t.name
+        ${havingClause}
+        ORDER BY playcount DESC, t.name ASC
+        LIMIT $${++paramCount} OFFSET $${++paramCount}
+      `;
+      queryParams.push(limit, (page - 1) * limit);
+    } else {
+      // Alphabetical sorting with category filtering
+      let havingClause = 'HAVING COUNT(p.id) > 0';
+      
+      if (minPlays !== null || maxPlays !== null) {
+        const conditions = [];
+        if (minPlays !== null) {
+          conditions.push(`COUNT(p.id) >= $${++paramCount}`);
+          queryParams.push(minPlays);
+        }
+        if (maxPlays !== null) {
+          conditions.push(`COUNT(p.id) <= $${++paramCount}`);
+          queryParams.push(maxPlays);
+        }
+        havingClause = `HAVING ${conditions.join(' AND ')}`;
+      }
+      
+      if (alphaCategory && alphaCategory !== '#') {
+        query = `
+          SELECT t.id, t.name, COUNT(p.id) AS playcount
+          FROM tracks t
+          LEFT JOIN plays p ON t.id = p.track_id
+          WHERE UPPER(t.name) LIKE $${++paramCount}
+          GROUP BY t.id, t.name
+          ${havingClause}
+          ORDER BY t.name ASC
+          LIMIT $${++paramCount} OFFSET $${++paramCount}
+        `;
+        queryParams.push(`${alphaCategory}%`, limit, (page - 1) * limit);
+      } else if (alphaCategory === '#') {
+        query = `
+          SELECT t.id, t.name, COUNT(p.id) AS playcount
+          FROM tracks t
+          LEFT JOIN plays p ON t.id = p.track_id
+          WHERE NOT (UPPER(t.name) ~ '^[A-Z]')
+          GROUP BY t.id, t.name
+          ${havingClause}
+          ORDER BY t.name ASC
+          LIMIT $${++paramCount} OFFSET $${++paramCount}
+        `;
+        queryParams.push(limit, (page - 1) * limit);
+      } else {
+        // Default alphabetical sort
+        query = `
+          SELECT t.id, t.name, COUNT(p.id) AS playcount
+          FROM tracks t
+          LEFT JOIN plays p ON t.id = p.track_id
+          GROUP BY t.id, t.name
+          ${havingClause}
+          ORDER BY t.name ASC
+          LIMIT $${++paramCount} OFFSET $${++paramCount}
+        `;
+        queryParams.push(limit, (page - 1) * limit);
+      }
+    }
+
+    const result = await pool().query(query, queryParams);
     logger.info(`getAllTracksWithPlaycount returned ${result.rows.length} tracks`);
     callback(null, result.rows.map(row => ({
       id: parseInt(row.id),

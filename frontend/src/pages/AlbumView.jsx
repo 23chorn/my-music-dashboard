@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import useAlbumViewData from "../hooks/useAlbumViewData";
-import GroupedSection from "../components/GroupedSection";
+import GroupedSection from "../components/sections/GroupedSection";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";

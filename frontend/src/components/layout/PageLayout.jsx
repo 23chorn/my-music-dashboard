@@ -1,4 +1,4 @@
-import SectionHeader from "../SectionHeader";
+import SectionHeader from "../sections/SectionHeader";
 import LoadingPage from "../ui/LoadingPage";
 
 export default function PageLayout({ 

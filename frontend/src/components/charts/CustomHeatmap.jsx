@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getArtistDailyPlays } from "../data/artistApi";
+import { getArtistDailyPlays } from "../../data/artistApi";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true }) {

@@ -13,8 +13,17 @@ import { getTopTracks, getTopAlbums } from '../db/db.js';
 
 // Get all artists with playcount for Explore page
 router.get('/all', (req, res) => {
-  logger.info("GET /api/artist/all called");
-  getAllArtistsWithPlaycount((err, rows) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 50;
+  const sortBy = req.query.sortBy || 'alpha';
+  const alphaCategory = req.query.alphaCategory || null;
+  const minPlays = req.query.minPlays ? parseInt(req.query.minPlays) : null;
+  const maxPlays = req.query.maxPlays ? parseInt(req.query.maxPlays) : null;
+  
+  logger.info(`GET /api/artist/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
+  
+  const options = { page, limit, sortBy, alphaCategory, minPlays, maxPlays };
+  getAllArtistsWithPlaycount(options, (err, rows) => {
     if (err) {
       logger.error("DB error in getAllArtistsWithPlaycount:", err);
       return res.status(500).json({ error: 'DB error' });

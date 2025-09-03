@@ -1,7 +1,7 @@
 import GroupedSection from "./GroupedSection";
-import { getOrdinalSuffix } from "../utils/ordinalSuffix";
-import { formatValue } from "../utils/numberFormat";
-import { formatDateTime } from "../utils/dateFormatter";
+import { getOrdinalSuffix } from "../../utils/ordinalSuffix";
+import { formatValue } from "../../utils/numberFormat";
+import { formatDateTime } from "../../utils/dateFormatter";
 
 export default function MilestoneSection({ milestones }) {
   if (!milestones || milestones.length === 0) return null;

@@ -1,13 +1,14 @@
 import { useParams } from "react-router-dom";
 import useArtistViewData from "../hooks/useArtistViewData";
-import CustomHeatmap from "../components/CustomHeatmap";
-import GroupedSection from "../components/GroupedSection";
-import MilestoneSection from "../components/MilestoneSection";
+import CustomHeatmap from "../components/charts/CustomHeatmap";
+import GroupedSection from "../components/sections/GroupedSection";
+import MilestoneSection from "../components/sections/MilestoneSection";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
+import { HEATMAP_CONFIG } from "../config/appConfig";
 
 export default function ArtistView() {
   const { id } = useParams();
@@ -111,7 +112,7 @@ export default function ArtistView() {
       </SectionLoader>
 
       {/* Era Explorer Section */}
-      {artist && <CustomHeatmap artistId={artist.id} days={90} />}
+      {artist && <CustomHeatmap artistId={artist.id} days={HEATMAP_CONFIG.artist.days} />}
     </PageLayout>
   );
 }
