@@ -287,10 +287,29 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
       }
       
       query = `
-        SELECT t.id, t.name, COUNT(p.id) AS playcount
+        WITH track_primary_album AS (
+          SELECT 
+            t.id as track_id,
+            al.image_url as primary_album_image,
+            ROW_NUMBER() OVER (
+              PARTITION BY t.id 
+              ORDER BY 
+                al.release_date DESC NULLS LAST,
+                al.id DESC
+            ) as album_rank
+          FROM tracks t
+          LEFT JOIN track_albums tal ON t.id = tal.track_id
+          LEFT JOIN albums al ON tal.album_id = al.id
+        )
+        SELECT 
+          t.id, 
+          t.name, 
+          COUNT(p.id) AS playcount,
+          tpa.primary_album_image as image_url
         FROM tracks t
         LEFT JOIN plays p ON t.id = p.track_id
-        GROUP BY t.id, t.name
+        LEFT JOIN track_primary_album tpa ON t.id = tpa.track_id AND tpa.album_rank = 1
+        GROUP BY t.id, t.name, tpa.primary_album_image
         ${havingClause}
         ORDER BY playcount DESC, t.name ASC
         LIMIT $${++paramCount} OFFSET $${++paramCount}
@@ -313,13 +332,36 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
         havingClause = `HAVING ${conditions.join(' AND ')}`;
       }
       
+      const baseQuery = `
+        WITH track_primary_album AS (
+          SELECT 
+            t.id as track_id,
+            al.image_url as primary_album_image,
+            ROW_NUMBER() OVER (
+              PARTITION BY t.id 
+              ORDER BY 
+                al.release_date DESC NULLS LAST,
+                al.id DESC
+            ) as album_rank
+          FROM tracks t
+          LEFT JOIN track_albums tal ON t.id = tal.track_id
+          LEFT JOIN albums al ON tal.album_id = al.id
+        )
+        SELECT 
+          t.id, 
+          t.name, 
+          COUNT(p.id) AS playcount,
+          tpa.primary_album_image as image_url
+        FROM tracks t
+        LEFT JOIN plays p ON t.id = p.track_id
+        LEFT JOIN track_primary_album tpa ON t.id = tpa.track_id AND tpa.album_rank = 1
+      `;
+      
       if (alphaCategory && alphaCategory !== '#') {
         query = `
-          SELECT t.id, t.name, COUNT(p.id) AS playcount
-          FROM tracks t
-          LEFT JOIN plays p ON t.id = p.track_id
+          ${baseQuery}
           WHERE UPPER(t.name) LIKE $${++paramCount}
-          GROUP BY t.id, t.name
+          GROUP BY t.id, t.name, tpa.primary_album_image
           ${havingClause}
           ORDER BY t.name ASC
           LIMIT $${++paramCount} OFFSET $${++paramCount}
@@ -327,11 +369,9 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
         queryParams.push(`${alphaCategory}%`, limit, (page - 1) * limit);
       } else if (alphaCategory === '#') {
         query = `
-          SELECT t.id, t.name, COUNT(p.id) AS playcount
-          FROM tracks t
-          LEFT JOIN plays p ON t.id = p.track_id
+          ${baseQuery}
           WHERE NOT (UPPER(t.name) ~ '^[A-Z]')
-          GROUP BY t.id, t.name
+          GROUP BY t.id, t.name, tpa.primary_album_image
           ${havingClause}
           ORDER BY t.name ASC
           LIMIT $${++paramCount} OFFSET $${++paramCount}
@@ -340,10 +380,8 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
       } else {
         // Default alphabetical sort
         query = `
-          SELECT t.id, t.name, COUNT(p.id) AS playcount
-          FROM tracks t
-          LEFT JOIN plays p ON t.id = p.track_id
-          GROUP BY t.id, t.name
+          ${baseQuery}
+          GROUP BY t.id, t.name, tpa.primary_album_image
           ${havingClause}
           ORDER BY t.name ASC
           LIMIT $${++paramCount} OFFSET $${++paramCount}
@@ -357,7 +395,8 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
     callback(null, result.rows.map(row => ({
       id: parseInt(row.id),
       name: row.name,
-      playcount: parseInt(row.playcount)
+      playcount: parseInt(row.playcount),
+      image_url: row.image_url || null
     })));
   } catch (err) {
     logger.error(`getAllTracksWithPlaycount DB error: ${err}`);

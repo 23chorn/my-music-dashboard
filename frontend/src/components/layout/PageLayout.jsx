@@ -11,39 +11,31 @@ export default function PageLayout({
   children 
 }) {
   if (loading) {
-    return (
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-10">
-          <LoadingPage message="Loading your music data..." />
-        </div>
-      </div>
-    );
+    return <LoadingPage message="Loading your music data..." />;
   }
 
   if (error) {
     return (
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center min-h-64">
-            <div className="text-lg text-red-400">{error}</div>
-          </div>
-        </div>
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-950 px-4">
+        <div className="text-lg text-red-400 text-center">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-10">
-        {(title || image) && (
-          <SectionHeader 
-            image={image}
-            title={title}
-            subheader={subheader}
-            subheaderLink={subheaderLink}
-          />
-        )}
-        {children}
+    <div className="min-h-screen w-full bg-gray-950">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto space-y-10">
+          {(title || image) && (
+            <SectionHeader 
+              image={image}
+              title={title}
+              subheader={subheader}
+              subheaderLink={subheaderLink}
+            />
+          )}
+          {children}
+        </div>
       </div>
     </div>
   );
