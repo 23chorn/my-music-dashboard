@@ -9,28 +9,28 @@ export async function getUniqueCountsFromServer() {
 
 // Get top artists
 export async function getTopArtistsFromServer(limit, period) {
-  const res = await fetch(`${API_BASE_URL}/api/top-artists?limit=${limit}&period=${period}`);
+  const res = await fetch(`${API_BASE_URL}/api/artist/top?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top artists');
   return await res.json();
 }
 
 // Get top tracks
 export async function getTopTracksFromServer(limit, period) {
-  const res = await fetch(`${API_BASE_URL}/api/top-tracks?limit=${limit}&period=${period}`);
+  const res = await fetch(`${API_BASE_URL}/api/track/top?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top tracks');
   return await res.json();
 }
 
 // Get top albums
 export async function getTopAlbumsFromServer(limit, period) {
-  const res = await fetch(`${API_BASE_URL}/api/top-albums?limit=${limit}&period=${period}`);
+  const res = await fetch(`${API_BASE_URL}/api/album/top?limit=${limit}&period=${period}`);
   if (!res.ok) throw new Error('Failed to fetch top albums');
   return await res.json();
 }
 
 // Get recent tracks
 export async function getRecentTracksFromServer(limit) {
-  const res = await fetch(`${API_BASE_URL}/api/recent-tracks?limit=${limit}`);
+  const res = await fetch(`${API_BASE_URL}/api/track/recent?limit=${limit}`);
   if (!res.ok) throw new Error('Failed to fetch recent tracks');
   return await res.json();
 }
@@ -56,7 +56,7 @@ export async function syncTracksFromServer() {
 
 // Get daily play counts across all artists
 export async function getDailyPlaysFromServer(days = 90) {
-  const res = await fetch(`${API_BASE_URL}/api/daily-plays?days=${days}`);
+  const res = await fetch(`${API_BASE_URL}/api/analytics/daily-plays?days=${days}`);
   if (!res.ok) throw new Error('Failed to fetch daily plays');
   return await res.json();
 }

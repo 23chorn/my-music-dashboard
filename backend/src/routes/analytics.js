@@ -5,9 +5,9 @@ import logger from "../utils/logger.js";
 const router = express.Router();
 
 // Get daily play counts across all artists for the past N days
-router.get('/', async (req, res) => {
+router.get('/daily-plays', async (req, res) => {
   const { days = 90 } = req.query;
-  logger.info(`GET /api/daily-plays called with days=${days}`);
+  logger.info(`GET /api/analytics/daily-plays called with days=${days}`);
   
   try {
     const dailyPlays = await getDailyPlaysAll(parseInt(days));

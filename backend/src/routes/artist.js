@@ -9,7 +9,21 @@ import {
   getArtistDailyPlays,
   getAllArtistsWithPlaycount,
 } from '../db/artistDb.js';
-import { getTopTracks, getTopAlbums } from '../db/db.js';
+import { getTopTracks, getTopAlbums, getTopArtists } from '../db/db.js';
+
+// Get top artists (replaces /api/top-artists)
+router.get('/top', (req, res) => {
+  const { limit = 5, period = "overall" } = req.query;
+  logger.info(`GET /api/artist/top called with limit=${limit}, period=${period}`);
+  getTopArtists(Number(limit), period, (err, artists) => {
+    if (err) {
+      logger.error(`Error in getTopArtists: ${err}`);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info(`Returned ${artists.length} top artists`);
+    res.json(artists);
+  });
+});
 
 // Get all artists with playcount for Explore page
 router.get('/all', (req, res) => {

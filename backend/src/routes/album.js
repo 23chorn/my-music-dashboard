@@ -7,7 +7,21 @@ import {
   getAlbumStats,
   getAllAlbumsWithPlaycount
 } from '../db/albumDb.js';
-import { getTopTracks } from '../db/db.js';
+import { getTopTracks, getTopAlbums } from '../db/db.js';
+
+// Get top albums (replaces /api/top-albums)
+router.get('/top', (req, res) => {
+  const { limit = 5, period = "overall", artistId = null } = req.query;
+  logger.info(`GET /api/album/top called with limit=${limit}, period=${period}, artistId=${artistId}`);
+  getTopAlbums({ limit: Number(limit), period, artistId }, (err, albums) => {
+    if (err) {
+      logger.error(`Error in getTopAlbums: ${err}`);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info(`Returned ${albums.length} top albums`);
+    res.json(albums);
+  });
+});
 
 // Get all albums with playcount for Explore page
 router.get('/all', (req, res) => {

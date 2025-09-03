@@ -8,6 +8,35 @@ import {
   getTrackDailyPlays,
   getAllTracksWithPlaycount
 } from '../db/trackDb.js';
+import { getTopTracks, getRecentTracks } from '../db/db.js';
+
+// Get top tracks (replaces /api/top-tracks)
+router.get('/top', (req, res) => {
+  const { limit = 5, period = "overall", artistId = null, albumId = null } = req.query;
+  logger.info(`GET /api/track/top called with limit=${limit}, period=${period}, artistId=${artistId}, albumId=${albumId}`);
+  getTopTracks({ limit: Number(limit), period, artistId, albumId }, (err, tracks) => {
+    if (err) {
+      logger.error(`Error in getTopTracks: ${err}`);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info(`Returned ${tracks.length} top tracks`);
+    res.json(tracks);
+  });
+});
+
+// Get recent tracks (replaces /api/recent-tracks)
+router.get('/recent', (req, res) => {
+  const { limit = 5 } = req.query;
+  logger.info(`GET /api/track/recent called with limit=${limit}`);
+  getRecentTracks(Number(limit), (err, tracks) => {
+    if (err) {
+      logger.error(`Error in getRecentTracks: ${err}`);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info(`Returned ${tracks.length} recent tracks`);
+    res.json(tracks);
+  });
+});
 
 // Get all tracks with playcount for Explore page
 router.get('/all', (req, res) => {

@@ -14,15 +14,11 @@ import MusicSyncService from "./src/services/musicSync.js";
 import { initializeArtistDatabase } from "./src/db/artistDb.js";
 import { initializeAlbumDatabase } from "./src/db/albumDb.js";
 import { getTimezoneInfo } from "./src/utils/timezone.js";
-import topArtistsRouter from "./src/routes/topArtists.js";
-import topTracksRouter from "./src/routes/topTracks.js";
-import topAlbumsRouter from "./src/routes/topAlbums.js";
-import recentTracksRouter from "./src/routes/recentTracks.js";
 import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
 import albumRouter from "./src/routes/album.js";
 import trackRouter from "./src/routes/track.js";
-import dailyPlaysRouter from "./src/routes/dailyPlays.js";
+import analyticsRouter from "./src/routes/analytics.js";
 import spotifyRouter from "./src/routes/spotify.js";
 
 const app = express();
@@ -128,33 +124,27 @@ app.post('/api/switch-sync-method', async (req, res) => {
   }
 });
 
-// Top Artists
-app.use('/api/top-artists', topArtistsRouter);
-
-// Top Tracks
-app.use('/api/top-tracks', topTracksRouter);
-
-// Top Albums
-app.use('/api/top-albums', topAlbumsRouter);
-
-// Recent Tracks
-app.use('/api/recent-tracks', recentTracksRouter);
-
+// Resource-based routes
 app.use('/api/search', searchRouter);
-
 app.use('/api/artist', artistRouter);
-
 app.use('/api/album', albumRouter);
-
 app.use('/api/track', trackRouter);
-
-app.use('/api/daily-plays', dailyPlaysRouter);
-
+app.use('/api/analytics', analyticsRouter);
 app.use('/api/spotify', spotifyRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");
-  res.send('🎵 My Music Dashboard API is running! Visit /api/top-artists, /api/top-tracks, /api/top-albums, or /api/recent-tracks for data.');
+  res.send(`🎵 My Music Dashboard API is running!
+
+Available endpoints:
+📊 Artists: /api/artist/top, /api/artist/all, /api/artist/:id, /api/artist/:id/stats
+💿 Albums: /api/album/top, /api/album/all, /api/album/:id, /api/album/:id/stats  
+🎵 Tracks: /api/track/top, /api/track/recent, /api/track/all, /api/track/:id, /api/track/:id/stats
+📈 Analytics: /api/analytics/daily-plays
+🔍 Search: /api/search?q=query
+🎧 Spotify: /api/spotify (external service integration)
+
+For detailed individual artist/album/track data, use /:id/recent-plays, /:id/milestones, /:id/daily-plays endpoints.`);
 });
 
 const PORT = process.env.PORT || 3001;
