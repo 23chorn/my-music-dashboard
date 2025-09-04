@@ -1,5 +1,5 @@
 import SpotifyService from './spotify.js';
-import LegacySpotifyDataProcessor from './legacySpotifyDataProcessor.js';
+import SpotifyDataProcessor from './spotifyDataProcessor.js';
 import { LegacySpotifyDatabaseService, initializeLegacySpotifyDatabase } from '../db/spotifyService.js';
 import logger from '../utils/logger.js';
 
@@ -7,7 +7,7 @@ class SpotifyMusicSync {
   constructor() {
     initializeLegacySpotifyDatabase();
     this.spotifyService = new SpotifyService();
-    this.dataProcessor = new LegacySpotifyDataProcessor(this.spotifyService);
+    this.dataProcessor = new SpotifyDataProcessor(this.spotifyService);
     this.dbService = new LegacySpotifyDatabaseService();
   }
 

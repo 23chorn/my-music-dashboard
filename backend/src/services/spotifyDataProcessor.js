@@ -5,7 +5,7 @@ class SpotifyDataProcessor {
     this.spotifyService = spotifyService;
   }
 
-  // Process recently played tracks and extract all relevant data
+  // Process recently played tracks for legacy database format
   async processRecentlyPlayedTracks(recentlyPlayedData) {
     const processedTracks = [];
     const uniqueArtistIds = new Set();
@@ -16,59 +16,39 @@ class SpotifyDataProcessor {
 
       // Extract all artists for this track
       const trackArtists = track.artists.map(artist => ({
-        id: artist.id,
+        spotifyId: artist.id,
         name: artist.name,
-        uri: artist.uri,
-        href: artist.href
+        uri: artist.uri
       }));
 
       // Collect unique artist IDs for batch genre fetching
-      trackArtists.forEach(artist => uniqueArtistIds.add(artist.id));
+      trackArtists.forEach(artist => uniqueArtistIds.add(artist.spotifyId));
 
-      // Extract album information
+      // Extract album information (adapted to legacy schema)
       const album = {
-        id: track.album.id,
+        spotifyId: track.album.id,
         name: track.album.name,
-        uri: track.album.uri,
-        releaseDate: track.album.release_date,
-        releaseDatePrecision: track.album.release_date_precision,
-        totalTracks: track.album.total_tracks,
-        type: track.album.type,
-        images: track.album.images.map(img => ({
-          url: img.url,
-          height: img.height,
-          width: img.width
-        })),
+        release_date: track.album.release_date || null,
+        image_url: track.album.images?.[0]?.url || null,
         // Album artists (may differ from track artists)
         artists: track.album.artists.map(artist => ({
-          id: artist.id,
+          spotifyId: artist.id,
           name: artist.name,
           uri: artist.uri
         }))
       };
 
-      // Extract track information
+      // Extract track information (adapted to legacy schema)
       const processedTrack = {
-        id: track.id,
+        spotifyId: track.id,
         name: track.name,
-        uri: track.uri,
-        href: track.href,
-        durationMs: track.duration_ms,
-        explicit: track.explicit,
+        duration_ms: track.duration_ms,
         popularity: track.popularity,
-        previewUrl: track.preview_url,
         trackNumber: track.track_number,
         discNumber: track.disc_number,
-        isLocal: track.is_local,
         artists: trackArtists,
         album: album,
-        playedAt: playedAt,
-        // Context information (playlist, album, etc.)
-        context: item.context ? {
-          type: item.context.type,
-          uri: item.context.uri,
-          href: item.context.href
-        } : null
+        playedAt: playedAt
       };
 
       processedTracks.push(processedTrack);
@@ -118,11 +98,11 @@ class SpotifyDataProcessor {
     }
   }
 
-  // Create normalized database records from processed data
-  async createDatabaseRecords(processedData, artistGenreMap) {
+  // Create legacy database records from processed data
+  async createLegacyDatabaseRecords(processedData, artistGenreMap) {
     const records = {
       artists: new Map(),
-      albums: new Map(),
+      albums: new Map(), 
       tracks: new Map(),
       plays: [],
       trackArtists: [],
@@ -132,16 +112,13 @@ class SpotifyDataProcessor {
     };
 
     for (const track of processedData.tracks) {
-      // Process artists
+      // Process artists (legacy format)
       for (const artist of track.artists) {
-        if (!records.artists.has(artist.id)) {
-          const genreData = artistGenreMap.get(artist.id) || {};
-          records.artists.set(artist.id, {
-            id: artist.id,
+        if (!records.artists.has(artist.spotifyId)) {
+          const genreData = artistGenreMap.get(artist.spotifyId) || {};
+          records.artists.set(artist.spotifyId, {
+            spotifyId: artist.spotifyId,
             name: artist.name,
-            spotify_uri: artist.uri,
-            popularity: genreData.popularity || null,
-            followers: genreData.followers || null,
             image_url: genreData.images?.[0]?.url || null
           });
 
@@ -150,8 +127,8 @@ class SpotifyDataProcessor {
             genreData.genres.forEach(genreName => {
               records.genres.add(genreName);
               records.artistGenres.push({
-                artist_id: artist.id,
-                genre_name: genreName
+                artistSpotifyId: artist.spotifyId,
+                genreName: genreName
               });
             });
           }
@@ -159,59 +136,50 @@ class SpotifyDataProcessor {
 
         // Track-Artist relationship
         records.trackArtists.push({
-          track_id: track.id,
-          artist_id: artist.id
+          trackSpotifyId: track.spotifyId,
+          artistSpotifyId: artist.spotifyId
         });
       }
 
-      // Process album
-      if (!records.albums.has(track.album.id)) {
-        records.albums.set(track.album.id, {
-          id: track.album.id,
+      // Process album (legacy format)
+      if (!records.albums.has(track.album.spotifyId)) {
+        records.albums.set(track.album.spotifyId, {
+          spotifyId: track.album.spotifyId,
           name: track.album.name,
-          spotify_uri: track.album.uri,
-          release_date: track.album.releaseDate,
-          release_date_precision: track.album.releaseDatePrecision,
-          total_tracks: track.album.totalTracks,
-          album_type: track.album.type,
-          image_url: track.album.images?.[0]?.url || null
+          release_date: track.album.release_date,
+          image_url: track.album.image_url
         });
 
         // Album-Artist relationships
         for (const albumArtist of track.album.artists) {
           records.albumArtists.push({
-            album_id: track.album.id,
-            artist_id: albumArtist.id
+            albumSpotifyId: track.album.spotifyId,
+            artistSpotifyId: albumArtist.spotifyId
           });
         }
       }
 
-      // Process track
-      if (!records.tracks.has(track.id)) {
-        records.tracks.set(track.id, {
-          id: track.id,
+      // Process track (legacy format)
+      if (!records.tracks.has(track.spotifyId)) {
+        records.tracks.set(track.spotifyId, {
+          spotifyId: track.spotifyId,
           name: track.name,
-          spotify_uri: track.uri,
-          duration_ms: track.durationMs,
-          explicit: track.explicit,
+          duration_ms: track.duration_ms,
           popularity: track.popularity,
-          preview_url: track.previewUrl,
-          track_number: track.trackNumber,
-          disc_number: track.discNumber,
-          is_local: track.isLocal
+          trackNumber: track.trackNumber,
+          discNumber: track.discNumber,
+          albumSpotifyId: track.album.spotifyId
         });
       }
 
       // Process play record
       records.plays.push({
-        track_id: track.id,
-        played_at: track.playedAt,
-        context_type: track.context?.type || null,
-        context_uri: track.context?.uri || null
+        trackSpotifyId: track.spotifyId,
+        playedAt: track.playedAt
       });
     }
 
-    logger.info(`Created database records: ${records.artists.size} artists, ${records.albums.size} albums, ${records.tracks.size} tracks, ${records.plays.length} plays, ${records.genres.size} genres`);
+    logger.info(`Created legacy database records: ${records.artists.size} artists, ${records.albums.size} albums, ${records.tracks.size} tracks, ${records.plays.length} plays, ${records.genres.size} genres`);
 
     return {
       artists: Array.from(records.artists.values()),
@@ -234,8 +202,8 @@ class SpotifyDataProcessor {
       // Step 2: Enrich with genre data
       const artistGenreMap = await this.enrichWithGenres(processedData.uniqueArtistIds);
 
-      // Step 3: Create normalized database records
-      const databaseRecords = await this.createDatabaseRecords(processedData, artistGenreMap);
+      // Step 3: Create legacy database records
+      const databaseRecords = await this.createLegacyDatabaseRecords(processedData, artistGenreMap);
 
       return databaseRecords;
     } catch (error) {

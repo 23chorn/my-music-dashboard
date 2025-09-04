@@ -20,7 +20,7 @@ const MUSIC_MESSAGES = [
 ];
 
 export default function LoadingPage({ message = null, showMusicMessages = true }) {
-  const [messageIndex, setMessageIndex] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(() => Math.floor(Math.random() * MUSIC_MESSAGES.length));
   const [fadeClass, setFadeClass] = useState("opacity-100");
 
   useEffect(() => {
