@@ -76,7 +76,15 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
     SELECT 
       t.id,
       t.name as track_name,
-      STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) as artist_names,
+      (
+        SELECT STRING_AGG(name, ', ' ORDER BY is_primary DESC, name)
+        FROM (
+          SELECT DISTINCT a2.name, ta2.is_primary
+          FROM track_artists ta2
+          JOIN artists a2 ON ta2.artist_id = a2.id
+          WHERE ta2.track_id = t.id
+        ) artist_data
+      ) as artist_names,
       ra.album_id,
       ra.album_name,
       ra.album_image,

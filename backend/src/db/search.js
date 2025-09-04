@@ -63,11 +63,16 @@ export async function searchAll(query, callback) {
       track_artists_agg AS (
         SELECT 
           t.id as track_id,
-          STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) as artist_names
+          (
+            SELECT STRING_AGG(name, ', ' ORDER BY is_primary DESC, name)
+            FROM (
+              SELECT DISTINCT a2.name, ta2.is_primary
+              FROM track_artists ta2
+              JOIN artists a2 ON ta2.artist_id = a2.id
+              WHERE ta2.track_id = t.id
+            ) artist_data
+          ) as artist_names
         FROM tracks t
-        LEFT JOIN track_artists ta ON t.id = ta.track_id
-        LEFT JOIN artists a ON ta.artist_id = a.id
-        GROUP BY t.id
       )
       SELECT 
         t.id,

@@ -149,7 +149,15 @@ export function getTrackRecentPlays(trackId, limit, callback) {
       p.id,
       EXTRACT(EPOCH FROM p.played_at)::INTEGER as timestamp,
       t.name as track,
-      STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) as artist
+      (
+        SELECT STRING_AGG(name, ', ' ORDER BY is_primary DESC, name)
+        FROM (
+          SELECT DISTINCT a2.name, ta2.is_primary
+          FROM track_artists ta2
+          JOIN artists a2 ON ta2.artist_id = a2.id
+          WHERE ta2.track_id = t.id
+        ) artist_data
+      ) as artist
     FROM plays p
     JOIN tracks t ON p.track_id = t.id
     JOIN track_artists ta ON t.id = ta.track_id

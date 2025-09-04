@@ -14,11 +14,12 @@ class SpotifyDataProcessor {
       const track = item.track;
       const playedAt = new Date(item.played_at);
 
-      // Extract all artists for this track
-      const trackArtists = track.artists.map(artist => ({
+      // Extract all artists for this track (first artist is primary)
+      const trackArtists = track.artists.map((artist, index) => ({
         spotifyId: artist.id,
         name: artist.name,
-        uri: artist.uri
+        uri: artist.uri,
+        isPrimary: index === 0 // First artist in Spotify response is the primary artist
       }));
 
       // Collect unique artist IDs for batch genre fetching
@@ -134,10 +135,11 @@ class SpotifyDataProcessor {
           }
         }
 
-        // Track-Artist relationship
+        // Track-Artist relationship (include primary artist flag)
         records.trackArtists.push({
           trackSpotifyId: track.spotifyId,
-          artistSpotifyId: artist.spotifyId
+          artistSpotifyId: artist.spotifyId,
+          isPrimary: artist.isPrimary
         });
       }
 

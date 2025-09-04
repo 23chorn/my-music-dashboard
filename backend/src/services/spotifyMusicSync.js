@@ -170,7 +170,7 @@ class SpotifyMusicSync {
           const trackId = trackIdMap.get(trackArtist.trackSpotifyId);
           const artistId = artistIdMap.get(trackArtist.artistSpotifyId);
           if (trackId && artistId) {
-            await this.dbService.insertTrackArtistRelationship(trackId, artistId);
+            await this.dbService.insertTrackArtistRelationship(trackId, artistId, trackArtist.isPrimary);
           }
         }
 

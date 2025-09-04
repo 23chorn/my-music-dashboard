@@ -255,13 +255,14 @@ export class LegacySpotifyDatabaseService {
   }
 
   // Insert track-artist relationship
-  async insertTrackArtistRelationship(trackId, artistId) {
+  async insertTrackArtistRelationship(trackId, artistId, isPrimary = false) {
     try {
       await getSharedPool().query(
-        `INSERT INTO track_artists (track_id, artist_id) 
-         VALUES ($1, $2) 
-         ON CONFLICT (track_id, artist_id) DO NOTHING`,
-        [trackId, artistId]
+        `INSERT INTO track_artists (track_id, artist_id, is_primary) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (track_id, artist_id) DO UPDATE SET
+         is_primary = EXCLUDED.is_primary`,
+        [trackId, artistId, isPrimary]
       );
     } catch (error) {
       logger.error(`Error inserting track-artist relationship: ${error.message}`);
