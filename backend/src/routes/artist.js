@@ -9,7 +9,7 @@ import {
   getArtistDailyPlays,
   getAllArtistsWithPlaycount,
 } from '../db/artistDb.js';
-import { getTopTracks, getTopAlbums, getTopArtists } from '../db/db.js';
+import { getTopTracks, getTopAlbums, getTopArtists } from '../db/topQueries.js';
 
 // Get top artists (replaces /api/top-artists)
 router.get('/top', (req, res) => {

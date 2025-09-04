@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { searchAll } from '../db/db.js';
+import { searchAll } from '../db/search.js';
 import logger from '../utils/logger.js';
 
 // GET /api/search?q=your_query

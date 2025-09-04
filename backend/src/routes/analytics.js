@@ -1,5 +1,5 @@
 import express from "express";
-import { getDailyPlaysAll } from "../db/db.js";
+import { getDailyPlaysAll } from "../db/analytics.js";
 import logger from "../utils/logger.js";
 
 const router = express.Router();

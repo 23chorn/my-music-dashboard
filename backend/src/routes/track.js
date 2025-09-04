@@ -8,7 +8,8 @@ import {
   getTrackDailyPlays,
   getAllTracksWithPlaycount
 } from '../db/trackDb.js';
-import { getTopTracks, getRecentTracks } from '../db/db.js';
+import { getTopTracks } from '../db/topQueries.js';
+import { getRecentTracks } from '../db/plays.js';
 
 // Get top tracks (replaces /api/top-tracks)
 router.get('/top', (req, res) => {

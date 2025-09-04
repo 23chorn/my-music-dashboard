@@ -1,6 +1,6 @@
 import SpotifyMusicSync from './spotifyMusicSync.js';
 import { fetchAllRecentTracks } from './lastfm.js';
-import { getLastTimestamp, addPlaysDeduped } from '../db/db.js';
+import { getLastTimestamp, addPlaysDeduped } from '../db/plays.js';
 import logger from '../utils/logger.js';
 
 class MusicSyncService {

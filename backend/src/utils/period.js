@@ -16,6 +16,6 @@ export function getPeriodTimestamp(period) {
       return now - 365 * 24 * 60 * 60;
     case "overall":
     default:
-      return 0;
+      return null;
   }
 }
