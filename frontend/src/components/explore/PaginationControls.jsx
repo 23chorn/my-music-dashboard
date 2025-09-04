@@ -7,6 +7,7 @@ export default function PaginationControls({
   pageSize 
 }) {
   const [pageInput, setPageInput] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const handlePageInputSubmit = () => {
     if (pageInput !== '') {
@@ -14,7 +15,29 @@ export default function PaginationControls({
       if (newPage >= 1) {
         onPageChange(newPage);
       }
-      setPageInput('');
+    }
+    setPageInput('');
+    setIsEditing(false);
+  };
+
+  const handleFocus = (e) => {
+    setIsEditing(true);
+    setPageInput(currentPage.toString());
+    // Select all text on focus for easy replacement
+    setTimeout(() => {
+      e.target.select();
+    }, 0);
+  };
+
+  const handleBlur = () => {
+    handlePageInputSubmit();
+  };
+
+  const handleClick = (e) => {
+    if (!isEditing) {
+      handleFocus(e);
+    } else {
+      e.target.select();
     }
   };
 
@@ -31,9 +54,11 @@ export default function PaginationControls({
         <span className="font-medium text-blue-400">Page</span>
         <input
           type="number"
-          value={pageInput !== '' ? pageInput : currentPage}
+          value={isEditing ? pageInput : currentPage}
           onChange={e => setPageInput(e.target.value)}
-          onBlur={handlePageInputSubmit}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onClick={handleClick}
           onKeyDown={e => {
             if (e.key === 'Enter') {
               handlePageInputSubmit();

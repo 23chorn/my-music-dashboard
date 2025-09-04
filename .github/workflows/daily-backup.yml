@@ -85,6 +85,8 @@ jobs:
         echo "BACKUP_SIZE=$BACKUP_SIZE" >> $GITHUB_ENV
         echo "RECORD_COUNT=$RECORD_COUNT" >> $GITHUB_ENV
         echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+        echo "BACKUP_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+        echo "BACKUP_DATETIME=$(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
         
         # Move archive to root for upload
         mv "$ARCHIVE_NAME" "../../$ARCHIVE_NAME"
@@ -99,11 +101,11 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: backup-${{ env.TIMESTAMP }}
-        name: 📦 Database Backup - $(date +%Y-%m-%d)
+        name: 📦 Database Backup - ${{ env.BACKUP_DATE }}
         body: |
           ## 🗄️ Automated Supabase Database Backup
           
-          **📅 Created**: $(date +%Y-%m-%d %H:%M:%S UTC)  
+          **📅 Created**: ${{ env.BACKUP_DATETIME }}  
           **📊 Records**: ${{ env.RECORD_COUNT }}
           **💾 Size**: ${{ env.BACKUP_SIZE }}
           **🔄 Workflow Run**: ${{ github.run_number }}

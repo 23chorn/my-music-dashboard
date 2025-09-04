@@ -153,6 +153,8 @@ class SupabaseBackup {
   }
 
   async createRestoreScript(backupPath, tables) {
+    // Generate restore script with proper string escaping
+    const backupTimestamp = this.timestamp;
     const restoreScript = `import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
@@ -169,7 +171,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 async function restore() {
   // Create Supabase client inside function to avoid issues with --help
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
-  console.log('🔄 RESTORING FROM BACKUP: ${this.timestamp}\\n');
+  console.log('🔄 RESTORING FROM BACKUP: ${backupTimestamp}\\n');
   console.log('⚠️  This will restore your data but IDs will be reassigned\\n');
 
   try {
@@ -399,7 +401,7 @@ if (!args.includes('--confirm') && !isDryRun) {
 
 This will:
 - Delete ALL existing data in your database
-- Restore from backup: ${this.timestamp}
+- Restore from backup: ${backupTimestamp}
 - Reassign new IDs but preserve all relationships
 - Cannot be undone
 
