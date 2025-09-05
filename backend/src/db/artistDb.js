@@ -1,7 +1,7 @@
 import logger from '../utils/logger.js';
-import { getPool } from './db.js';
+import { getPool } from './connection.js';
 
-// Use the shared pool from db.js
+// Use the shared pool from connection.js
 function getSharedPool() {
   return getPool();
 }

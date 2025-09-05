@@ -8,13 +8,9 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import logger from "./src/utils/logger.js";
-import { fetchAllRecentTracks } from "./src/services/lastfm.js";
-import { initializeDatabase } from "./src/db/connection.js";
-import { getLastTimestamp, addPlaysDeduped, getRecentTracks } from "./src/db/plays.js";
+import { initializeDatabase, closeDatabase, checkDatabaseHealth } from "./src/db/connection.js";
 import { getUniqueCounts } from "./src/db/analytics.js";
 import MusicSyncService from "./src/services/musicSync.js";
-import { initializeArtistDatabase } from "./src/db/artistDb.js";
-import { initializeAlbumDatabase } from "./src/db/albumDb.js";
 import { getTimezoneInfo } from "./src/utils/timezone.js";
 import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
@@ -29,17 +25,14 @@ app.use(morgan("combined", { stream: logger.stream }));
 app.use(cors());
 app.use(express.json());
 
-// Initialize database connections
+// Initialize database connection
 initializeDatabase();
-initializeArtistDatabase();
-initializeAlbumDatabase();
 
 // Initialize music sync service
 const musicSync = new MusicSyncService();
 
 // Log server startup and environment
-logger.info(`Starting server in ${process.env.NODE_ENV || "development"} mode`);
-logger.info(`Listening on port ${process.env.PORT || 3001}`);
+logger.info(`🔧 Starting server in ${process.env.NODE_ENV || "development"} mode`);
 
 app.get('/api/unique-counts', (req, res) => {
   logger.info("GET /api/unique-counts called");
@@ -59,6 +52,26 @@ app.get('/api/timezone-info', (req, res) => {
   const timezoneInfo = getTimezoneInfo();
   logger.info("Returning timezone info", timezoneInfo);
   res.json(timezoneInfo);
+});
+
+// Database health check endpoint
+app.get('/api/health/database', async (req, res) => {
+  logger.info("GET /api/health/database called");
+  try {
+    const health = await checkDatabaseHealth();
+    res.json({
+      status: 'healthy',
+      ...health,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error("Database health check failed:", error);
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // POST endpoint to sync new tracks (unified Spotify/Last.fm)
@@ -150,7 +163,46 @@ For detailed individual artist/album/track data, use /:id/recent-plays, /:id/mil
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  console.log(`Server running on ${PORT}`);
+const server = app.listen(PORT, () => {
+  logger.info(`🚀 Server running on port ${PORT}`);
+});
+
+// Graceful shutdown handling
+const gracefulShutdown = async (signal) => {
+  logger.info(`🛑 ${signal} received: closing HTTP server`);
+  
+  server.close(async () => {
+    logger.info('HTTP server closed');
+    
+    try {
+      // Close database connections
+      await closeDatabase();
+      logger.info('✅ Graceful shutdown completed');
+      process.exit(0);
+    } catch (error) {
+      logger.error(`❌ Error during shutdown: ${error.message}`);
+      process.exit(1);
+    }
+  });
+  
+  // Force close after 10 seconds
+  setTimeout(() => {
+    logger.error('⚠️ Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('💥 Uncaught Exception:', error);
+  gracefulShutdown('UNCAUGHT_EXCEPTION');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('UNHANDLED_REJECTION');
 });

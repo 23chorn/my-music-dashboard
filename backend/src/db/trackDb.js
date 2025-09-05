@@ -1,4 +1,4 @@
-import { getPool } from './db.js';
+import { getPool } from './connection.js';
 import logger from '../utils/logger.js';
 
 const pool = () => getPool();
