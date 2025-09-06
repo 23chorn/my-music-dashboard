@@ -85,7 +85,8 @@ export async function getBehaviorAnalysis(callback) {
   logger.info('getBehaviorAnalysis called');
   
   try {
-    const result = await pool().query(`
+    // First get basic counts
+    const basicResult = await pool().query(`
       SELECT 
         (SELECT COUNT(*) FROM plays) AS playCount,
         (SELECT COUNT(DISTINCT track_id) FROM plays) AS uniqueTracks,
@@ -99,7 +100,14 @@ export async function getBehaviorAnalysis(callback) {
          WHERE t.duration_ms IS NULL) AS tracksWithoutDuration
     `);
     
-    if (result.rows.length === 0) {
+    // Get play distribution for Shannon Entropy calculation
+    const entropyResult = await pool().query(`
+      SELECT track_id, COUNT(*) as play_count
+      FROM plays
+      GROUP BY track_id
+    `);
+    
+    if (basicResult.rows.length === 0) {
       logger.warn('No data found in getBehaviorAnalysis');
       callback(null, {
         repeatFactor: 0,
@@ -111,7 +119,7 @@ export async function getBehaviorAnalysis(callback) {
       return;
     }
     
-    const row = result.rows[0];
+    const row = basicResult.rows[0];
     const playCount = parseInt(row.playcount);
     const uniqueTracks = parseInt(row.uniquetracks);
     const totalListeningTime = parseInt(row.totallisteningtime) || 0;
@@ -121,9 +129,26 @@ export async function getBehaviorAnalysis(callback) {
     // Calculate repeat factor (higher = more repeated listening)
     const repeatFactor = uniqueTracks > 0 ? (playCount / uniqueTracks).toFixed(1) : 0;
     
-    // Calculate diversity score (0-100, higher = more diverse)  
-    const maxPossibleScore = Math.min(playCount, uniqueTracks * 10); // Assuming max 10 plays per track for "perfect" diversity
-    const diversityScore = maxPossibleScore > 0 ? Math.min(100, ((uniqueTracks / playCount) * 100)).toFixed(1) : 0;
+    // Calculate Shannon Entropy for diversity score
+    // Shannon Entropy measures the unpredictability/diversity of music listening
+    // Higher entropy = more diverse listening (plays spread evenly across tracks)
+    // Lower entropy = less diverse listening (concentrated on fewer tracks)
+    let shannonEntropy = 0;
+    if (entropyResult.rows.length > 0 && playCount > 0) {
+      for (const trackData of entropyResult.rows) {
+        const trackPlays = parseInt(trackData.play_count);
+        const probability = trackPlays / playCount;
+        if (probability > 0) {
+          shannonEntropy -= probability * Math.log2(probability);
+        }
+      }
+    }
+    
+    // Normalize Shannon Entropy to 0-100 scale
+    // Maximum entropy for N tracks is log2(N) (all tracks played equally)
+    // Score: 0 = all plays on one track, 100 = perfectly distributed plays
+    const maxEntropy = uniqueTracks > 1 ? Math.log2(uniqueTracks) : 1;
+    const diversityScore = maxEntropy > 0 ? ((shannonEntropy / maxEntropy) * 100).toFixed(1) : 0;
     
     const behaviorData = {
       repeatFactor: parseFloat(repeatFactor),
@@ -133,7 +158,7 @@ export async function getBehaviorAnalysis(callback) {
       averageTrackDurationMs: Math.round(averageTrackDuration)
     };
     
-    logger.info('getBehaviorAnalysis returned behavior data');
+    logger.info(`getBehaviorAnalysis returned behavior data: diversity=${diversityScore}% (Shannon entropy=${shannonEntropy.toFixed(3)})`);
     callback(null, behaviorData);
     
   } catch (err) {
