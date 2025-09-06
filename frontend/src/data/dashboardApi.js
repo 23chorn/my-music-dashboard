@@ -2,8 +2,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001
 
 // Get unique counts and play count
 export async function getUniqueCountsFromServer() {
-  const res = await fetch(`${API_BASE_URL}/api/unique-counts`);
+  const res = await fetch(`${API_BASE_URL}/api/analytics/unique-counts`);
   if (!res.ok) throw new Error('Failed to fetch unique counts');
+  return await res.json();
+}
+
+// Get behavior analysis data
+export async function getBehaviorAnalysisFromServer() {
+  const res = await fetch(`${API_BASE_URL}/api/analytics/behavior-analysis`);
+  if (!res.ok) throw new Error('Failed to fetch behavior analysis');
   return await res.json();
 }
 
@@ -42,9 +49,9 @@ export async function getUserInfoFromServer() {
   return await res.json();
 }
 
-// Sync new tracks from Last.fm
+// Sync new plays from Last.fm
 export async function syncTracksFromServer() {
-  const res = await fetch(`${API_BASE_URL}/api/sync-tracks`, {
+  const res = await fetch(`${API_BASE_URL}/api/sync/plays`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

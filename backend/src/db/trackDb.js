@@ -38,21 +38,22 @@ export function getTrackInfo(trackId, callback) {
       first_artist.name as primary_artist_name,
       first_artist.image_url as primary_artist_image,
       
-      -- All artists as JSON array
-      COALESCE(
-        JSON_AGG(
-          DISTINCT JSONB_BUILD_OBJECT(
-            'id', a.id,
-            'name', a.name,
-            'image_url', a.image_url
+      -- All artists as JSON array (ordered by primary first, then name)
+      (
+        SELECT COALESCE(JSON_AGG(
+          JSONB_BUILD_OBJECT(
+            'id', artist_data.id,
+            'name', artist_data.name,
+            'image_url', artist_data.image_url
           )
-          ORDER BY JSONB_BUILD_OBJECT(
-            'id', a.id,
-            'name', a.name,
-            'image_url', a.image_url
-          )
-        ) FILTER (WHERE a.id IS NOT NULL), 
-        '[]'::json
+          ORDER BY artist_data.is_primary DESC, artist_data.name
+        ), '[]'::json)
+        FROM (
+          SELECT DISTINCT a2.id, a2.name, a2.image_url, ta2.is_primary
+          FROM track_artists ta2
+          JOIN artists a2 ON ta2.artist_id = a2.id
+          WHERE ta2.track_id = t.id
+        ) artist_data
       ) as artists,
       
       -- All albums as JSON array
@@ -78,10 +79,7 @@ export function getTrackInfo(trackId, callback) {
       ra.album_id as primary_album_id,
       ra.album_name as primary_album_name,
       ra.album_image as primary_album_image,
-      ra.release_date as primary_album_release_date,
-      
-      -- Play count
-      COALESCE(pc.play_count, 0) as play_count
+      ra.release_date as primary_album_release_date
       
     FROM tracks t
     
@@ -89,13 +87,13 @@ export function getTrackInfo(trackId, callback) {
     LEFT JOIN track_artists ta ON t.id = ta.track_id
     LEFT JOIN artists a ON ta.artist_id = a.id
     
-    -- Join to get primary artist (first alphabetically for consistency)
+    -- Join to get primary artist (by is_primary flag, then alphabetically)
     LEFT JOIN LATERAL (
       SELECT a2.id, a2.name, a2.image_url
       FROM track_artists ta2
       JOIN artists a2 ON ta2.artist_id = a2.id
       WHERE ta2.track_id = t.id
-      ORDER BY a2.name
+      ORDER BY ta2.is_primary DESC, a2.name
       LIMIT 1
     ) first_artist ON true
     
@@ -106,20 +104,11 @@ export function getTrackInfo(trackId, callback) {
     -- Join to get primary album (most recent)
     LEFT JOIN ranked_albums ra ON t.id = ra.track_id AND ra.album_rank = 1
     
-    -- Get play count
-    LEFT JOIN (
-      SELECT track_id, COUNT(*) as play_count 
-      FROM plays 
-      WHERE track_id = $1
-      GROUP BY track_id
-    ) pc ON t.id = pc.track_id
-    
     WHERE t.id = $1
     GROUP BY 
       t.id, t.name, t.duration_ms, t.popularity,
       first_artist.id, first_artist.name, first_artist.image_url,
-      ra.album_id, ra.album_name, ra.album_image, ra.release_date,
-      pc.play_count
+      ra.album_id, ra.album_name, ra.album_image, ra.release_date
   `;
   
   pool().query(query, [trackId])
@@ -131,7 +120,7 @@ export function getTrackInfo(trackId, callback) {
       }
       
       const track = result.rows[0];
-      logger.info(`getTrackInfo returned track: ${track.track_name} with ${track.play_count} plays`);
+      logger.info(`getTrackInfo returned track: ${track.track_name}`);
       callback(null, track);
     })
     .catch(err => {

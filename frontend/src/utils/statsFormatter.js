@@ -71,6 +71,14 @@ export function createStatsSection(stats, type = 'artist') {
           : "N/A",
       }
     );
+  } else if (type === 'track') {
+    baseTiles.push(
+      {
+        label: "Days Played",
+        value: formatValue(stats.days_played || 0),
+        sub: stats.days_played > 0 ? "different days" : "",
+      }
+    );
   }
 
   return baseTiles;

@@ -5,6 +5,7 @@ import DashboardHeatmap from "../components/charts/DashboardHeatmap";
 import PageLayout from "../components/layout/PageLayout";
 import SectionLoader from "../components/ui/SectionLoader";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import StatCard from "../components/stats/StatCard";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
@@ -14,7 +15,7 @@ export default function Dashboard() {
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, totalListeningTime, playsWithoutDuration, repeatFactor, diversityScore, handleRefresh,
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, handleRefresh,
     loading, artistsLoading, tracksLoading, albumsLoading, recentLoading,
     syncing, syncNewTracks
   } = useDashboardData();
@@ -48,29 +49,6 @@ export default function Dashboard() {
     return formatted;
   };
 
-  const dashboardTiles = [
-    { label: "Total Plays", value: formatValue(playCount) ?? "N/A" },
-    { label: "Unique Artists", value: formatValue(uniqueArtists) ?? "N/A" },
-    { label: "Unique Albums", value: formatValue(uniqueAlbums) ?? "N/A" },
-    { label: "Unique Tracks", value: formatValue(uniqueTracks) ?? "N/A" },
-    { 
-      label: "Listening Time", 
-      value: formatListeningTime(totalListeningTime),
-      tooltip: playsWithoutDuration > 0 
-        ? `${formatValue(playsWithoutDuration)} plays missing duration data`
-        : "All plays have duration data"
-    },
-    {
-      label: "Repeat Factor",
-      value: repeatFactor ? `${repeatFactor}x` : "N/A",
-      tooltip: "Average plays per unique track - higher means you replay tracks more"
-    },
-    {
-      label: "Diversity Score",
-      value: diversityScore ? `${diversityScore}%` : "N/A",
-      tooltip: "How evenly you listen across different artists - 100% = perfectly diverse, 0% = only one artist"
-    }
-  ];
 
   const imageUrl =
     process.env.NODE_ENV === "production"
@@ -123,101 +101,131 @@ export default function Dashboard() {
             {syncMessage}
           </div>
         )}
-        <GroupedSection
-          title=""
-          items={dashboardTiles}
-          showPeriod={false}
-          showLimit={false}
-          mapper={tile => tile}
-          layout="grid"
-        />
+        <div className="bg-gray-900 rounded-lg p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              title="Total Plays"
+              value={formatValue(playCount) ?? "N/A"}
+              subtitle="all time"
+              color="text-blue-400"
+            />
+            <StatCard
+              title="Unique Artists"
+              value={formatValue(uniqueArtists) ?? "N/A"}
+              subtitle="discovered"
+              color="text-green-400"
+            />
+            <StatCard
+              title="Unique Albums"
+              value={formatValue(uniqueAlbums) ?? "N/A"}
+              subtitle="collected"
+              color="text-purple-400"
+            />
+            <StatCard
+              title="Unique Tracks"
+              value={formatValue(uniqueTracks) ?? "N/A"}
+              subtitle="in library"
+              color="text-orange-400"
+            />
+          </div>
+        </div>
       </div>
 
-      <SectionLoader loading={artistsLoading}>
-        <GroupedSection
-          title="Top Artists"
-          items={topArtists}
-          period={artistPeriod}
-          setPeriod={setArtistPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={artistLimit}
-          setLimit={setArtistLimit}
-          mapper={artist => ({
-            value: artist.artist,
-            sub: formatValue(`${artist.playcount ?? 0} plays`),
-            link: artist.artistId ? `/artist/${artist.artistId}` : undefined,
-            image: artist.image
-          })}
-          layout='grid'
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={artistsLoading}>
+          <GroupedSection
+            title="Top Artists"
+            items={topArtists}
+            period={artistPeriod}
+            setPeriod={setArtistPeriod}
+            showPeriod={true}
+            showLimit={true}
+            limit={artistLimit}
+            setLimit={setArtistLimit}
+            mapper={artist => ({
+              value: artist.artist,
+              sub: formatValue(`${artist.playcount ?? 0} plays`),
+              link: artist.artistId ? `/artist/${artist.artistId}` : undefined,
+              image: artist.image
+            })}
+            layout='grid'
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
-      <SectionLoader loading={albumsLoading}>
-        <GroupedSection
-          title="Top Albums"
-          items={topAlbums}
-          period={albumPeriod}
-          setPeriod={setAlbumPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={albumLimit}
-          setLimit={setAlbumLimit}
-          mapper={album => ({
-            label: album.artist,
-            value: album.album,
-            sub: formatValue(`${album.playcount ?? 0} plays`),
-            link: album.albumId ? `/album/${album.albumId}` : undefined,
-            image: album.image
-          })}
-          layout='grid'
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={albumsLoading}>
+          <GroupedSection
+            title="Top Albums"
+            items={topAlbums}
+            period={albumPeriod}
+            setPeriod={setAlbumPeriod}
+            showPeriod={true}
+            showLimit={true}
+            limit={albumLimit}
+            setLimit={setAlbumLimit}
+            mapper={album => ({
+              label: album.artist,
+              value: album.album,
+              sub: formatValue(`${album.playcount ?? 0} plays`),
+              link: album.albumId ? `/album/${album.albumId}` : undefined,
+              image: album.image
+            })}
+            layout='grid'
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
-      <SectionLoader loading={tracksLoading}>
-        <GroupedSection
-          title="Top Tracks"
-          items={topTracks}
-          period={trackPeriod}
-          setPeriod={setTrackPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={trackLimit}
-          setLimit={setTrackLimit}
-          mapper={track => ({
-            label: track.artist,
-            value: track.track,
-            album: track.album,
-            image: track.albumImage,
-            sub: formatValue(`${track.playcount ?? 0} plays`),
-            link: track.id ? `/track/${track.id}` : undefined
-          })}
-          layout='grid'
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={tracksLoading}>
+          <GroupedSection
+            title="Top Tracks"
+            items={topTracks}
+            period={trackPeriod}
+            setPeriod={setTrackPeriod}
+            showPeriod={true}
+            showLimit={true}
+            limit={trackLimit}
+            setLimit={setTrackLimit}
+            mapper={track => ({
+              label: track.artist,
+              value: track.track,
+              album: track.album,
+              image: track.albumImage,
+              sub: formatValue(`${track.playcount ?? 0} plays`),
+              link: track.id ? `/track/${track.id}` : undefined
+            })}
+            layout='grid'
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
-      <SectionLoader loading={recentLoading}>
-        <GroupedSection
-          title="Recent Plays"
-          items={recentTracks}
-          limit={recentLimit}
-          setLimit={setRecentLimit}
-          showLimit={true}
-          mapper={track => ({
-            label: track.track,
-            value: track.artist,
-            album: track.album,
-            sub: formatDateTime(track.timestamp),
-            link: track.id ? `/track/${track.id}` : undefined
-          })}
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={recentLoading}>
+          <GroupedSection
+            title="Recent Plays"
+            items={recentTracks}
+            limit={recentLimit}
+            setLimit={setRecentLimit}
+            showLimit={true}
+            mapper={track => ({
+              label: track.track,
+              value: track.artist,
+              album: track.album,
+              sub: formatDateTime(track.timestamp),
+              link: track.id ? `/track/${track.id}` : undefined
+            })}
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
-      <DashboardHeatmap ref={heatmapRef} />
+      <div className="bg-gray-900 rounded-lg p-6">
+        <DashboardHeatmap ref={heatmapRef} />
+      </div>
     </PageLayout>
   );
 }

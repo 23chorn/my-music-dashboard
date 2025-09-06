@@ -53,6 +53,12 @@ export default function MenuButton() {
           >
             Explore
           </button>
+          <button
+            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
+            onClick={() => { setMenuOpen(false); navigate("/stats"); }}
+          >
+            Stats
+          </button>
         </div>
       )}
     </div>

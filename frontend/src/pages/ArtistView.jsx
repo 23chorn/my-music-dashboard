@@ -49,70 +49,80 @@ export default function ArtistView() {
         <MilestoneSection milestones={milestones} />
       )}
 
-      <SectionLoader loading={albumsLoading}>
-        <GroupedSection
-          title="Top Albums"
-          items={topAlbums}
-          period={albumPeriod}
-          setPeriod={setAlbumPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={albumLimit}
-          setLimit={setAlbumLimit}
-          mapper={album => ({
-            label: album.artist,
-            value: album.album,
-            sub: formatValue(`${album.playcount ?? 0} plays`),
-            link: album.albumId ? `/album/${album.albumId}` : undefined,
-            image: album.image
-          })}
-          layout='grid'
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={albumsLoading}>
+          <GroupedSection
+            title="Top Albums"
+            items={topAlbums}
+            period={albumPeriod}
+            setPeriod={setAlbumPeriod}
+            showPeriod={true}
+            showLimit={true}
+            limit={albumLimit}
+            setLimit={setAlbumLimit}
+            mapper={album => ({
+              label: album.artist,
+              value: album.album,
+              sub: formatValue(`${album.playcount ?? 0} plays`),
+              link: album.albumId ? `/album/${album.albumId}` : undefined,
+              image: album.image
+            })}
+            layout='grid'
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
-      <SectionLoader loading={tracksLoading}>
-        <GroupedSection
-          title="Top Tracks"
-          items={topTracks}
-          period={trackPeriod}
-          setPeriod={setTrackPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={trackLimit}
-          setLimit={setTrackLimit}
-          mapper={track => ({
-            label: track.artist,
-            value: track.track,
-            album: track.album,
-            image: track.albumImage,
-            sub: formatValue(`${track.playcount ?? 0} plays`),
-            link: track.id ? `/track/${track.id}` : undefined
-          })}
-          layout='grid'
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={tracksLoading}>
+          <GroupedSection
+            title="Top Tracks"
+            items={topTracks}
+            period={trackPeriod}
+            setPeriod={setTrackPeriod}
+            showPeriod={true}
+            showLimit={true}
+            limit={trackLimit}
+            setLimit={setTrackLimit}
+            mapper={track => ({
+              label: track.artist,
+              value: track.track,
+              album: track.album,
+              image: track.albumImage,
+              sub: formatValue(`${track.playcount ?? 0} plays`),
+              link: track.id ? `/track/${track.id}` : undefined
+            })}
+            layout='grid'
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
-      <SectionLoader loading={recentLoading}>
-        <GroupedSection
-          title="Recent Plays"
-          items={recentPlays}
-          limit={recentLimit}
-          setLimit={setRecentLimit}
-          showLimit={true}
-          mapper={track => ({
-            label: track.track,
-            album: track.album,
-            value: track.artist,
-            sub: formatDateTime(track.timestamp)
-          })}
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+          <SectionLoader loading={recentLoading}>
+            <GroupedSection
+              title="Recent Plays"
+              items={recentPlays}
+              limit={recentLimit}
+            setLimit={setRecentLimit}
+            showLimit={true}
+            mapper={track => ({
+              label: track.track,
+              album: track.album,
+              value: track.artist,
+              sub: formatDateTime(track.timestamp)
+            })}
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
 
       {/* Era Explorer Section */}
-      {artist && <CustomHeatmap artistId={artist.id} days={HEATMAP_CONFIG.artist.days} />}
+      {artist && (
+        <div className="bg-gray-900 rounded-lg p-6">
+          <CustomHeatmap artistId={artist.id} days={HEATMAP_CONFIG.artist.days} />
+        </div>
+      )}
     </PageLayout>
   );
 }

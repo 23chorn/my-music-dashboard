@@ -8,16 +8,16 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import logger from "./src/utils/logger.js";
-import { initializeDatabase, closeDatabase, checkDatabaseHealth } from "./src/db/connection.js";
-import { getUniqueCounts } from "./src/db/analytics.js";
+import { initializeDatabase, closeDatabase } from "./src/db/connection.js";
 import MusicSyncService from "./src/services/musicSync.js";
-import { getTimezoneInfo } from "./src/utils/timezone.js";
 import searchRouter from "./src/routes/search.js";
 import artistRouter from "./src/routes/artist.js";
 import albumRouter from "./src/routes/album.js";
 import trackRouter from "./src/routes/track.js";
 import analyticsRouter from "./src/routes/analytics.js";
 import spotifyRouter from "./src/routes/spotify.js";
+import systemRouter from "./src/routes/system.js";
+import syncRouter from "./src/routes/sync.js";
 
 const app = express();
 
@@ -31,113 +31,11 @@ initializeDatabase();
 // Initialize music sync service
 const musicSync = new MusicSyncService();
 
+// Make musicSync available to routes
+app.locals.musicSync = musicSync;
+
 // Log server startup and environment
 logger.info(`🔧 Starting server in ${process.env.NODE_ENV || "development"} mode`);
-
-app.get('/api/unique-counts', (req, res) => {
-  logger.info("GET /api/unique-counts called");
-  getUniqueCounts((err, uniqueCounts) => {
-    if (err) {
-      logger.error("Error getting unique counts:", err);
-      return res.status(500).json({ error: 'DB error' });
-    }
-    logger.info("Returning unique counts");
-    res.json(uniqueCounts);
-  });
-});
-
-// Timezone info endpoint for debugging
-app.get('/api/timezone-info', (req, res) => {
-  logger.info("GET /api/timezone-info called");
-  const timezoneInfo = getTimezoneInfo();
-  logger.info("Returning timezone info", timezoneInfo);
-  res.json(timezoneInfo);
-});
-
-// Database health check endpoint
-app.get('/api/health/database', async (req, res) => {
-  logger.info("GET /api/health/database called");
-  try {
-    const health = await checkDatabaseHealth();
-    res.json({
-      status: 'healthy',
-      ...health,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    logger.error("Database health check failed:", error);
-    res.status(503).json({
-      status: 'unhealthy',
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
-// POST endpoint to sync new tracks (unified Spotify/Last.fm)
-app.post('/api/sync-tracks', async (req, res) => {
-  logger.info("POST /api/sync-tracks called");
-  
-  try {
-    const { force = false } = req.body;
-    
-    const result = await musicSync.syncNewTracks({ force });
-    
-    logger.info(`Sync completed: ${result.addedPlays} new plays added using ${result.method}`);
-    
-    // Include sync status in response
-    const status = await musicSync.getStatus();
-    
-    res.json({
-      ...result,
-      status: status,
-      fallbackUsed: result.fallbackUsed || false
-    });
-    
-  } catch (error) {
-    logger.error("Music sync endpoint error:", error);
-    res.status(500).json({ 
-      error: 'Sync failed',
-      message: error.message,
-      method: musicSync.getCurrentMethod()
-    });
-  }
-});
-
-// GET sync method status
-app.get('/api/sync-status', async (req, res) => {
-  try {
-    const status = await musicSync.getStatus();
-    res.json(status);
-  } catch (error) {
-    logger.error("Error getting sync status:", error);
-    res.status(500).json({ error: 'Failed to get sync status' });
-  }
-});
-
-// POST switch sync method
-app.post('/api/switch-sync-method', async (req, res) => {
-  try {
-    const { method } = req.body;
-    
-    if (!method || (method !== 'spotify' && method !== 'lastfm')) {
-      return res.status(400).json({ 
-        error: 'Invalid method. Use "spotify" or "lastfm"' 
-      });
-    }
-    
-    const result = await musicSync.switchMethod(method);
-    logger.info(`Sync method switched to ${method}`);
-    
-    res.json(result);
-  } catch (error) {
-    logger.error("Error switching sync method:", error);
-    res.status(500).json({ 
-      error: 'Failed to switch sync method',
-      message: error.message 
-    });
-  }
-});
 
 // Resource-based routes
 app.use('/api/search', searchRouter);
@@ -146,6 +44,8 @@ app.use('/api/album', albumRouter);
 app.use('/api/track', trackRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/spotify', spotifyRouter);
+app.use('/api/system', systemRouter);
+app.use('/api/sync', syncRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");

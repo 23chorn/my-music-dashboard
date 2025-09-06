@@ -6,10 +6,10 @@ export default function BaseTile({
   className = "",
   hoverEffect = true 
 }) {
-  const baseClasses = "bg-gray-800 rounded-lg shadow p-3 flex items-center justify-center text-center transition";
+  const baseClasses = "bg-gray-800 rounded-lg p-3 flex items-center justify-center text-center transition border border-gray-700";
   
   const hoverClasses = hoverEffect 
-    ? (link ? "hover:bg-blue-900" : "hover:bg-gray-700")
+    ? (link ? "hover:bg-gray-700 hover:border-gray-600" : "hover:bg-gray-750")
     : "";
     
   const classes = `${baseClasses} ${hoverClasses} ${className}`;

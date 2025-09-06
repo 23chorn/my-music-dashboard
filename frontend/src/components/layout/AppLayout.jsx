@@ -4,6 +4,7 @@ import ArtistView from "../../pages/ArtistView";
 import AlbumView from "../../pages/AlbumView";
 import TrackView from "../../pages/TrackView";
 import ExploreView from "../../pages/ExploreView";
+import StatsView from "../../pages/StatsView";
 import AppHeader from "./AppHeader";
 
 export default function AppLayout({ searchProps }) {
@@ -17,6 +18,7 @@ export default function AppLayout({ searchProps }) {
           <Route path="/album/:id" element={<AlbumView />} />
           <Route path="/track/:id" element={<TrackView />} />
           <Route path="/explore" element={<ExploreView />} />
+          <Route path="/stats" element={<StatsView />} />
         </Routes>
       </main>
     </div>
