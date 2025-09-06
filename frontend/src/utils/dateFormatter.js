@@ -28,3 +28,16 @@ export function formatMonthYear(monthString) {
   const [year, month] = monthString.split("-");
   return `${month}/${year}`;
 }
+
+export function formatDateString(dateString) {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+}

@@ -1,4 +1,4 @@
-import { formatDateTime } from "../../utils/dateFormatter";
+import { formatDateString } from "../../utils/dateFormatter";
 
 export default function SystemInfo({ timezoneInfo }) {
   return (
@@ -12,7 +12,7 @@ export default function SystemInfo({ timezoneInfo }) {
         <div className="flex justify-between items-center py-2 border-b border-gray-800">
           <span className="text-gray-400">Current Time</span>
           <span className="text-white font-medium">
-            {timezoneInfo.localTime ? formatDateTime(timezoneInfo.localTime) : 'Unknown'}
+            {timezoneInfo.localTime ? formatDateString(timezoneInfo.localTime) : 'Unknown'}
           </span>
         </div>
         <div className="flex justify-between items-center py-2 border-b border-gray-800">
