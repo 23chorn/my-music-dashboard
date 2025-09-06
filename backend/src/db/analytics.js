@@ -185,7 +185,9 @@ export async function getCalculatedMetrics(callback) {
          JOIN tracks t ON p.track_id = t.id 
          WHERE t.duration_ms IS NOT NULL) AS totalListeningTime,
         (SELECT AVG(t.duration_ms) FROM tracks t 
-         WHERE t.duration_ms IS NOT NULL) AS averageTrackDuration
+         WHERE t.duration_ms IS NOT NULL) AS averageTrackDuration,
+        (SELECT COUNT(DISTINCT (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date) 
+         FROM plays) AS activeDays
     `);
     
     if (result.rows.length === 0) {
@@ -208,16 +210,16 @@ export async function getCalculatedMetrics(callback) {
     const uniqueAlbums = parseInt(row.uniquealbums);
     const totalListeningTime = parseInt(row.totallisteningtime) || 0;
     const averageTrackDuration = parseFloat(row.averagetrackduration) || 0;
+    const activeDays = parseInt(row.activedays) || 0;
     
     // Calculate derived statistics
-    const totalHours = Math.round(totalListeningTime / (1000 * 60 * 60));
-    const totalDays = Math.round(totalHours / 24 * 10) / 10;
+    const totalHours = totalListeningTime / (1000 * 60 * 60);
     
     const calculatedMetrics = {
       tracksPerArtist: uniqueArtists > 0 ? parseFloat((uniqueTracks / uniqueArtists).toFixed(1)) : 0,
       playsPerArtist: uniqueArtists > 0 ? parseFloat((playCount / uniqueArtists).toFixed(1)) : 0,
       tracksPerAlbum: uniqueAlbums > 0 ? parseFloat((uniqueTracks / uniqueAlbums).toFixed(1)) : 0,
-      hoursPerDay: totalDays > 0 ? parseFloat((totalHours / totalDays).toFixed(1)) : 0,
+      hoursPerDay: activeDays > 0 ? parseFloat((totalHours / activeDays).toFixed(1)) : 0,
       minutesPerPlay: averageTrackDuration > 0 ? parseFloat((averageTrackDuration / 60000).toFixed(1)) : 0,
       libraryCoverage: uniqueTracks > 0 ? parseInt(((playCount / uniqueTracks) * 100).toFixed(0)) : 0
     };
