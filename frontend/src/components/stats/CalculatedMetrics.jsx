@@ -6,8 +6,8 @@ export default function CalculatedMetrics({ calculatedMetrics }) {
     playsPerArtist = 0,
     tracksPerAlbum = 0,
     hoursPerDay = 0,
-    minutesPerPlay = 0,
-    libraryCoverage = 0
+    discoveryFrequency = 0,
+    replayRate = 0
   } = calculatedMetrics;
 
   return (
@@ -39,15 +39,15 @@ export default function CalculatedMetrics({ calculatedMetrics }) {
           color="text-amber-400"
         />
         <StatCard 
-          title="Minutes per Play" 
-          value={minutesPerPlay} 
-          subtitle="average duration"
+          title="Discovery Rate" 
+          value={discoveryFrequency} 
+          subtitle="new tracks per day"
           color="text-lime-400"
         />
         <StatCard 
-          title="Library Coverage" 
-          value={`${libraryCoverage}%`} 
-          subtitle="plays vs unique tracks"
+          title="Replay Rate" 
+          value={`${replayRate}%`} 
+          subtitle="percentage of replays"
           color="text-violet-400"
         />
       </div>

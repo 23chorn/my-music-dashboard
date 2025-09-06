@@ -197,8 +197,8 @@ export async function getCalculatedMetrics(callback) {
         playsPerArtist: 0,
         tracksPerAlbum: 0,
         hoursPerDay: 0,
-        minutesPerPlay: 0,
-        libraryCoverage: 0
+        discoveryFrequency: 0,
+        replayRate: 0
       });
       return;
     }
@@ -220,8 +220,8 @@ export async function getCalculatedMetrics(callback) {
       playsPerArtist: uniqueArtists > 0 ? parseFloat((playCount / uniqueArtists).toFixed(1)) : 0,
       tracksPerAlbum: uniqueAlbums > 0 ? parseFloat((uniqueTracks / uniqueAlbums).toFixed(1)) : 0,
       hoursPerDay: activeDays > 0 ? parseFloat((totalHours / activeDays).toFixed(1)) : 0,
-      minutesPerPlay: averageTrackDuration > 0 ? parseFloat((averageTrackDuration / 60000).toFixed(1)) : 0,
-      libraryCoverage: uniqueTracks > 0 ? parseInt(((playCount / uniqueTracks) * 100).toFixed(0)) : 0
+      discoveryFrequency: activeDays > 0 ? parseFloat((uniqueTracks / activeDays).toFixed(1)) : 0,
+      replayRate: uniqueTracks > 0 ? parseFloat((((playCount - uniqueTracks) / playCount) * 100).toFixed(1)) : 0
     };
     
     logger.info('getCalculatedMetrics returned calculated data');

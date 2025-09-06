@@ -6,6 +6,7 @@ import BehaviorAnalysis from "../components/stats/BehaviorAnalysis";
 import DataQuality from "../components/stats/DataQuality";
 import SystemInfo from "../components/stats/SystemInfo";
 import CalculatedMetrics from "../components/stats/CalculatedMetrics";
+import TrendsChart from "../components/trends/TrendsChart";
 import useStatsData from "../hooks/useStatsData";
 
 export default function StatsView() {
@@ -41,6 +42,7 @@ export default function StatsView() {
         <ListeningTimeStats behaviorData={behaviorData} statsData={statsData} />
         <BehaviorAnalysis behaviorData={behaviorData} />
         <CalculatedMetrics calculatedMetrics={calculatedMetrics} />
+        <TrendsChart />
         <DataQuality statsData={statsData} behaviorData={behaviorData} />
         <SystemInfo timezoneInfo={timezoneInfo} />
       </div>
