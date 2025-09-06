@@ -14,7 +14,7 @@ export async function getTopArtists(limit, period = "overall", callback) {
       a.id,
       a.name,
       a.image_url,
-      COUNT(p.id) as playcount
+      COUNT(DISTINCT p.id) as playcount
     FROM artists a
     JOIN track_artists ta ON a.id = ta.artist_id
     JOIN plays p ON ta.track_id = p.track_id
@@ -88,7 +88,7 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
       ra.album_id,
       ra.album_name,
       ra.album_image,
-      COUNT(p.id) as playcount
+      COUNT(DISTINCT p.id) as playcount
     FROM tracks t
     JOIN track_artists ta ON t.id = ta.track_id
     JOIN artists a ON ta.artist_id = a.id
@@ -160,7 +160,7 @@ export async function getTopAlbums({ limit, period = "overall", artistId = null 
       al.name as album_name,
       STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) as artist_name,
       al.image_url,
-      COUNT(p.id) as playcount
+      COUNT(DISTINCT p.id) as playcount
     FROM albums al
     LEFT JOIN album_artists aa ON al.id = aa.album_id
     LEFT JOIN artists a ON aa.artist_id = a.id

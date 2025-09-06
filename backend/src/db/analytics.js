@@ -9,11 +9,12 @@ export async function getDailyPlaysAll(days) {
   
   const query = `
     SELECT 
-      DATE(played_at AT TIME ZONE 'Europe/London') as day,
+      (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date as day,
       COUNT(*) as count
     FROM plays 
-    WHERE played_at AT TIME ZONE 'Europe/London' >= (NOW() AT TIME ZONE 'Europe/London') - INTERVAL '${days} days'
-    GROUP BY DATE(played_at AT TIME ZONE 'Europe/London')
+    WHERE (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date >= 
+          (DATE(NOW()) + INTERVAL '1 day')::date - INTERVAL '${days - 1} days'
+    GROUP BY (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date
     ORDER BY day ASC
   `;
   

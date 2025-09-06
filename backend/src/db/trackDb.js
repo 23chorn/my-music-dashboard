@@ -160,10 +160,7 @@ export function getTrackRecentPlays(trackId, limit, callback) {
       ) as artist
     FROM plays p
     JOIN tracks t ON p.track_id = t.id
-    JOIN track_artists ta ON t.id = ta.track_id
-    JOIN artists a ON ta.artist_id = a.id
     WHERE p.track_id = $1
-    GROUP BY p.id, p.played_at, t.name
     ORDER BY p.played_at DESC
     LIMIT $2
   `;
@@ -186,11 +183,11 @@ export function getTrackStats(trackId, callback) {
   const query = `
     WITH daily_plays AS (
       SELECT 
-        DATE(played_at AT TIME ZONE 'Europe/London') as play_date,
+        (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date as play_date,
         COUNT(*) as daily_count
       FROM plays 
       WHERE track_id = $1
-      GROUP BY DATE(played_at AT TIME ZONE 'Europe/London')
+      GROUP BY (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date
     ),
     top_day AS (
       SELECT 
@@ -204,7 +201,7 @@ export function getTrackStats(trackId, callback) {
       COUNT(*) as total_streams,
       EXTRACT(EPOCH FROM MIN(played_at))::INTEGER as first_play,
       EXTRACT(EPOCH FROM MAX(played_at))::INTEGER as last_play,
-      COUNT(DISTINCT DATE(played_at AT TIME ZONE 'Europe/London')) as days_played,
+      COUNT(DISTINCT (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date) as days_played,
       td.play_date as top_day_date,
       td.daily_count as top_day_count
     FROM plays p
@@ -242,12 +239,13 @@ export function getTrackDailyPlays(trackId, days, callback) {
   
   const query = `
     SELECT 
-      DATE(played_at AT TIME ZONE 'Europe/London') as day,
+      (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date as day,
       COUNT(*) as plays
     FROM plays
     WHERE track_id = $1
-      AND played_at AT TIME ZONE 'Europe/London' >= (NOW() AT TIME ZONE 'Europe/London') - INTERVAL '${days} days'
-    GROUP BY DATE(played_at AT TIME ZONE 'Europe/London')
+      AND (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date >= 
+          (DATE(NOW()) + INTERVAL '1 day')::date - INTERVAL '${days - 1} days'
+    GROUP BY (DATE(played_at + INTERVAL '1 hour') + INTERVAL '1 day')::date
     ORDER BY day ASC
   `;
   
