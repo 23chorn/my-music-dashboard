@@ -35,7 +35,7 @@ jobs:
         DB_MODE: production
       run: |
         cd backend
-        node -e "
+        node --input-type=module -e "
         import { refreshMatViews } from './src/db/trendsMatView.js';
         refreshMatViews((err, result) => {
           if (err) {
