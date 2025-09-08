@@ -6,6 +6,31 @@ function getSharedPool() {
   return getPool();
 }
 
+// Normalize Spotify release_date to PostgreSQL date format
+function normalizeReleaseDate(releaseDate) {
+  if (!releaseDate) return null;
+  
+  // Handle different Spotify date formats:
+  // "2005" -> "2005-01-01"
+  // "2005-07" -> "2005-07-01"  
+  // "2005-07-15" -> "2005-07-15" (already correct)
+  
+  if (/^\d{4}$/.test(releaseDate)) {
+    // Year only: "2005"
+    return `${releaseDate}-01-01`;
+  } else if (/^\d{4}-\d{2}$/.test(releaseDate)) {
+    // Year-Month: "2005-07"
+    return `${releaseDate}-01`;
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(releaseDate)) {
+    // Full date: "2005-07-15" (already correct)
+    return releaseDate;
+  } else {
+    // Invalid format, return null
+    logger.warn(`Invalid release_date format: ${releaseDate}`);
+    return null;
+  }
+}
+
 export function initializeLegacySpotifyDatabase() {
   // No longer needed - using shared pool
   logger.info('Legacy Spotify database will use shared connection pool');
@@ -156,7 +181,7 @@ export class LegacySpotifyDatabaseService {
            release_date = COALESCE(release_date, $4),
            last_fetched = NOW() 
            WHERE id = $5`,
-          [shouldUpdateName, albumData.name, albumData.image_url, albumData.release_date, albumId]
+          [shouldUpdateName, albumData.name, albumData.image_url, normalizeReleaseDate(albumData.release_date), albumId]
         );
         
         if (shouldUpdateName) {
@@ -167,7 +192,7 @@ export class LegacySpotifyDatabaseService {
         const result = await getSharedPool().query(
           `INSERT INTO albums (name, image_url, release_date, last_fetched) 
            VALUES ($1, $2, $3, NOW()) RETURNING id`,
-          [albumData.name, albumData.image_url, albumData.release_date]
+          [albumData.name, albumData.image_url, normalizeReleaseDate(albumData.release_date)]
         );
         albumId = result.rows[0].id;
       }
