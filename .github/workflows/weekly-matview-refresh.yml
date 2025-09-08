@@ -1,0 +1,53 @@
+name: Weekly Materialized View Refresh
+
+on:
+  schedule:
+    # Run every Monday at 2:00 AM UTC (captures previous complete week)
+    - cron: '0 2 * * 1'
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  refresh-materialized-views:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: './backend/package-lock.json'
+    
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm ci
+    
+    - name: Refresh materialized views
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NODE_ENV: production
+        DB_MODE: production
+      run: |
+        cd backend
+        npm run update:matviews
+      
+    - name: Check materialized view stats
+      env:
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NODE_ENV: production
+        DB_MODE: production
+      run: |
+        cd backend
+        npm run check:matviews
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Weekly materialized view refresh failed!"
+        echo "Check the logs above for details."
