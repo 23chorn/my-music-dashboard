@@ -33,6 +33,7 @@ jobs:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         NODE_ENV: production
         DB_MODE: production
+        SYNC_METHOD: ${{ secrets.SYNC_METHOD }}
         SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
         SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
