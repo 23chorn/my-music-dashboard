@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/sections/GroupedSection";
 import DashboardHeatmap from "../components/charts/DashboardHeatmap";
@@ -10,6 +11,7 @@ import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const {
     topArtists, artistLimit, setArtistLimit, artistPeriod, setArtistPeriod,
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
@@ -65,7 +67,7 @@ export default function Dashboard() {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg sm:text-2xl font-semibold text-blue-400">My Stats</h2>
+          <div></div>
           <button
             onClick={async () => {
               try {
@@ -102,6 +104,15 @@ export default function Dashboard() {
           </div>
         )}
         <div className="bg-gray-900 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg sm:text-2xl font-semibold text-blue-400">My Stats</h2>
+            <button
+              onClick={() => navigate('/stats')}
+              className="text-sm px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition"
+            >
+              View Details →
+            </button>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               title="Total Plays"

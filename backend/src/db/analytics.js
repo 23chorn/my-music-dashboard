@@ -148,6 +148,33 @@ export async function getBehaviorAnalysis(callback) {
         COUNT(*) / NULLIF(COUNT(DISTINCT session_date), 0) AS avg_sessions_per_day
       FROM session_stats
     `);
+
+    // Get peak listening hours and days analysis
+    const timeAnalysisResult = await pool().query(`
+      WITH hourly_plays AS (
+        SELECT 
+          EXTRACT(HOUR FROM played_at) AS hour,
+          COUNT(*) AS play_count
+        FROM plays
+        GROUP BY EXTRACT(HOUR FROM played_at)
+        ORDER BY play_count DESC
+        LIMIT 1
+      ),
+      daily_plays AS (
+        SELECT 
+          EXTRACT(DOW FROM played_at) AS dow,
+          COUNT(*) AS play_count
+        FROM plays
+        GROUP BY EXTRACT(DOW FROM played_at)
+        ORDER BY play_count DESC
+        LIMIT 1
+      )
+      SELECT 
+        (SELECT hour FROM hourly_plays) AS peak_hour,
+        (SELECT play_count FROM hourly_plays) AS peak_hour_plays,
+        (SELECT dow FROM daily_plays) AS peak_dow,
+        (SELECT play_count FROM daily_plays) AS peak_dow_plays
+    `);
     
     // Get play distribution for Shannon Entropy calculation
     const entropyResult = await pool().query(`
@@ -205,6 +232,21 @@ export async function getBehaviorAnalysis(callback) {
     const avgSessionDuration = parseFloat(sessionData.avg_session_duration_ms) || 0;
     const longestSession = parseFloat(sessionData.longest_session_ms) || 0;
     const avgSessionsPerDay = parseFloat(sessionData.avg_sessions_per_day) || 0;
+
+    // Extract time analysis metrics
+    const timeData = timeAnalysisResult.rows[0] || {};
+    const peakHour = parseInt(timeData.peak_hour) || 0;
+    const peakDow = parseInt(timeData.peak_dow) || 0;
+
+    // Helper functions for formatting
+    const formatHour = (hour) => {
+      const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+      const ampm = hour < 12 ? 'AM' : 'PM';
+      return `${hour12}${ampm}`;
+    };
+
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const peakDay = dayNames[peakDow] || 'Unknown';
     
     const behaviorData = {
       repeatFactor: parseFloat(repeatFactor),
@@ -217,7 +259,13 @@ export async function getBehaviorAnalysis(callback) {
       totalSessions: totalSessions,
       averageSessionDurationMs: Math.round(avgSessionDuration),
       longestSessionDurationMs: Math.round(longestSession),
-      averageSessionsPerDay: Math.round(avgSessionsPerDay * 10) / 10
+      averageSessionsPerDay: Math.round(avgSessionsPerDay * 10) / 10,
+      
+      // Time pattern metrics
+      peakListeningHour: peakHour,
+      peakListeningHourFormatted: formatHour(peakHour),
+      mostActiveDay: peakDay,
+      mostActiveDayIndex: peakDow
     };
     
     logger.info(`getBehaviorAnalysis returned behavior data: diversity=${diversityScore}% (Shannon entropy=${shannonEntropy.toFixed(3)})`);
@@ -291,6 +339,71 @@ export async function getCalculatedMetrics(callback) {
     
   } catch (err) {
     logger.error(`getCalculatedMetrics DB error: ${err}`);
+    callback(err);
+  }
+}
+
+// Get discovery freshness metrics (time since last new track/artist/album)
+export async function getDiscoveryFreshness(callback) {
+  logger.info('getDiscoveryFreshness called');
+  
+  try {
+    // Get time since last new track discovery
+    const trackResult = await pool().query(`
+      WITH first_track_plays AS (
+        SELECT track_id, MIN(played_at) as first_played_at
+        FROM plays
+        GROUP BY track_id
+      )
+      SELECT EXTRACT(EPOCH FROM (NOW() - first_played_at)) / 3600 AS hours_since_new_track
+      FROM first_track_plays
+      ORDER BY first_played_at DESC
+      LIMIT 1
+    `);
+    
+    // Get time since last new artist discovery
+    const artistResult = await pool().query(`
+      WITH first_artist_plays AS (
+        SELECT ta.artist_id, MIN(p.played_at) as first_played_at
+        FROM plays p
+        JOIN track_artists ta ON p.track_id = ta.track_id
+        GROUP BY ta.artist_id
+      )
+      SELECT EXTRACT(EPOCH FROM (NOW() - first_played_at)) / 3600 AS hours_since_new_artist
+      FROM first_artist_plays
+      ORDER BY first_played_at DESC
+      LIMIT 1
+    `);
+    
+    // Get time since last new album discovery
+    const albumResult = await pool().query(`
+      WITH first_album_plays AS (
+        SELECT tal.album_id, MIN(p.played_at) as first_played_at
+        FROM plays p
+        JOIN track_albums tal ON p.track_id = tal.track_id
+        WHERE tal.album_id IS NOT NULL
+        GROUP BY tal.album_id
+      )
+      SELECT EXTRACT(EPOCH FROM (NOW() - first_played_at)) / 3600 AS hours_since_new_album
+      FROM first_album_plays
+      ORDER BY first_played_at DESC
+      LIMIT 1
+    `);
+    
+    const discoveryData = {
+      hoursSinceNewTrack: trackResult.rows.length > 0 && trackResult.rows[0].hours_since_new_track 
+        ? parseFloat(trackResult.rows[0].hours_since_new_track) : null,
+      hoursSinceNewArtist: artistResult.rows.length > 0 && artistResult.rows[0].hours_since_new_artist 
+        ? parseFloat(artistResult.rows[0].hours_since_new_artist) : null,
+      hoursSinceNewAlbum: albumResult.rows.length > 0 && albumResult.rows[0].hours_since_new_album 
+        ? parseFloat(albumResult.rows[0].hours_since_new_album) : null
+    };
+    
+    logger.info('getDiscoveryFreshness returned discovery freshness data');
+    callback(null, discoveryData);
+    
+  } catch (err) {
+    logger.error(`getDiscoveryFreshness DB error: ${err}`);
     callback(err);
   }
 }

@@ -2,17 +2,17 @@ import { useState, useEffect } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 
 const MUSIC_MESSAGES = [
-  "🎤 Spitting bars from your playlist...",
-  "🔥 Dropping beats like it's hot...",
-  "💿 Spinning tracks, no cap...",
-  "🎧 DJ'ing your top bangers...",
+  "🎤 Started from the bottom, now we're loading...",
+  "🔥 Good kid, m.A.A.d data loading...",
+  "💿 Straight up, your stats are loading...",
+  "🎧 I'mma let you finish, but first let me load this data...",
   "📱 Flexing your music stats...",
   "💎 Diamonds in your data, we mining...",
   "🎵 Cooking up your musical recipe...",
   "🏆 Your playlist going platinum...",
   "🎪 About to drop the illest dashboard...",
-  "🚀 Your vibes launching to the moon...",
-  "🔊 Bass dropping, data loading...",
+  "🎵 All caps when you spell the stats name...",
+  "🔊 The world is yours... once this data loads",
   "💯 Keeping it 100 with your tracks...",
   "🎶 Orchestrating a symphony for your soul...",
   "🎻 Conducting your musical masterpiece...",

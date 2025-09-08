@@ -8,7 +8,9 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
     averageTrackDurationMs = 0,
     averageSessionDurationMs = 0,
     longestSessionDurationMs = 0,
-    averageSessionsPerDay = 0
+    averageSessionsPerDay = 0,
+    peakListeningHourFormatted = 'N/A',
+    mostActiveDay = 'N/A'
   } = behaviorData;
 
   // Calculate derived statistics
@@ -31,7 +33,7 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
   return (
     <div className="bg-gray-900 rounded-lg p-6">
       <h2 className="text-2xl font-bold text-white mb-6">⏱️ Listening Time</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard 
           title="Total Hours" 
           value={formatValue(totalHours)} 
@@ -51,6 +53,12 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
           color="text-cyan-400"
         />
         <StatCard 
+          title="Peak Hour" 
+          value={peakListeningHourFormatted}
+          subtitle="most active hour"
+          color="text-orange-400"
+        />
+        <StatCard 
           title="Average Session" 
           value={formatDuration(averageSessionDurationMs)}
           subtitle="per session"
@@ -67,6 +75,12 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
           value={averageSessionsPerDay}
           subtitle="average daily"
           color="text-green-400"
+        />
+        <StatCard 
+          title="Most Active Day" 
+          value={mostActiveDay}
+          subtitle="of the week"
+          color="text-orange-400"
         />
       </div>
     </div>

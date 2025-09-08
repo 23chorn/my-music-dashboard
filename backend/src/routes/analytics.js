@@ -1,5 +1,5 @@
 import express from "express";
-import { getDailyPlaysAll, getUniqueCounts, getBehaviorAnalysis, getCalculatedMetrics } from "../db/analytics.js";
+import { getDailyPlaysAll, getUniqueCounts, getBehaviorAnalysis, getCalculatedMetrics, getDiscoveryFreshness } from "../db/analytics.js";
 import logger from "../utils/logger.js";
 
 const router = express.Router();
@@ -55,6 +55,19 @@ router.get('/calculated-metrics', (req, res) => {
     }
     logger.info("Returning calculated metrics");
     res.json(calculatedMetrics);
+  });
+});
+
+// Get discovery freshness data
+router.get('/discovery-freshness', (req, res) => {
+  logger.info("GET /api/analytics/discovery-freshness called");
+  getDiscoveryFreshness((err, discoveryData) => {
+    if (err) {
+      logger.error("Error getting discovery freshness:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info("Returning discovery freshness data");
+    res.json(discoveryData);
   });
 });
 

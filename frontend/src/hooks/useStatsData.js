@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { getUniqueCountsFromServer, getTimezoneInfoFromServer, getBehaviorAnalysisFromServer, getCalculatedMetricsFromServer } from "../data/statsApi";
+import { getUniqueCountsFromServer, getTimezoneInfoFromServer, getBehaviorAnalysisFromServer, getCalculatedMetricsFromServer, getDiscoveryFreshnessFromServer } from "../data/statsApi";
 
 export default function useStatsData() {
   const [statsData, setStatsData] = useState({});
   const [timezoneInfo, setTimezoneInfo] = useState({});
   const [behaviorData, setBehaviorData] = useState({});
   const [calculatedMetrics, setCalculatedMetrics] = useState({});
+  const [discoveryData, setDiscoveryData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -15,17 +16,19 @@ export default function useStatsData() {
       setError(null);
       
       // Fetch all stats data in parallel
-      const [uniqueCounts, timezone, behavior, calculated] = await Promise.all([
+      const [uniqueCounts, timezone, behavior, calculated, discovery] = await Promise.all([
         getUniqueCountsFromServer(),
         getTimezoneInfoFromServer(),
         getBehaviorAnalysisFromServer(),
-        getCalculatedMetricsFromServer()
+        getCalculatedMetricsFromServer(),
+        getDiscoveryFreshnessFromServer()
       ]);
 
       setStatsData(uniqueCounts);
       setTimezoneInfo(timezone);
       setBehaviorData(behavior);
       setCalculatedMetrics(calculated);
+      setDiscoveryData(discovery);
     } catch (error) {
       console.error('Failed to fetch stats data:', error);
       setError(error.message);
@@ -43,6 +46,7 @@ export default function useStatsData() {
     timezoneInfo,
     behaviorData,
     calculatedMetrics,
+    discoveryData,
     loading,
     error,
     refetch: fetchStatsData

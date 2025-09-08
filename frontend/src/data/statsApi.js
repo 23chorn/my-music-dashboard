@@ -27,3 +27,10 @@ export async function getCalculatedMetricsFromServer() {
   if (!res.ok) throw new Error('Failed to fetch calculated metrics');
   return await res.json();
 }
+
+// Get discovery freshness data
+export async function getDiscoveryFreshnessFromServer() {
+  const res = await fetch(`${API_BASE_URL}/api/analytics/discovery-freshness`);
+  if (!res.ok) throw new Error('Failed to fetch discovery freshness');
+  return await res.json();
+}
