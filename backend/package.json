@@ -23,7 +23,6 @@
     "setup:matviews": "node scripts/setup-matviews.js",
     "create:matviews": "node scripts/create-matviews-simple.js",
     "check:matviews": "node scripts/check-matviews.js",
-    "update:matviews": "node scripts/update-matviews-complete-weeks.js"
   },
   "keywords": [],
   "author": "",
