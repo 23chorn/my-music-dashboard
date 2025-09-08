@@ -22,7 +22,7 @@
     "create:migration": "node scripts/create-migration.js",
     "setup:matviews": "node scripts/setup-matviews.js",
     "create:matviews": "node scripts/create-matviews-simple.js",
-    "check:matviews": "node scripts/check-matviews.js",
+    "check:matviews": "node scripts/check-matviews.js"
   },
   "keywords": [],
   "author": "",
