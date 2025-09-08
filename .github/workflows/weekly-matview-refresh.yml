@@ -35,16 +35,7 @@ jobs:
         DB_MODE: production
       run: |
         cd backend
-        node --input-type=module -e "
-        import { refreshMatViews } from './src/db/trendsMatView.js';
-        refreshMatViews((err, result) => {
-          if (err) {
-            console.error('💥 Refresh failed:', err.message);
-            process.exit(1);
-          }
-          console.log('✅ Views refreshed successfully in', result.duration + 'ms');
-        });
-        "
+        npm run refresh:matviews
       
     - name: Check materialized view stats
       env:
