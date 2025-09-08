@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import dotenv from 'dotenv';
-import { initializeDatabase } from '../../src/db/db.js';
+import { initializeDatabase } from '../../src/db/connection.js';
 import MusicSyncService from '../../src/services/musicSync.js';
 import logger from '../../src/utils/logger.js';
 
