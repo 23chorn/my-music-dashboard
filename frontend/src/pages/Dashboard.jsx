@@ -102,7 +102,7 @@ export default function Dashboard() {
           </div>
         )}
         <div className="bg-gray-900 rounded-lg p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               title="Total Plays"
               value={formatValue(playCount) ?? "N/A"}
