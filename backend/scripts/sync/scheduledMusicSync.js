@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import dotenv from 'dotenv';
-import { initializeDatabase } from '../../src/db/connection.js';
+import { initializeDatabase, closeDatabase } from '../../src/db/connection.js';
 import MusicSyncService from '../../src/services/musicSync.js';
 import logger from '../../src/utils/logger.js';
 
@@ -144,6 +144,15 @@ async function main() {
   } catch (error) {
     console.error('❌ Script failed:', error.message);
     process.exit(1);
+  } finally {
+    // Clean up database connections
+    try {
+      await closeDatabase();
+      logger.info('Database connections closed');
+    } catch (error) {
+      logger.warn(`Error closing database: ${error.message}`);
+    }
+    process.exit(0);
   }
 }
 
