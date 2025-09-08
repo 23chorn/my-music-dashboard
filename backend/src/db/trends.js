@@ -16,7 +16,7 @@ export async function getTrendsData(days = 90, callback) {
         SELECT 
           generate_series(
             DATE_TRUNC('week', NOW() - INTERVAL '${days} days'),
-            DATE_TRUNC('week', NOW()),
+            DATE_TRUNC('week', NOW()) - INTERVAL '1 week',  -- Exclude current incomplete week
             INTERVAL '1 week'
           ) AS week_start
       ),

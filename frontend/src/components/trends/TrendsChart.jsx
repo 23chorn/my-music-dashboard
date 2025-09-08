@@ -21,14 +21,45 @@ const METRIC_OPTIONS = [
 const PERIOD_OPTIONS = [
   { key: 30, label: '1 Month' },
   { key: 60, label: '2 Months' },
-  { key: 90, label: '3 Months' }
+  { key: 90, label: '3 Months' },
+  { key: 180, label: '6 Months' },
+  { key: 365, label: '1 Year' },
+  { key: 730, label: '2 Years' },
+  { key: 1095, label: '3 Years' },
+  { key: -1, label: 'All Time' }
 ];
 
 export default function TrendsChart() {
-  const [selectedMetric, setSelectedMetric] = useState('replayRate');
+  const [selectedMetric, setSelectedMetric] = useState('hoursPerDay');
   const [selectedPeriod, setSelectedPeriod] = useState(90);
   
   const { trendsData, loading, error, updatePeriod, refresh } = useTrendsData(selectedPeriod);
+
+  // Determine if data spans more than one year and format accordingly
+  const formatDataWithYears = (data) => {
+    if (!data || data.length === 0) return data;
+    
+    // Check if data spans more than one year
+    const dates = data.map(d => new Date(d.date));
+    const years = [...new Set(dates.map(d => d.getFullYear()))];
+    const spansMultipleYears = years.length > 1;
+    
+    return data.map(item => ({
+      ...item,
+      formattedDate: spansMultipleYears 
+        ? new Date(item.date).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+          })
+        : (item.formattedDate || new Date(item.date).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric' 
+          }))
+    }));
+  };
+
+  const formattedTrendsData = formatDataWithYears(trendsData);
 
   const handlePeriodChange = (newPeriod) => {
     setSelectedPeriod(newPeriod);
@@ -59,7 +90,7 @@ export default function TrendsChart() {
     return [adjustedMin, adjustedMax];
   };
   
-  const yAxisDomain = getYAxisDomain(trendsData, selectedMetric);
+  const yAxisDomain = getYAxisDomain(formattedTrendsData, selectedMetric);
   
   if (loading) {
     return (
@@ -130,16 +161,19 @@ export default function TrendsChart() {
         </div>
       </div>
 
-      {trendsData.length > 0 ? (
+      {formattedTrendsData.length > 0 ? (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trendsData}>
+            <LineChart data={formattedTrendsData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis 
                 dataKey="formattedDate" 
                 stroke="#9ca3af"
                 fontSize={12}
                 tick={{ fill: '#9ca3af' }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
               />
               <YAxis 
                 stroke="#9ca3af"
@@ -176,9 +210,9 @@ export default function TrendsChart() {
         </div>
       )}
       
-      {trendsData.length > 0 && (
+      {formattedTrendsData.length > 0 && (
         <div className="mt-4 text-sm text-gray-400">
-          Showing {trendsData.length} weeks of data • Updated weekly
+          Showing {formattedTrendsData.length} weeks of data • Updated weekly
         </div>
       )}
     </div>

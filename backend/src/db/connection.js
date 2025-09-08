@@ -6,10 +6,18 @@ import logger from '../utils/logger.js';
 let pool;
 
 export function initializeDatabase() {
-  logger.info(`Initializing PostgreSQL database connection`);
+  // Determine which database to use based on DB_MODE environment variable
+  const dbMode = process.env.DB_MODE || 'production';
+  const databaseUrl = dbMode === 'test' ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL;
+  
+  if (!databaseUrl) {
+    throw new Error(`Database URL not configured for mode: ${dbMode}`);
+  }
+  
+  logger.info(`Initializing PostgreSQL database connection (mode: ${dbMode})`);
   
   const config = {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: databaseUrl,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     // Connection pool settings
     max: 20, // Maximum number of clients in the pool
@@ -53,7 +61,8 @@ export function initializeDatabase() {
       logger.error(`Database connection error: ${err.message}`);
       console.error('Database connection failed:', err);
     } else {
-      logger.info(`Connected to PostgreSQL database`);
+      const dbMode = process.env.DB_MODE || 'production';
+      logger.info(`Connected to PostgreSQL database (${dbMode} mode)`);
       release();
     }
   });

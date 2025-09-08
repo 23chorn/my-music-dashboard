@@ -13,7 +13,17 @@
     "sync:test": "node scripts/scheduledMusicSync.js test",
     "sync:run": "node scripts/scheduledMusicSync.js sync",
     "sync:force": "node scripts/scheduledMusicSync.js force",
-    "sync:status": "node scripts/scheduledMusicSync.js status"
+    "sync:status": "node scripts/scheduledMusicSync.js status",
+    "db:copy": "node scripts/db-manager.js copy",
+    "db:compare": "node scripts/db-manager.js compare",
+    "db:info": "node scripts/db-manager.js info",
+    "migrate": "node migrations/migration-runner.js migrate",
+    "migrate:status": "node migrations/migration-runner.js status",
+    "create:migration": "node scripts/create-migration.js",
+    "setup:matviews": "node scripts/setup-matviews.js",
+    "create:matviews": "node scripts/create-matviews-simple.js",
+    "check:matviews": "node scripts/check-matviews.js",
+    "update:matviews": "node scripts/update-matviews-complete-weeks.js"
   },
   "keywords": [],
   "author": "",
