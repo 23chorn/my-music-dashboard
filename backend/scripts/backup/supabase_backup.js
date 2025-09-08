@@ -33,10 +33,48 @@ class SupabaseBackup {
   constructor() {
     this.backupDir = './supabase_backups';
     this.timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    this.maxBackups = parseInt(process.env.MAX_BACKUP_RETENTION || '7'); // Keep last 7 backups by default
     
     // Ensure backup directory exists
     if (!fs.existsSync(this.backupDir)) {
       fs.mkdirSync(this.backupDir, { recursive: true });
+    }
+  }
+
+  // Clean up old backups, keeping only the most recent ones
+  async cleanupOldBackups() {
+    try {
+      console.log(`🧹 Cleaning up old backups (keeping last ${this.maxBackups})...`);
+      
+      const backupDirs = fs.readdirSync(this.backupDir)
+        .filter(dir => dir.startsWith('backup_'))
+        .map(dir => ({
+          name: dir,
+          path: path.join(this.backupDir, dir),
+          created: fs.statSync(path.join(this.backupDir, dir)).mtime
+        }))
+        .sort((a, b) => b.created - a.created); // Sort by newest first
+      
+      console.log(`   📁 Found ${backupDirs.length} backup directories`);
+      
+      // Keep only the most recent backups
+      const toDelete = backupDirs.slice(this.maxBackups);
+      
+      if (toDelete.length > 0) {
+        console.log(`   🗑️  Deleting ${toDelete.length} old backup(s):`);
+        
+        for (const backup of toDelete) {
+          console.log(`      • ${backup.name} (${backup.created.toISOString().split('T')[0]})`);
+          fs.rmSync(backup.path, { recursive: true, force: true });
+        }
+        
+        console.log(`   ✅ Cleanup complete - kept ${backupDirs.length - toDelete.length} recent backups`);
+      } else {
+        console.log(`   ✅ No cleanup needed - only ${backupDirs.length} backup(s) found`);
+      }
+      
+    } catch (error) {
+      console.warn(`⚠️  Backup cleanup failed: ${error.message}`);
     }
   }
 
@@ -448,8 +486,14 @@ const mode = process.argv[2] || 'backup';
 
 if (mode === 'backup') {
   const backup = new SupabaseBackup();
-  backup.backup();
+  await backup.backup();
+  await backup.cleanupOldBackups();
+} else if (mode === 'cleanup') {
+  const backup = new SupabaseBackup();
+  await backup.cleanupOldBackups();
 } else {
-  console.log('Usage: node supabase_backup.js [backup]');
+  console.log('Usage: node supabase_backup.js [backup|cleanup]');
+  console.log('  backup  - Create new backup and cleanup old ones');
+  console.log('  cleanup - Just cleanup old backups');
   console.log('To restore: cd to backup folder and run: node restore.js');
 }

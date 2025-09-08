@@ -99,6 +99,55 @@ export async function getBehaviorAnalysis(callback) {
          JOIN tracks t ON p.track_id = t.id 
          WHERE t.duration_ms IS NULL) AS tracksWithoutDuration
     `);
+
+    // Get session analysis data
+    const sessionResult = await pool().query(`
+      WITH session_analysis AS (
+        SELECT 
+          p.played_at,
+          t.duration_ms,
+          LAG(p.played_at) OVER (ORDER BY p.played_at) AS prev_played_at,
+          LAG(t.duration_ms) OVER (ORDER BY p.played_at) AS prev_duration_ms
+        FROM plays p
+        JOIN tracks t ON p.track_id = t.id
+        WHERE t.duration_ms IS NOT NULL
+        ORDER BY p.played_at
+      ),
+      sessions AS (
+        SELECT 
+          played_at,
+          duration_ms,
+          CASE 
+            WHEN prev_played_at IS NULL OR 
+                 EXTRACT(EPOCH FROM (played_at - prev_played_at)) * 1000 > (prev_duration_ms + 300000) -- 5 min gap
+            THEN 1 
+            ELSE 0 
+          END AS is_new_session
+        FROM session_analysis
+      ),
+      session_groups AS (
+        SELECT 
+          *,
+          SUM(is_new_session) OVER (ORDER BY played_at ROWS UNBOUNDED PRECEDING) AS session_id
+        FROM sessions
+      ),
+      session_stats AS (
+        SELECT 
+          session_id,
+          COUNT(*) AS tracks_in_session,
+          SUM(duration_ms) AS session_duration_ms,
+          DATE(MIN(played_at)) AS session_date
+        FROM session_groups
+        GROUP BY session_id
+      )
+      SELECT 
+        COUNT(*) AS total_sessions,
+        AVG(session_duration_ms) AS avg_session_duration_ms,
+        MAX(session_duration_ms) AS longest_session_ms,
+        AVG(tracks_in_session) AS avg_tracks_per_session,
+        COUNT(*) / NULLIF(COUNT(DISTINCT session_date), 0) AS avg_sessions_per_day
+      FROM session_stats
+    `);
     
     // Get play distribution for Shannon Entropy calculation
     const entropyResult = await pool().query(`
@@ -149,13 +198,26 @@ export async function getBehaviorAnalysis(callback) {
     // Score: 0 = all plays on one track, 100 = perfectly distributed plays
     const maxEntropy = uniqueTracks > 1 ? Math.log2(uniqueTracks) : 1;
     const diversityScore = maxEntropy > 0 ? ((shannonEntropy / maxEntropy) * 100).toFixed(1) : 0;
+
+    // Extract session metrics
+    const sessionData = sessionResult.rows[0] || {};
+    const totalSessions = parseInt(sessionData.total_sessions) || 0;
+    const avgSessionDuration = parseFloat(sessionData.avg_session_duration_ms) || 0;
+    const longestSession = parseFloat(sessionData.longest_session_ms) || 0;
+    const avgSessionsPerDay = parseFloat(sessionData.avg_sessions_per_day) || 0;
     
     const behaviorData = {
       repeatFactor: parseFloat(repeatFactor),
       diversityScore: parseFloat(diversityScore),
       totalListeningTimeMs: totalListeningTime,
       tracksWithoutDuration: tracksWithoutDuration,
-      averageTrackDurationMs: Math.round(averageTrackDuration)
+      averageTrackDurationMs: Math.round(averageTrackDuration),
+      
+      // Session metrics
+      totalSessions: totalSessions,
+      averageSessionDurationMs: Math.round(avgSessionDuration),
+      longestSessionDurationMs: Math.round(longestSession),
+      averageSessionsPerDay: Math.round(avgSessionsPerDay * 10) / 10
     };
     
     logger.info(`getBehaviorAnalysis returned behavior data: diversity=${diversityScore}% (Shannon entropy=${shannonEntropy.toFixed(3)})`);
