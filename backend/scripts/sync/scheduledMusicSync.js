@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import dotenv from 'dotenv';
-import { initializeDatabase } from '../src/db/db.js';
-import MusicSyncService from '../src/services/musicSync.js';
+import { initializeDatabase } from '../../src/db/db.js';
+import MusicSyncService from '../../src/services/musicSync.js';
 import logger from '../../src/utils/logger.js';
 
 // Load environment variables
