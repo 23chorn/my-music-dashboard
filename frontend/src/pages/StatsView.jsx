@@ -7,6 +7,7 @@ import SystemInfo from "../components/stats/SystemInfo";
 import CalculatedMetrics from "../components/stats/CalculatedMetrics";
 import DiscoveryFreshness from "../components/stats/DiscoveryFreshness";
 import TrendsChart from "../components/trends/TrendsChart";
+import CumulativeDiscoveryChart from "../components/trends/CumulativeDiscoveryChart";
 import useStatsData from "../hooks/useStatsData";
 
 export default function StatsView() {
@@ -25,6 +26,7 @@ export default function StatsView() {
         <DiscoveryFreshness discoveryData={discoveryData} />
         <CalculatedMetrics calculatedMetrics={calculatedMetrics} />
         <TrendsChart />
+        <CumulativeDiscoveryChart />
         <DataQuality statsData={statsData} behaviorData={behaviorData} />
         <SystemInfo timezoneInfo={timezoneInfo} />
       </div>

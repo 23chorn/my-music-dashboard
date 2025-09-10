@@ -1,6 +1,6 @@
 import express from 'express';
 import { getTrendsData } from '../db/trends.js';
-import { getTrendsDataFromMatView, checkMatViewFreshness, refreshMatViews, getMatViewStats } from '../db/trendsMatView.js';
+import { getTrendsDataFromMatView, checkMatViewFreshness, refreshMatViews, getMatViewStats, getCumulativeDiscoveryData } from '../db/trendsMatView.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
@@ -73,6 +73,29 @@ router.get('/matview/stats', (req, res) => {
     }
     
     res.json(stats);
+  });
+});
+
+// Get cumulative discovery data (always uses materialized view for performance)
+router.get('/cumulative-discovery', (req, res) => {
+  logger.info('GET /api/trends/cumulative-discovery called');
+  let days = parseInt(req.query.days) || 365; // Default to 1 year for cumulative view
+  
+  // Handle "all time" requests
+  if (days === -1) {
+    days = 99999; // Very large number for all time
+  }
+  
+  logger.info(`Fetching cumulative discovery data for ${days === 99999 ? 'all time' : days + ' days'} period`);
+  
+  getCumulativeDiscoveryData(days, (err, data) => {
+    if (err) {
+      logger.error(`Cumulative discovery error: ${err.message}`);
+      return res.status(500).json({ error: 'Failed to fetch cumulative discovery data' });
+    }
+    
+    logger.info(`Returning ${data.length} weeks of cumulative discovery data`);
+    res.json(data);
   });
 });
 

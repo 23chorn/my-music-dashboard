@@ -230,11 +230,24 @@ export class LegacySpotifyDatabaseService {
         return externalId.rows[0].entity_id;
       }
 
-      // Try to find by name (case insensitive) - could match multiple, that's ok
-      const existing = await getSharedPool().query(
-        'SELECT id FROM tracks WHERE LOWER(name) = LOWER($1) LIMIT 1',
-        [trackData.name]
-      );
+      // Try to find by name and primary artist (case insensitive) to avoid duplicate tracks with same name
+      let existing = { rows: [] };
+      if (trackData.primaryArtistId) {
+        existing = await getSharedPool().query(
+          `SELECT DISTINCT t.id FROM tracks t
+           JOIN track_artists ta ON t.id = ta.track_id AND ta.is_primary = true
+           WHERE LOWER(t.name) = LOWER($1) AND ta.artist_id = $2 LIMIT 1`,
+          [trackData.name, trackData.primaryArtistId]
+        );
+      }
+      
+      // If no primary artist provided or no match found, fall back to name-only search
+      if (existing.rows.length === 0) {
+        existing = await getSharedPool().query(
+          'SELECT id FROM tracks WHERE LOWER(name) = LOWER($1) LIMIT 1',
+          [trackData.name]
+        );
+      }
 
       let trackId;
 
@@ -345,12 +358,60 @@ export class LegacySpotifyDatabaseService {
   // Insert play record
   async insertPlay(trackId, playedAt) {
     try {
+      // Validate playedAt timestamp
+      let validTimestamp = playedAt;
+      
+      if (playedAt instanceof Date) {
+        if (isNaN(playedAt.getTime())) {
+          logger.warn(`Skipping play with invalid Date object for track ID: ${trackId}`);
+          return false;
+        }
+      } else if (typeof playedAt === 'string') {
+        validTimestamp = new Date(playedAt);
+        if (isNaN(validTimestamp.getTime())) {
+          logger.warn(`Skipping play with invalid date string '${playedAt}' for track ID: ${trackId}`);
+          return false;
+        }
+      } else if (typeof playedAt === 'number') {
+        // Validate numeric timestamp
+        if (playedAt <= 0) {
+          logger.warn(`Skipping play with zero/negative timestamp ${playedAt} for track ID: ${trackId}`);
+          return false;
+        }
+        
+        // Convert if it looks like seconds (before year 3000)
+        const threshold = 32503680000; // Year 3000 in seconds
+        if (playedAt < threshold) {
+          validTimestamp = new Date(playedAt * 1000);
+        } else {
+          validTimestamp = new Date(playedAt);
+        }
+        
+        if (isNaN(validTimestamp.getTime())) {
+          logger.warn(`Skipping play with timestamp that produces invalid date: ${playedAt} for track ID: ${trackId}`);
+          return false;
+        }
+      } else {
+        logger.warn(`Skipping play with unsupported timestamp type '${typeof playedAt}': ${playedAt} for track ID: ${trackId}`);
+        return false;
+      }
+      
+      // Additional validation - ensure timestamp is reasonable
+      const now = new Date();
+      const minDate = new Date('1990-01-01');
+      const maxDate = new Date(now.getTime() + (24 * 60 * 60 * 1000)); // 1 day in future max
+      
+      if (validTimestamp < minDate || validTimestamp > maxDate) {
+        logger.warn(`Skipping play with unreasonable timestamp: ${validTimestamp.toISOString()} (${playedAt}) for track ID: ${trackId}`);
+        return false;
+      }
+
       // Check for duplicate play (same track + timestamp within 1 minute)
       const existing = await getSharedPool().query(
         `SELECT id FROM plays 
          WHERE track_id = $1 
          AND ABS(EXTRACT(EPOCH FROM (played_at - $2))) < 60`,
-        [trackId, playedAt]
+        [trackId, validTimestamp]
       );
 
       if (existing.rows.length > 0) {
@@ -359,7 +420,7 @@ export class LegacySpotifyDatabaseService {
 
       await getSharedPool().query(
         'INSERT INTO plays (track_id, played_at) VALUES ($1, $2)',
-        [trackId, playedAt]
+        [trackId, validTimestamp]
       );
 
       return true; // New play inserted

@@ -175,6 +175,72 @@ export async function getMatViewStats(callback) {
   }
 }
 
+// Get cumulative discovery data from materialized view
+export async function getCumulativeDiscoveryData(days = 90, callback) {
+  logger.info(`getCumulativeDiscoveryData called with days=${days}`);
+  
+  try {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Query the cumulative discovery materialized view
+    const query = `
+      SELECT 
+        cdm.week_start as date,
+        cdm.week_end,
+        
+        -- Weekly new discoveries
+        cdm.new_tracks_this_week as "newTracksThisWeek",
+        cdm.new_artists_this_week as "newArtistsThisWeek", 
+        cdm.new_albums_this_week as "newAlbumsThisWeek",
+        
+        -- Cumulative totals
+        cdm.cumulative_tracks as "cumulativeTracks",
+        cdm.cumulative_artists as "cumulativeArtists",
+        cdm.cumulative_albums as "cumulativeAlbums",
+        
+        -- Discovery velocity (smoothed trends)
+        cdm.track_discovery_velocity as "trackDiscoveryVelocity",
+        cdm.artist_discovery_velocity as "artistDiscoveryVelocity",
+        cdm.album_discovery_velocity as "albumDiscoveryVelocity"
+        
+      FROM cumulative_discovery_metrics cdm
+      WHERE cdm.week_start >= $1
+      ORDER BY cdm.week_start
+    `;
+    
+    const result = await pool().query(query, [startDate]);
+    
+    // Format the results
+    const cumulativeData = result.rows.map(row => ({
+      date: row.date,
+      week_end: row.week_end,
+      
+      // Weekly discoveries
+      newTracksThisWeek: parseInt(row.newTracksThisWeek) || 0,
+      newArtistsThisWeek: parseInt(row.newArtistsThisWeek) || 0,
+      newAlbumsThisWeek: parseInt(row.newAlbumsThisWeek) || 0,
+      
+      // Cumulative totals
+      cumulativeTracks: parseInt(row.cumulativeTracks) || 0,
+      cumulativeArtists: parseInt(row.cumulativeArtists) || 0,
+      cumulativeAlbums: parseInt(row.cumulativeAlbums) || 0,
+      
+      // Smoothed velocities
+      trackDiscoveryVelocity: parseFloat(row.trackDiscoveryVelocity) || 0,
+      artistDiscoveryVelocity: parseFloat(row.artistDiscoveryVelocity) || 0,
+      albumDiscoveryVelocity: parseFloat(row.albumDiscoveryVelocity) || 0
+    }));
+    
+    logger.info(`getCumulativeDiscoveryData returned ${cumulativeData.length} weeks of cumulative data`);
+    callback(null, cumulativeData);
+    
+  } catch (err) {
+    logger.error(`getCumulativeDiscoveryData DB error: ${err}`);
+    callback(err);
+  }
+}
+
 // Hybrid approach: use materialized views for historical data, real-time for recent
 export async function getHybridTrendsData(days = 90, callback) {
   logger.info(`getHybridTrendsData called with days=${days}`);

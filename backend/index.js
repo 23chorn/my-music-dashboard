@@ -19,6 +19,7 @@ import spotifyRouter from "./src/routes/spotify.js";
 import systemRouter from "./src/routes/system.js";
 import syncRouter from "./src/routes/sync.js";
 import trendsRouter from "./src/routes/trends.js";
+import discoveriesRouter from "./src/routes/discoveries.js";
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/api/spotify', spotifyRouter);
 app.use('/api/system', systemRouter);
 app.use('/api/sync', syncRouter);
 app.use('/api/trends', trendsRouter);
+app.use('/api/recent-discoveries', discoveriesRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");

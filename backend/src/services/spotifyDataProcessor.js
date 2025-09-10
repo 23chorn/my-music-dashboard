@@ -12,7 +12,23 @@ class SpotifyDataProcessor {
 
     for (const item of recentlyPlayedData.items) {
       const track = item.track;
+      
+      // Validate played_at timestamp
       const playedAt = new Date(item.played_at);
+      if (isNaN(playedAt.getTime())) {
+        logger.warn(`Skipping track "${track.name}" due to invalid played_at timestamp: ${item.played_at}`);
+        continue;
+      }
+      
+      // Additional validation - ensure timestamp is reasonable
+      const now = new Date();
+      const minDate = new Date('1990-01-01');
+      const maxDate = new Date(now.getTime() + (24 * 60 * 60 * 1000)); // 1 day in future max
+      
+      if (playedAt < minDate || playedAt > maxDate) {
+        logger.warn(`Skipping track "${track.name}" due to unreasonable played_at timestamp: ${playedAt.toISOString()}`);
+        continue;
+      }
 
       // Extract all artists for this track (first artist is primary)
       const trackArtists = track.artists.map((artist, index) => ({

@@ -61,13 +61,32 @@ export async function fetchAllRecentTracks({ from }) {
     logger.info(`First track sample: ${JSON.stringify(tracks[0])}`);
     
     // Map to your DB format if needed
-    const mappedTracks = tracks.map(t => ({
-      track: t.name,
-      artist: t.artist && (t.artist.name || t.artist['#text']),
-      album: t.album && t.album['#text'],
-      timestamp: t.date?.uts ? Number(t.date.uts) : null
-    })).filter(t => t.timestamp);
-    logger.info(`Mapped ${mappedTracks.length} tracks with valid timestamps`);
+    const mappedTracks = tracks.map(t => {
+      let timestamp = null;
+      
+      // Extract timestamp from Last.fm response
+      if (t.date?.uts) {
+        const uts = Number(t.date.uts);
+        // Validate timestamp - should be positive and reasonable
+        if (uts > 0 && uts > 946684800 && uts < (Date.now() / 1000 + 86400)) { // After year 2000, not more than 1 day in future
+          timestamp = uts;
+        } else {
+          logger.warn(`Invalid Last.fm timestamp ${uts} for track "${t.name}" by "${t.artist?.name || t.artist?.['#text']}"`);
+        }
+      } else {
+        logger.warn(`Missing timestamp for track "${t.name}" by "${t.artist?.name || t.artist?.['#text']}"`);
+      }
+      
+      return {
+        track: t.name,
+        artist: t.artist && (t.artist.name || t.artist['#text']),
+        album: t.album && t.album['#text'],
+        timestamp: timestamp,
+        played_at: timestamp // For compatibility
+      };
+    }).filter(t => t.timestamp); // Only keep tracks with valid timestamps
+    
+    logger.info(`Mapped ${mappedTracks.length} tracks with valid timestamps from ${tracks.length} total tracks`);
     return mappedTracks;
   } catch (error) {
     logger.error(`Error fetching recent tracks from Last.fm: ${error}`);

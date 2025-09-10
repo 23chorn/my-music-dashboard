@@ -73,10 +73,13 @@ export async function addPlaysDeduped(plays, callback) {
           }
         }
 
-        // Find or create track
+        // Find or create track (check by name AND primary artist to avoid duplicates)
         let trackResult = await client.query(
-          `SELECT id FROM tracks WHERE name = $1`,
-          [play.track]
+          `SELECT DISTINCT t.id 
+           FROM tracks t
+           JOIN track_artists ta ON t.id = ta.track_id AND ta.is_primary = true
+           WHERE t.name = $1 AND ta.artist_id = $2`,
+          [play.track, artistId]
         );
         
         let trackId;
@@ -90,9 +93,9 @@ export async function addPlaysDeduped(plays, callback) {
           trackId = trackResult.rows[0].id;
         }
 
-        // Link track to artist
+        // Link track to artist (mark as primary since this is the main artist from the play data)
         await client.query(
-          `INSERT INTO track_artists (track_id, artist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+          `INSERT INTO track_artists (track_id, artist_id, is_primary) VALUES ($1, $2, true) ON CONFLICT (track_id, artist_id) DO UPDATE SET is_primary = true`,
           [trackId, artistId]
         );
 
@@ -106,6 +109,13 @@ export async function addPlaysDeduped(plays, callback) {
 
         // Check if play already exists
         const formattedTimestamp = formatTimestampForDB(play.played_at);
+        
+        // Skip this play if timestamp formatting failed
+        if (!formattedTimestamp) {
+          logger.warn(`Skipping play due to invalid timestamp: ${play.played_at} for track: ${play.track} by ${play.artist}`);
+          continue;
+        }
+        
         const existingPlay = await client.query(
           `SELECT id FROM plays WHERE track_id = $1 AND played_at = $2`,
           [trackId, formattedTimestamp]
