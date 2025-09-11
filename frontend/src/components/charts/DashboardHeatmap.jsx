@@ -123,21 +123,26 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
   const { weeks, monthLabels } = generateGitHubStyleGrid();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg sm:text-2xl font-semibold text-blue-400">
-          Overall Activity
-        </h2>
-        <button
-          className="p-0.5 hover:bg-gray-800 hover:bg-opacity-50 rounded transition ml-2 text-gray-400 hover:text-gray-300"
-          onClick={() => setOpen(o => !o)}
-          aria-label={open ? "Collapse section" : "Expand section"}
-        >
-          {open ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
-        </button>
+    <div className="bg-gray-900 rounded-lg p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <h2 
+            className="text-lg sm:text-2xl font-semibold text-blue-400 cursor-pointer hover:text-blue-300 transition-colors"
+            onClick={() => setOpen(o => !o)}
+          >
+            Daily play heatmap
+          </h2>
+          <button
+            className="p-0.5 hover:bg-gray-800 hover:bg-opacity-50 rounded transition ml-2 text-gray-400 hover:text-gray-300"
+            onClick={() => setOpen(o => !o)}
+            aria-label={open ? "Collapse section" : "Expand section"}
+          >
+            {open ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+          </button>
+        </div>
       </div>
       {open && (
-        <div className="bg-gray-900 rounded-lg p-4 w-fit">
+        <div className="bg-gray-800 rounded-lg p-4 w-fit">
           <div className="space-y-3">
             <div className="text-sm text-gray-300">
               <p>

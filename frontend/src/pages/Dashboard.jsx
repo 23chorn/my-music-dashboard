@@ -234,9 +234,7 @@ export default function Dashboard() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
-        <DashboardHeatmap ref={heatmapRef} />
-      </div>
+      <DashboardHeatmap ref={heatmapRef} />
     </PageLayout>
   );
 }

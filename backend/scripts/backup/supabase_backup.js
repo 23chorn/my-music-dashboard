@@ -204,7 +204,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load environment variables from the backend directory  
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 async function restore() {
   // Create Supabase client inside function to avoid issues with --help
@@ -264,12 +264,49 @@ async function restore() {
           return rest;
         });
 
-        const { data: inserted, error } = await supabase
+        // Try regular insert first, fallback to individual inserts if duplicates exist
+        let { data: inserted, error } = await supabase
           .from(table)
           .insert(batchWithoutIds)
-          .select('id, name');  // Get back the new IDs and names for mapping
+          .select('id, name');
 
-        if (error) throw error;
+        if (error) {
+          console.log(\`   ⚠️ Error inserting batch for \${table}:\`, error.message);
+          console.log(\`   🔄 Trying individual inserts to handle duplicates...\`);
+          
+          // Try inserting one by one to handle duplicates
+          const insertedOneByOne = [];
+          for (let rowIndex = 0; rowIndex < batchWithoutIds.length; rowIndex++) {
+            const row = batchWithoutIds[rowIndex];
+            try {
+              const { data: singleInsert, error: singleError } = await supabase
+                .from(table)
+                .insert([row])
+                .select('id, name');
+              
+              if (singleError) {
+                // Check if already exists by name
+                const { data: existing } = await supabase
+                  .from(table)
+                  .select('id, name')
+                  .eq('name', row.name)
+                  .single();
+                
+                if (existing) {
+                  insertedOneByOne.push(existing);
+                  console.log(\`   ℹ️  Using existing \${table}: \${row.name}\`);
+                } else {
+                  console.log(\`   ❌ Could not insert or find \${table}: \${row.name}\`);
+                }
+              } else if (singleInsert && singleInsert[0]) {
+                insertedOneByOne.push(singleInsert[0]);
+              }
+            } catch (singleError) {
+              console.log(\`   ⚠️ Error with \${table}: \${row.name} - \${singleError.message}\`);
+            }
+          }
+          inserted = insertedOneByOne;
+        }
 
         // Create mapping from old ID to new ID using name as key
         batch.forEach((originalRow, idx) => {

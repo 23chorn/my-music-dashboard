@@ -79,7 +79,7 @@ export default function ExploreView() {
       try {
         let result = [];
         const options = {
-          page: sortBy === "plays" ? page : 1, // Use page for plays sort, ignore for alphabetical
+          page: page, // Use pagination for both plays and alphabetical sorting
           limit: PAGE_SIZE,
           sortBy,
           alphaCategory: sortBy === "alpha" ? alphaCategory : null,
@@ -124,7 +124,7 @@ export default function ExploreView() {
     sub: `${item.playcount ?? 0} plays`,
     image: item.image_url || undefined, // Artists and albums might have images
     link: `/${dataType}/${item.id}`,
-    number: sortBy === "plays" ? (page - 1) * PAGE_SIZE + idx + 1 : undefined
+    number: (page - 1) * PAGE_SIZE + idx + 1 // Show numbers for all sorting types
   }));
 
   return (
@@ -136,22 +136,35 @@ export default function ExploreView() {
         <DataTypeSelector 
           dataTypes={DATA_TYPES}
           selectedType={dataType}
-          onTypeChange={setDataType}
+          onTypeChange={(newDataType) => {
+            setDataType(newDataType);
+            setPage(1); // Reset to first page when changing data type
+          }}
         />
         
         <SortControls 
           sortBy={sortBy}
-          onSortChange={setSortBy}
+          onSortChange={(newSortBy) => {
+            setSortBy(newSortBy);
+            setPage(1); // Reset to first page when changing sort method
+          }}
         />
         
         <PlayCountFilters
           minPlays={minPlays}
           maxPlays={maxPlays}
-          onMinPlaysChange={setMinPlays}
-          onMaxPlaysChange={setMaxPlays}
+          onMinPlaysChange={(newMinPlays) => {
+            setMinPlays(newMinPlays);
+            setPage(1); // Reset to first page when changing filters
+          }}
+          onMaxPlaysChange={(newMaxPlays) => {
+            setMaxPlays(newMaxPlays);
+            setPage(1); // Reset to first page when changing filters
+          }}
           onClearFilters={() => {
             setMinPlays('');
             setMaxPlays('');
+            setPage(1); // Reset to first page when clearing filters
           }}
         />
       </div>
@@ -160,7 +173,10 @@ export default function ExploreView() {
         <AlphaCategorySelector 
           categories={alphaCategories}
           selectedCategory={alphaCategory}
-          onCategoryChange={setAlphaCategory}
+          onCategoryChange={(newCategory) => {
+            setAlphaCategory(newCategory);
+            setPage(1); // Reset to first page when changing alpha category
+          }}
           categoryLabel={categoryLabel}
         />
       )}
@@ -179,14 +195,12 @@ export default function ExploreView() {
         />
       )}
 
-      {sortBy === "plays" && (
-        <PaginationControls
-          currentPage={page}
-          onPageChange={setPage}
-          hasNextPage={data.length >= PAGE_SIZE}
-          pageSize={PAGE_SIZE}
-        />
-      )}
+      <PaginationControls
+        currentPage={page}
+        onPageChange={setPage}
+        hasNextPage={data.length >= PAGE_SIZE}
+        pageSize={PAGE_SIZE}
+      />
     </PageLayout>
   );
 }
