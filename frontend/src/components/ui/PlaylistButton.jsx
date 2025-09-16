@@ -17,9 +17,9 @@ export default function PlaylistButton({ period, limit, className = '' }) {
 
       setMessage(`✅ Created "${result.playlist.name}" with ${result.tracksAdded}/${result.totalTracks} tracks!`);
 
-      // Open the playlist in Spotify
-      if (result.playlist.url) {
-        window.open(result.playlist.url, '_blank');
+      // Open the playlist in Spotify desktop app
+      if (result.playlist.uri) {
+        window.location.href = result.playlist.uri;
       }
 
       // Clear message after 5 seconds

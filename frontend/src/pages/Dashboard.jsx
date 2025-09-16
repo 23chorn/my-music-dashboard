@@ -158,7 +158,9 @@ export default function Dashboard() {
               value: artist.artist,
               sub: formatValue(`${artist.playcount ?? 0} plays`),
               link: artist.artistId ? `/artist/${artist.artistId}` : undefined,
-              image: artist.image
+              image: artist.image,
+              entityId: artist.artistId,
+              entityType: 'artist'
             })}
             layout='grid'
             collapsible={true}
@@ -182,7 +184,9 @@ export default function Dashboard() {
               value: album.album,
               sub: formatValue(`${album.playcount ?? 0} plays`),
               link: album.albumId ? `/album/${album.albumId}` : undefined,
-              image: album.image
+              image: album.image,
+              entityId: album.albumId,
+              entityType: 'album'
             })}
             layout='grid'
             collapsible={true}
@@ -207,7 +211,9 @@ export default function Dashboard() {
               album: track.album,
               image: track.albumImage,
               sub: formatValue(`${track.playcount ?? 0} plays`),
-              link: track.id ? `/track/${track.id}` : undefined
+              link: track.id ? `/track/${track.id}` : undefined,
+              entityId: track.id,
+              entityType: 'track'
             })}
             layout='grid'
             collapsible={true}
@@ -235,7 +241,9 @@ export default function Dashboard() {
               value: track.artist,
               album: track.album,
               sub: formatDateTime(track.timestamp),
-              link: track.id ? `/track/${track.id}` : undefined
+              link: track.id ? `/track/${track.id}` : undefined,
+              entityId: track.id,
+              entityType: 'track'
             })}
             collapsible={true}
           />

@@ -3,6 +3,7 @@ const router = express.Router();
 import MusicSyncService from '../services/musicSync.js';
 import SpotifyService from '../services/spotify.js';
 import { getTopTracksForPlaylist } from '../db/topQueries.js';
+import { getPool } from '../db/connection.js';
 import logger from '../utils/logger.js';
 
 // Use the main music sync service that handles both Spotify and Last.fm
@@ -203,6 +204,7 @@ router.post('/create-playlist', async (req, res) => {
         id: playlist.id,
         name: playlist.name,
         url: playlist.external_urls.spotify,
+        uri: playlist.uri,
         description: playlist.description
       },
       tracksAdded: addedCount,
@@ -214,6 +216,58 @@ router.post('/create-playlist', async (req, res) => {
     logger.error(`Error creating playlist: ${error.message}`);
     res.status(500).json({
       error: 'Failed to create playlist',
+      message: error.message
+    });
+  }
+});
+
+// GET /api/spotify/entity-url - Get Spotify URL for an entity (track, artist, album)
+router.get('/entity-url', async (req, res) => {
+  try {
+    const { id, type = 'track' } = req.query;
+
+    if (!id) {
+      return res.status(400).json({
+        error: 'Missing entity ID',
+        message: 'Entity ID is required'
+      });
+    }
+
+    const pool = getPool();
+
+    // Get Spotify ID from external_ids table
+    const externalIdResult = await pool.query(
+      'SELECT external_id FROM external_ids WHERE entity_id = $1 AND entity_type = $2 AND source = $3',
+      [id, type, 'spotify']
+    );
+
+    if (externalIdResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Not found',
+        message: 'No Spotify ID found for this entity'
+      });
+    }
+
+    const spotifyUri = externalIdResult.rows[0].external_id;
+
+    // Convert Spotify URI to web URL
+    // spotify:track:1ZZCkUToFBOEwjssB1hzU4 -> https://open.spotify.com/track/1ZZCkUToFBOEwjssB1hzU4
+    const spotifyId = spotifyUri.split(':').pop();
+    const spotifyUrl = `https://open.spotify.com/${type}/${spotifyId}`;
+
+    logger.info(`Found Spotify URL for ${type} ${id}: ${spotifyUrl}`);
+
+    res.json({
+      success: true,
+      url: spotifyUrl,
+      spotifyId: spotifyId,
+      spotifyUri: spotifyUri
+    });
+
+  } catch (error) {
+    logger.error(`Error getting Spotify URL: ${error.message}`);
+    res.status(500).json({
+      error: 'Failed to get Spotify URL',
       message: error.message
     });
   }
