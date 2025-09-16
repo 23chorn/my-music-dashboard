@@ -166,11 +166,33 @@ class SpotifyMusicSync {
         }
 
         // 6. Insert track-artist relationships
+        // Group by track to handle primary artist constraints properly
+        const trackArtistsByTrack = new Map();
         for (const trackArtist of processedData.trackArtists) {
           const trackId = trackIdMap.get(trackArtist.trackSpotifyId);
           const artistId = artistIdMap.get(trackArtist.artistSpotifyId);
           if (trackId && artistId) {
-            await this.dbService.insertTrackArtistRelationship(trackId, artistId, trackArtist.isPrimary);
+            if (!trackArtistsByTrack.has(trackId)) {
+              trackArtistsByTrack.set(trackId, []);
+            }
+            trackArtistsByTrack.get(trackId).push({
+              artistId,
+              isPrimary: trackArtist.isPrimary
+            });
+          }
+        }
+
+        // Insert track-artist relationships one track at a time to avoid primary conflicts
+        for (const [trackId, artistRelationships] of trackArtistsByTrack) {
+          // Sort so primary artist is first
+          artistRelationships.sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
+          
+          for (const relationship of artistRelationships) {
+            await this.dbService.insertTrackArtistRelationship(
+              trackId, 
+              relationship.artistId, 
+              relationship.isPrimary
+            );
           }
         }
 

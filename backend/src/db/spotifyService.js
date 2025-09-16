@@ -78,21 +78,30 @@ export class LegacySpotifyDatabaseService {
   // Find or create artist by name, return internal ID
   async findOrCreateArtist(artistData) {
     try {
-      // First try to find by Spotify ID in external_ids
+      // Normalize Spotify ID to base form for consistent lookup
+      const baseSpotifyId = artistData.spotifyId.replace('spotify:artist:', '');
+      
+      // First try to find by Spotify ID in external_ids (check both URI and base formats)
       const externalId = await getSharedPool().query(
         `SELECT entity_id FROM external_ids 
-         WHERE entity_type = 'artist' AND source = 'spotify' AND external_id = $1`,
-        [artistData.spotifyId]
+         WHERE entity_type = 'artist' AND source = 'spotify' 
+         AND (external_id = $1 OR external_id = $2)`,
+        [baseSpotifyId, `spotify:artist:${baseSpotifyId}`]
       );
 
       if (externalId.rows.length > 0) {
         return externalId.rows[0].entity_id;
       }
 
-      // Try to find by name (case insensitive)
+      // Normalize artist name for better matching
+      const normalizedName = artistData.name.trim().replace(/\s+/g, ' ');
+
+      // Try to find by normalized name (case insensitive)
       const existing = await getSharedPool().query(
-        'SELECT id FROM artists WHERE LOWER(name) = LOWER($1)',
-        [artistData.name]
+        `SELECT id FROM artists 
+         WHERE LOWER(TRIM(REGEXP_REPLACE(name, '\\s+', ' ', 'g'))) = LOWER($1)
+         LIMIT 1`,
+        [normalizedName]
       );
 
       let artistId;
@@ -117,9 +126,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Store Spotify ID mapping (ensure proper URI format)
-      const spotifyUri = artistData.spotifyId.startsWith('spotify:') 
-        ? artistData.spotifyId 
-        : `spotify:artist:${artistData.spotifyId}`;
+      const spotifyUri = `spotify:artist:${baseSpotifyId}`;
         
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
@@ -138,11 +145,15 @@ export class LegacySpotifyDatabaseService {
   // Find or create album by name, return internal ID
   async findOrCreateAlbum(albumData) {
     try {
-      // First try to find by Spotify ID
+      // Normalize Spotify ID to base form for consistent lookup
+      const baseSpotifyId = albumData.spotifyId.replace('spotify:album:', '');
+      
+      // First try to find by Spotify ID (check both URI and base formats)
       const externalId = await getSharedPool().query(
         `SELECT entity_id FROM external_ids 
-         WHERE entity_type = 'album' AND source = 'spotify' AND external_id = $1`,
-        [albumData.spotifyId]
+         WHERE entity_type = 'album' AND source = 'spotify' 
+         AND (external_id = $1 OR external_id = $2)`,
+        [baseSpotifyId, `spotify:album:${baseSpotifyId}`]
       );
 
       if (externalId.rows.length > 0) {
@@ -160,7 +171,7 @@ export class LegacySpotifyDatabaseService {
            CASE WHEN name = $2 THEN 1 ELSE 2 END, -- Prefer exact match
            LENGTH(name) -- Then prefer shorter names
          LIMIT 1`,
-        [normalizedName.toLowerCase(), albumData.name]
+        [normalizedName, albumData.name]
       );
 
       let albumId;
@@ -198,9 +209,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Store Spotify ID mapping (ensure proper URI format)
-      const spotifyUri = albumData.spotifyId.startsWith('spotify:') 
-        ? albumData.spotifyId 
-        : `spotify:album:${albumData.spotifyId}`;
+      const spotifyUri = `spotify:album:${baseSpotifyId}`;
         
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
@@ -219,35 +228,32 @@ export class LegacySpotifyDatabaseService {
   // Find or create track by name, return internal ID
   async findOrCreateTrack(trackData) {
     try {
-      // First try to find by Spotify ID
+      // Normalize Spotify ID to base form for consistent lookup
+      const baseSpotifyId = trackData.spotifyId.replace('spotify:track:', '');
+      
+      // First try to find by Spotify ID (check both URI and base formats)
       const externalId = await getSharedPool().query(
         `SELECT entity_id FROM external_ids 
-         WHERE entity_type = 'track' AND source = 'spotify' AND external_id = $1`,
-        [trackData.spotifyId]
+         WHERE entity_type = 'track' AND source = 'spotify' 
+         AND (external_id = $1 OR external_id = $2)`,
+        [baseSpotifyId, `spotify:track:${baseSpotifyId}`]
       );
 
       if (externalId.rows.length > 0) {
         return externalId.rows[0].entity_id;
       }
 
-      // Try to find by name and primary artist (case insensitive) to avoid duplicate tracks with same name
-      let existing = { rows: [] };
-      if (trackData.primaryArtistId) {
-        existing = await getSharedPool().query(
-          `SELECT DISTINCT t.id FROM tracks t
-           JOIN track_artists ta ON t.id = ta.track_id AND ta.is_primary = true
-           WHERE LOWER(t.name) = LOWER($1) AND ta.artist_id = $2 LIMIT 1`,
-          [trackData.name, trackData.primaryArtistId]
-        );
-      }
-      
-      // If no primary artist provided or no match found, fall back to name-only search
-      if (existing.rows.length === 0) {
-        existing = await getSharedPool().query(
-          'SELECT id FROM tracks WHERE LOWER(name) = LOWER($1) LIMIT 1',
-          [trackData.name]
-        );
-      }
+      // Normalize track name for better matching
+      const normalizedName = trackData.name.trim().replace(/\s+/g, ' ');
+
+      // For duplicate prevention, try to find by normalized name only
+      // (We can't use primaryArtistId here as it's not available at this stage)
+      const existing = await getSharedPool().query(
+        `SELECT id FROM tracks 
+         WHERE LOWER(TRIM(REGEXP_REPLACE(name, '\\s+', ' ', 'g'))) = LOWER($1) 
+         LIMIT 1`,
+        [normalizedName]
+      );
 
       let trackId;
 
@@ -274,9 +280,7 @@ export class LegacySpotifyDatabaseService {
       }
 
       // Store Spotify ID mapping (ensure proper URI format)
-      const spotifyUri = trackData.spotifyId.startsWith('spotify:') 
-        ? trackData.spotifyId 
-        : `spotify:track:${trackData.spotifyId}`;
+      const spotifyUri = `spotify:track:${baseSpotifyId}`;
         
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
@@ -295,6 +299,14 @@ export class LegacySpotifyDatabaseService {
   // Insert track-artist relationship
   async insertTrackArtistRelationship(trackId, artistId, isPrimary = false) {
     try {
+      if (isPrimary) {
+        // If setting as primary, first remove primary flag from other artists for this track
+        await getSharedPool().query(
+          'UPDATE track_artists SET is_primary = false WHERE track_id = $1 AND artist_id != $2',
+          [trackId, artistId]
+        );
+      }
+      
       await getSharedPool().query(
         `INSERT INTO track_artists (track_id, artist_id, is_primary) 
          VALUES ($1, $2, $3) 
