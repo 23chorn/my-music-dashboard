@@ -1,6 +1,7 @@
 import SpotifyMusicSync from './spotifyMusicSync.js';
 import { fetchAllRecentTracks } from './lastfm.js';
 import { getLastTimestamp, addPlaysDeduped } from '../db/plays.js';
+import { updateSyncStats } from '../db/metadata.js';
 import logger from '../utils/logger.js';
 
 class MusicSyncService {
@@ -57,40 +58,71 @@ class MusicSyncService {
   // Main sync function that routes to appropriate service
   async syncNewTracks(options = {}) {
     const { force = false } = options;
-    
+    const startTime = new Date().toISOString();
+
     // Wait for initialization to complete
     await this.ensureInitialized();
-    
+
     logger.info(`Starting music sync using ${this.syncMethod.toUpperCase()} method`);
-    
+
+    let result;
+    let success = false;
+    let error = null;
+
     try {
       if (this.syncMethod === 'spotify') {
-        return await this.syncWithSpotify(force);
+        result = await this.syncWithSpotify(force);
       } else {
-        return await this.syncWithLastFm(force);
+        result = await this.syncWithLastFm(force);
       }
-    } catch (error) {
-      logger.error(`Primary sync method (${this.syncMethod}) failed: ${error.message}`);
-      
+      success = true;
+    } catch (syncError) {
+      error = syncError.message;
+      logger.error(`Primary sync method (${this.syncMethod}) failed: ${syncError.message}`);
+
       // If Spotify fails, try falling back to Last.fm
       if (this.syncMethod === 'spotify') {
         logger.info('Attempting fallback to Last.fm...');
         try {
-          const fallbackResult = await this.syncWithLastFm(force);
-          return {
-            ...fallbackResult,
+          result = await this.syncWithLastFm(force);
+          result = {
+            ...result,
             fallbackUsed: true,
             fallbackFrom: 'spotify',
-            fallbackReason: error.message
+            fallbackReason: syncError.message
           };
+          success = true;
+          error = null; // Clear error since fallback succeeded
         } catch (fallbackError) {
+          error = `Both sync methods failed. Primary: ${syncError.message}, Fallback: ${fallbackError.message}`;
           logger.error(`Fallback to Last.fm also failed: ${fallbackError.message}`);
-          throw new Error(`Both sync methods failed. Primary: ${error.message}, Fallback: ${fallbackError.message}`);
+          throw new Error(error);
+        }
+      } else {
+        throw syncError;
+      }
+    } finally {
+      // Always update sync statistics
+      const endTime = new Date().toISOString();
+
+      if (result || error) {
+        try {
+          await updateSyncStats({
+            method: result?.fallbackUsed ? 'lastfm' : this.syncMethod,
+            success,
+            addedPlays: result?.addedPlays || 0,
+            processedTracks: result?.processedTracks || 0,
+            startTime,
+            endTime,
+            error
+          });
+        } catch (metadataError) {
+          logger.error(`Failed to update sync metadata: ${metadataError.message}`);
         }
       }
-      
-      throw error;
     }
+
+    return result;
   }
 
   // Spotify sync implementation

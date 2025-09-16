@@ -11,57 +11,81 @@ export async function getRecentDiscoveries(type, limit = 5) {
     switch (type) {
       case 'tracks':
         query = `
+          WITH first_track_plays AS (
+            SELECT
+              p.track_id,
+              MIN(p.played_at) as first_played_at
+            FROM plays p
+            GROUP BY p.track_id
+          )
           SELECT DISTINCT
             t.id,
             t.name as track_name,
             a.name as artist_name,
             al.name as album_name,
-            MIN(p.played_at) as first_played_at
-          FROM tracks t
+            ftp.first_played_at
+          FROM first_track_plays ftp
+          JOIN tracks t ON ftp.track_id = t.id
           JOIN track_artists ta ON t.id = ta.track_id AND ta.is_primary = true
           JOIN artists a ON ta.artist_id = a.id
           LEFT JOIN track_albums tal ON t.id = tal.track_id
           LEFT JOIN albums al ON tal.album_id = al.id
-          JOIN plays p ON t.id = p.track_id
-          GROUP BY t.id, t.name, a.name, al.name
-          ORDER BY first_played_at DESC
+          ORDER BY ftp.first_played_at DESC
           LIMIT $1
         `;
         break;
         
       case 'artists':
         query = `
+          WITH first_artist_plays AS (
+            SELECT
+              ta.artist_id,
+              MIN(p.played_at) as first_played_at
+            FROM plays p
+            JOIN track_artists ta ON p.track_id = ta.track_id
+            GROUP BY ta.artist_id
+          )
           SELECT DISTINCT
             a.id,
             a.name as artist_name,
-            MIN(p.played_at) as first_played_at,
+            fap.first_played_at,
             COUNT(DISTINCT t.id) as track_count
-          FROM artists a
+          FROM first_artist_plays fap
+          JOIN artists a ON fap.artist_id = a.id
           JOIN track_artists ta ON a.id = ta.artist_id
           JOIN tracks t ON ta.track_id = t.id
-          JOIN plays p ON t.id = p.track_id
-          GROUP BY a.id, a.name
-          ORDER BY first_played_at DESC
+          GROUP BY a.id, a.name, fap.first_played_at
+          ORDER BY fap.first_played_at DESC
           LIMIT $1
         `;
         break;
         
       case 'albums':
         query = `
+          WITH first_album_plays AS (
+            SELECT
+              tal.album_id,
+              MIN(p.played_at) as first_played_at
+            FROM plays p
+            JOIN track_albums tal ON p.track_id = tal.track_id
+            WHERE tal.album_id IS NOT NULL
+            GROUP BY tal.album_id
+          )
           SELECT DISTINCT
             al.id,
             al.name as album_name,
             a.name as artist_name,
-            MIN(p.played_at) as first_played_at,
+            fap.first_played_at,
             COUNT(DISTINCT t.id) as track_count
-          FROM albums al
+          FROM first_album_plays fap
+          JOIN albums al ON fap.album_id = al.id
           JOIN track_albums tal ON al.id = tal.album_id
           JOIN tracks t ON tal.track_id = t.id
           JOIN track_artists ta ON t.id = ta.track_id AND ta.is_primary = true
           JOIN artists a ON ta.artist_id = a.id
-          JOIN plays p ON t.id = p.track_id
-          GROUP BY al.id, al.name, a.name
-          ORDER BY first_played_at DESC
+          WHERE al.id IS NOT NULL
+          GROUP BY al.id, al.name, a.name, fap.first_played_at
+          ORDER BY fap.first_played_at DESC
           LIMIT $1
         `;
         break;
