@@ -20,6 +20,7 @@ export default function GroupedSection({
   layout = "list", // "list" or "grid"
   collapsible = false,
   defaultOpen = true,
+  actionButton = null, // Optional action button component
 }) {
   const [open, setOpen] = useState(defaultOpen);
 
@@ -39,16 +40,19 @@ export default function GroupedSection({
   );
 
   const controls = (
-    <FilterControls
-      showPeriod={showPeriod}
-      period={period}
-      setPeriod={setPeriod}
-      periodOptions={periodOptions}
-      showLimit={showLimit}
-      limit={limit}
-      setLimit={setLimit}
-      limitOptions={limitOptions}
-    />
+    <div className="flex items-center gap-2">
+      <FilterControls
+        showPeriod={showPeriod}
+        period={period}
+        setPeriod={setPeriod}
+        periodOptions={periodOptions}
+        showLimit={showLimit}
+        limit={limit}
+        setLimit={setLimit}
+        limitOptions={limitOptions}
+      />
+      {actionButton}
+    </div>
   );
 
   const content = (

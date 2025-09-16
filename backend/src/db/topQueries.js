@@ -212,3 +212,46 @@ export async function getTopAlbums({ limit, period = "overall", artistId = null 
     callback(err);
   }
 }
+
+// Get top tracks for playlist creation (simplified version without album info)
+export async function getTopTracksForPlaylist(limit, period = "overall") {
+  logger.info(`getTopTracksForPlaylist called with limit=${limit}, period=${period}`);
+  const fromTimestamp = getPeriodTimestamp(period);
+
+  let query = `
+    SELECT t.id, t.name as track, a.name as artist, COUNT(DISTINCT p.id) as playcount
+    FROM tracks t
+    JOIN track_artists ta ON t.id = ta.track_id AND ta.is_primary = true
+    JOIN artists a ON ta.artist_id = a.id
+    JOIN plays p ON t.id = p.track_id
+  `;
+
+  const params = [limit];
+
+  if (fromTimestamp !== null) {
+    query += ` WHERE p.played_at >= to_timestamp($2)`;
+    params.push(fromTimestamp);
+  }
+
+  query += `
+    GROUP BY t.id, t.name, a.name
+    ORDER BY playcount DESC
+    LIMIT $1
+  `;
+
+  try {
+    const result = await pool().query(query, params);
+    const tracks = result.rows.map(row => ({
+      id: parseInt(row.id),
+      track: row.track,
+      artist: row.artist,
+      playcount: parseInt(row.playcount)
+    }));
+
+    logger.info(`getTopTracksForPlaylist returned ${tracks.length} tracks`);
+    return tracks;
+  } catch (err) {
+    logger.error(`getTopTracksForPlaylist DB error: ${err}`);
+    throw err;
+  }
+}

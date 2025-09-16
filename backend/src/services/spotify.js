@@ -192,7 +192,7 @@ class SpotifyService {
   }
 
   // Generate authorization URL for user consent
-  generateAuthUrl(scopes = ['user-read-recently-played']) {
+  generateAuthUrl(scopes = ['user-read-recently-played', 'playlist-modify-public', 'playlist-modify-private']) {
     const params = new URLSearchParams({
       client_id: this.clientId,
       response_type: 'code',
@@ -208,6 +208,114 @@ class SpotifyService {
   setTokens(accessToken, refreshToken) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
+  }
+
+  // Get current user profile
+  async getCurrentUser() {
+    await this.ensureValidToken();
+
+    const response = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error(`Failed to fetch current user: ${error}`);
+      throw new Error(`Spotify API error: ${error}`);
+    }
+
+    const data = await response.json();
+    return data;
+  }
+
+  // Create a new playlist
+  async createPlaylist(userId, name, description = '', isPublic = false) {
+    await this.ensureValidToken();
+
+    const response = await fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        description,
+        public: isPublic,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error(`Failed to create playlist: ${error}`);
+      throw new Error(`Spotify API error: ${error}`);
+    }
+
+    const data = await response.json();
+    logger.info(`Created playlist "${name}" with ID: ${data.id}`);
+    return data;
+  }
+
+  // Add tracks to a playlist
+  async addTracksToPlaylist(playlistId, spotifyUris) {
+    await this.ensureValidToken();
+
+    // Spotify API accepts max 100 tracks per request
+    const batchSize = 100;
+    const batches = [];
+
+    for (let i = 0; i < spotifyUris.length; i += batchSize) {
+      batches.push(spotifyUris.slice(i, i + batchSize));
+    }
+
+    let addedCount = 0;
+
+    for (const batch of batches) {
+      const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uris: batch,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        logger.error(`Failed to add tracks to playlist: ${error}`);
+        throw new Error(`Spotify API error: ${error}`);
+      }
+
+      addedCount += batch.length;
+      logger.info(`Added ${batch.length} tracks to playlist (total: ${addedCount})`);
+    }
+
+    return addedCount;
+  }
+
+  // Search for tracks on Spotify
+  async searchTrack(query, limit = 1) {
+    await this.ensureValidToken();
+
+    const encodedQuery = encodeURIComponent(query);
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${encodedQuery}&type=track&limit=${limit}`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error(`Failed to search for track: ${error}`);
+      throw new Error(`Spotify API error: ${error}`);
+    }
+
+    const data = await response.json();
+    return data.tracks.items;
   }
 }
 

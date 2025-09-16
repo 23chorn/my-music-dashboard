@@ -7,6 +7,7 @@ import PageLayout from "../components/layout/PageLayout";
 import SectionLoader from "../components/ui/SectionLoader";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import StatCard from "../components/stats/StatCard";
+import PlaylistButton from "../components/ui/PlaylistButton";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
@@ -210,6 +211,13 @@ export default function Dashboard() {
             })}
             layout='grid'
             collapsible={true}
+            actionButton={
+              <PlaylistButton
+                period={trackPeriod}
+                limit={trackLimit}
+                className="text-sm"
+              />
+            }
           />
         </SectionLoader>
       </div>
