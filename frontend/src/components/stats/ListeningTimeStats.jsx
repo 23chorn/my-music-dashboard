@@ -1,5 +1,6 @@
 import StatCard from "./StatCard";
 import { formatValue } from "../../utils/numberFormat";
+import { ClockIcon } from '@heroicons/react/24/outline';
 
 export default function ListeningTimeStats({ behaviorData, statsData }) {
   const {
@@ -32,7 +33,10 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
 
   return (
     <div className="bg-gray-900 rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">⏱️ Listening Time</h2>
+      <div className="flex items-center gap-3 mb-6">
+        <ClockIcon className="w-6 h-6 text-green-400" />
+        <h2 className="text-2xl font-bold text-white">Listening Time</h2>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard 
           title="Total Hours" 

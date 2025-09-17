@@ -4,6 +4,7 @@ import ListeningTimeStats from "../components/stats/ListeningTimeStats";
 import BehaviorAnalysis from "../components/stats/BehaviorAnalysis";
 import CalculatedMetrics from "../components/stats/CalculatedMetrics";
 import DiscoveryFreshness from "../components/stats/DiscoveryFreshness";
+import MilestoneAchievements from "../components/stats/MilestoneAchievements";
 import TrendsChart from "../components/trends/TrendsChart";
 import CumulativeDiscoveryChart from "../components/trends/CumulativeDiscoveryChart";
 import useStatsData from "../hooks/useStatsData";
@@ -22,6 +23,7 @@ export default function StatsView() {
         <OverviewStats statsData={statsData} />
         <ListeningTimeStats behaviorData={behaviorData} statsData={statsData} />
         <BehaviorAnalysis behaviorData={behaviorData} />
+        <MilestoneAchievements />
         <DiscoveryFreshness discoveryData={discoveryData} />
         <CalculatedMetrics calculatedMetrics={calculatedMetrics} />
         <TrendsChart />

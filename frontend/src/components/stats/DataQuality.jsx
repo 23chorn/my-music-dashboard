@@ -1,16 +1,20 @@
 import { formatValue } from "../../utils/numberFormat";
+import { ChartBarSquareIcon } from '@heroicons/react/24/outline';
 
 export default function DataQuality({ statsData, behaviorData }) {
   const { uniqueTrackCount = 0 } = statsData;
   const { tracksWithoutDuration = 0 } = behaviorData;
 
   const tracksWithDuration = uniqueTrackCount - tracksWithoutDuration;
-  const coveragePercentage = uniqueTrackCount > 0 ? 
+  const coveragePercentage = uniqueTrackCount > 0 ?
     Math.round((tracksWithDuration / uniqueTrackCount) * 100) : 100;
 
   return (
     <div className="bg-gray-900 rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">📈 Data Quality</h2>
+      <div className="flex items-center gap-3 mb-6">
+        <ChartBarSquareIcon className="w-6 h-6 text-emerald-400" />
+        <h2 className="text-2xl font-bold text-white">Data Quality</h2>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Duration Coverage</h3>

@@ -1,5 +1,6 @@
 import express from "express";
 import { getDailyPlaysAll, getUniqueCounts, getBehaviorAnalysis, getCalculatedMetrics, getDiscoveryFreshness } from "../db/analytics.js";
+import { getAllMilestones } from "../db/milestones.js";
 import logger from "../utils/logger.js";
 
 const router = express.Router();
@@ -69,6 +70,25 @@ router.get('/discovery-freshness', (req, res) => {
     logger.info("Returning discovery freshness data");
     res.json(discoveryData);
   });
+});
+
+// GET /api/analytics/milestones - Get global milestone achievements
+router.get('/milestones', async (req, res) => {
+  try {
+    logger.info('GET /api/analytics/milestones called');
+
+    const milestones = await getAllMilestones();
+
+    logger.info('Retrieved global milestone achievements');
+    res.json(milestones);
+
+  } catch (error) {
+    logger.error(`Error getting milestones: ${error.message}`);
+    res.status(500).json({
+      error: 'Failed to get milestones',
+      message: error.message
+    });
+  }
 });
 
 export default router;

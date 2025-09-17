@@ -68,7 +68,7 @@ export default function ContextMenu({
         e.preventDefault();
         showContextMenu(touch.clientX, touch.clientY);
       }
-    }, 500);
+    }, 300);
   };
 
   // Handle touch end/cancel - clear timeout if touch released early
