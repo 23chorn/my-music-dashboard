@@ -1,4 +1,4 @@
-import { initializeDatabase, getPool, closeDatabase } from './src/db/connection.js';
+import { initializeDatabase, getPool, closeDatabase } from '../src/db/connection.js';
 
 async function fixCenterOfAttention() {
   try {

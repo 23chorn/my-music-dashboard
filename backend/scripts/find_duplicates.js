@@ -1,4 +1,4 @@
-import { initializeDatabase, getPool } from './src/db/connection.js';
+import { initializeDatabase, getPool } from '../src/db/connection.js';
 
 async function findDuplicates() {
   try {

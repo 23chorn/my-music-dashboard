@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { initializeDatabase, getPool } from './src/db/connection.js';
-import logger from './src/utils/logger.js';
+import { initializeDatabase, getPool } from '../src/db/connection.js';
+import logger from '../src/utils/logger.js';
 
 async function mergeDuplicateTracks(keepTrackId, removeTrackId) {
   const pool = getPool();

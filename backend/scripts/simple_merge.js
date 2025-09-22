@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initializeDatabase, getPool } from './src/db/connection.js';
+import { initializeDatabase, getPool } from '../src/db/connection.js';
 
 dotenv.config();
 

@@ -4,6 +4,7 @@ import GroupedSection from "../components/sections/GroupedSection";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
+import TagManager from "../components/ui/TagManager";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 
@@ -36,6 +37,18 @@ export default function AlbumView() {
       subheaderLink={album?.artist_id ? `/artist/${album.artist_id}` : undefined}
     >
       <StatsSection stats={stats} type="album" title="Album Stats" />
+
+      {/* Tags Section */}
+      {album && (
+        <div className="bg-gray-900 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <TagManager
+            entityId={album.id}
+            entityType="album"
+            entityName={album.name}
+          />
+        </div>
+      )}
 
       <SectionLoader loading={tracksLoading}>
         <GroupedSection

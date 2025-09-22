@@ -5,6 +5,7 @@ import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
 import GroupedSection from "../components/sections/GroupedSection";
 import TrackInfoSection from "../components/track/TrackInfoSection";
+import TagManager from "../components/ui/TagManager";
 import { formatDateTime } from "../utils/dateFormatter";
 
 export default function TrackView() {
@@ -31,6 +32,18 @@ export default function TrackView() {
     >
       {/* Track Info Section */}
       <TrackInfoSection track={track} />
+
+      {/* Tags Section */}
+      {track && (
+        <div className="bg-gray-900 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <TagManager
+            entityId={track.id}
+            entityType="track"
+            entityName={track.track_name}
+          />
+        </div>
+      )}
 
       {/* Stats Section */}
       <SectionLoader loading={statsLoading}>

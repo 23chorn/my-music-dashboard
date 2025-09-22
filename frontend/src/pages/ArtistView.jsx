@@ -6,6 +6,7 @@ import MilestoneSection from "../components/sections/MilestoneSection";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
+import TagManager from "../components/ui/TagManager";
 import { formatValue } from "../utils/numberFormat";
 import { formatDateTime } from "../utils/dateFormatter";
 import { HEATMAP_CONFIG } from "../config/appConfig";
@@ -44,6 +45,18 @@ export default function ArtistView() {
       title={artist?.name}
     >
       <StatsSection stats={stats} type="artist" title="Artist Stats" />
+
+      {/* Tags Section */}
+      {artist && (
+        <div className="bg-gray-900 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <TagManager
+            entityId={artist.id}
+            entityType="artist"
+            entityName={artist.name}
+          />
+        </div>
+      )}
 
       {milestones && milestones.length > 0 && (
         <MilestoneSection milestones={milestones} />

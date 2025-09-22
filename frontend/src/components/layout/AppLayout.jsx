@@ -6,6 +6,8 @@ import TrackView from "../../pages/TrackView";
 import ExploreView from "../../pages/ExploreView";
 import StatsView from "../../pages/StatsView";
 import InsightsView from "../../pages/InsightsView";
+import TagsPage from "../../pages/TagsPage";
+import TagFilterPage from "../../pages/TagFilterPage";
 import AppHeader from "./AppHeader";
 
 export default function AppLayout({ searchProps }) {
@@ -21,6 +23,8 @@ export default function AppLayout({ searchProps }) {
           <Route path="/explore" element={<ExploreView />} />
           <Route path="/stats" element={<StatsView />} />
           <Route path="/insights" element={<InsightsView />} />
+          <Route path="/tags" element={<TagsPage />} />
+          <Route path="/tags/:tagId" element={<TagFilterPage />} />
         </Routes>
       </main>
     </div>

@@ -21,6 +21,7 @@ import syncRouter from "./src/routes/sync.js";
 import trendsRouter from "./src/routes/trends.js";
 import discoveriesRouter from "./src/routes/discoveries.js";
 import insightsRouter from "./src/routes/insights.js";
+import tagsRouter from "./src/routes/tags.js";
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use('/api/sync', syncRouter);
 app.use('/api/trends', trendsRouter);
 app.use('/api/recent-discoveries', discoveriesRouter);
 app.use('/api/insights', insightsRouter);
+app.use('/api/tags', tagsRouter);
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");
