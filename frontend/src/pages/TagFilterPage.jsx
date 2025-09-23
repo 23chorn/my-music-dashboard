@@ -135,29 +135,34 @@ export default function TagFilterPage() {
       loading={loading && !tagStats}
       error={error}
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Tag Statistics */}
         {tagStats && (
           <div className="bg-gray-900 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Tag Statistics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <h2 className="text-xl font-semibold text-white mb-6">Tag Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {ENTITY_TYPES.map((type) => {
                 const stat = tagStats.stats.find(s => s.entity_type === type.value);
                 const count = stat ? parseInt(stat.count) : 0;
                 return (
                   <div
                     key={type.value}
-                    className={`p-4 rounded-lg border ${
+                    className={`p-5 rounded-lg border transition-all cursor-pointer hover:scale-105 ${
                       selectedType === type.value
-                        ? 'bg-blue-500/10 border-blue-500/30'
-                        : 'bg-gray-800 border-gray-700'
+                        ? 'bg-blue-600/20 border-blue-400/50 ring-2 ring-blue-400/30'
+                        : 'bg-gray-800 border-gray-600 hover:border-gray-500'
                     }`}
+                    onClick={() => setSelectedType(type.value)}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg">{type.icon}</span>
-                      <span className="text-white font-medium">{type.label}</span>
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xl">{type.icon}</span>
+                      <span className={`font-medium ${
+                        selectedType === type.value ? 'text-blue-300' : 'text-white'
+                      }`}>{type.label}</span>
                     </div>
-                    <div className="text-2xl font-bold text-blue-400">{count}</div>
+                    <div className={`text-3xl font-bold ${
+                      selectedType === type.value ? 'text-blue-400' : 'text-gray-300'
+                    }`}>{count}</div>
                   </div>
                 );
               })}
@@ -167,23 +172,25 @@ export default function TagFilterPage() {
 
         {/* Entity Type Selector */}
         <div className="bg-gray-900 rounded-lg p-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
             <h2 className="text-xl font-semibold text-white">View Tagged Items</h2>
-            <div className="flex rounded-lg overflow-hidden bg-gray-800">
+            <div className="flex flex-wrap gap-3">
               {ENTITY_TYPES.map((type) => (
                 <button
                   key={type.value}
                   onClick={() => setSelectedType(type.value)}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`px-4 sm:px-6 py-3 text-sm font-medium transition-all whitespace-nowrap rounded-xl shadow-lg ${
                     selectedType === type.value
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                      ? 'bg-blue-500 text-white shadow-blue-500/25 transform scale-105'
+                      : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600 hover:shadow-xl'
                   }`}
                 >
-                  <span className="mr-2">{type.icon}</span>
+                  <span className="mr-2 text-base">{type.icon}</span>
                   {type.label}
                   {tagStats && (
-                    <span className="ml-2 text-xs opacity-75">
+                    <span className={`ml-2 text-xs ${
+                      selectedType === type.value ? 'opacity-90' : 'opacity-75'
+                    }`}>
                       ({tagStats.stats.find(s => s.entity_type === type.value)?.count || 0})
                     </span>
                   )}
@@ -194,7 +201,7 @@ export default function TagFilterPage() {
 
           {/* Entities Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="animate-pulse">
                   <div className="bg-gray-800 rounded-lg p-4">
@@ -205,7 +212,7 @@ export default function TagFilterPage() {
               ))}
             </div>
           ) : entities.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {entities.map(renderEntity)}
             </div>
           ) : (

@@ -3,14 +3,18 @@ import { Link } from 'react-router-dom';
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const TAG_COLORS = [
-  '#EF4444', // Red
-  '#F97316', // Orange
-  '#EAB308', // Yellow
-  '#22C55E', // Green
-  '#06B6D4', // Cyan
-  '#3B82F6', // Blue
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
+  '#64748B', // Slate
+  '#6B7280', // Gray
+  '#78716C', // Stone
+  '#DC2626', // Muted Red
+  '#EA580C', // Muted Orange
+  '#CA8A04', // Muted Yellow
+  '#16A34A', // Muted Green
+  '#0891B2', // Muted Cyan
+  '#2563EB', // Muted Blue
+  '#7C3AED', // Muted Purple
+  '#BE185D', // Muted Pink
+  '#A21CAF', // Muted Magenta
 ];
 
 export default function TagManager({ entityId, entityType, entityName, onTagsChange }) {

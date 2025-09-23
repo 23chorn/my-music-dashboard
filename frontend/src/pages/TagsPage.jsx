@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
-import { TagIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { TagIcon, PlusIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const TAG_COLORS = [
-  '#EF4444', // Red
-  '#F97316', // Orange
-  '#EAB308', // Yellow
-  '#22C55E', // Green
-  '#06B6D4', // Cyan
-  '#3B82F6', // Blue
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
+  '#64748B', // Slate
+  '#6B7280', // Gray
+  '#78716C', // Stone
+  '#DC2626', // Muted Red
+  '#EA580C', // Muted Orange
+  '#CA8A04', // Muted Yellow
+  '#16A34A', // Muted Green
+  '#0891B2', // Muted Cyan
+  '#2563EB', // Muted Blue
+  '#7C3AED', // Muted Purple
+  '#BE185D', // Muted Pink
+  '#A21CAF', // Muted Magenta
 ];
 
 export default function TagsPage() {
@@ -22,6 +26,9 @@ export default function TagsPage() {
   const [newTagName, setNewTagName] = useState('');
   const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
   const [creating, setCreating] = useState(false);
+  const [editingTag, setEditingTag] = useState(null);
+  const [editingColor, setEditingColor] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
@@ -97,6 +104,47 @@ export default function TagsPage() {
       }
     } catch (error) {
       console.error('Error deleting tag:', error);
+    }
+  };
+
+  const startEditingTag = (tag) => {
+    setEditingTag(tag.id);
+    setEditingColor(tag.color);
+  };
+
+  const cancelEditing = () => {
+    setEditingTag(null);
+    setEditingColor('');
+  };
+
+  const updateTag = async (tagId) => {
+    setUpdating(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tags/${tagId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          color: editingColor,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTags(prev => prev.map(tag =>
+          tag.id === tagId ? { ...tag, color: editingColor } : tag
+        ));
+        setEditingTag(null);
+        setEditingColor('');
+      } else {
+        const errorData = await response.json();
+        console.error('Error updating tag:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error updating tag:', error);
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -185,38 +233,97 @@ export default function TagsPage() {
                   key={tag.id}
                   className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <Link
-                      to={`/tags/${tag.id}?name=${encodeURIComponent(tag.name)}`}
-                      className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                    >
-                      <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: tag.color }}
-                      />
-                      <span className="text-white font-medium">{tag.name}</span>
-                    </Link>
-                    <button
-                      onClick={() => deleteTag(tag.id)}
-                      className="text-gray-400 hover:text-red-400 transition-colors"
-                      title="Delete tag"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
+                  {editingTag === tag.id ? (
+                    // Edit mode
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: editingColor }}
+                        />
+                        <span className="text-white font-medium">{tag.name}</span>
+                      </div>
 
-                  <div className="text-sm text-gray-400">
-                    Created: {new Date(tag.created_at).toLocaleDateString()}
-                  </div>
+                      {/* Color Picker */}
+                      <div className="flex flex-wrap gap-2">
+                        {TAG_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => setEditingColor(color)}
+                            className={`w-6 h-6 rounded-full border-2 ${
+                              editingColor === color ? 'border-white' : 'border-gray-600'
+                            }`}
+                            style={{ backgroundColor: color }}
+                            title={`Select ${color}`}
+                          />
+                        ))}
+                      </div>
 
-                  <Link
-                    to={`/tags/${tag.id}?name=${encodeURIComponent(tag.name)}`}
-                    className="inline-block mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                  >
-                    View tagged items →
-                  </Link>
+                      {/* Action buttons */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => updateTag(tag.id)}
+                          disabled={updating}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors disabled:opacity-50"
+                        >
+                          <CheckIcon className="w-3 h-3" />
+                          {updating ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors"
+                        >
+                          <XMarkIcon className="w-3 h-3" />
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    // Normal mode
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <Link
+                          to={`/tags/${tag.id}?name=${encodeURIComponent(tag.name)}`}
+                          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                        >
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          <span className="text-white font-medium">{tag.name}</span>
+                        </Link>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => startEditingTag(tag)}
+                            className="text-gray-400 hover:text-blue-400 transition-colors"
+                            title="Edit color"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteTag(tag.id)}
+                            className="text-gray-400 hover:text-red-400 transition-colors"
+                            title="Delete tag"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-sm text-gray-400">
+                        Created: {new Date(tag.created_at).toLocaleDateString()}
+                      </div>
+
+                      <Link
+                        to={`/tags/${tag.id}?name=${encodeURIComponent(tag.name)}`}
+                        className="inline-block mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        View tagged items →
+                      </Link>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
