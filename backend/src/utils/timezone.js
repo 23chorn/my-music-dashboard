@@ -5,24 +5,6 @@ const TIMEZONE = process.env.TZ || 'Europe/London';
 
 logger.info(`Using timezone: ${TIMEZONE}`);
 
-/**
- * Create a Date object with timezone awareness
- * @param {number|string|Date} input - Timestamp, date string, or Date object
- * @returns {Date} - Date object adjusted for the configured timezone
- */
-export function createTimezoneAwareDate(input) {
-  if (!input) return null;
-  
-  let date;
-  if (typeof input === 'number') {
-    // Assume Unix timestamp in seconds, convert to milliseconds
-    date = new Date(input * 1000);
-  } else {
-    date = new Date(input);
-  }
-  
-  return date;
-}
 
 /**
  * Format a date for database insertion with timezone awareness

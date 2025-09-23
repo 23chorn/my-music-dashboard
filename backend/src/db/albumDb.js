@@ -6,10 +6,6 @@ function getSharedPool() {
   return getPool();
 }
 
-export function initializeAlbumDatabase() {
-  // No longer needed - using shared pool
-  logger.info('Album database will use shared connection pool');
-}
 
 // Get album info by albumId
 export async function getAlbumInfo(albumId, callback) {

@@ -30,11 +30,27 @@ spotify-data/*
 /spotify-data
 *.jpeg
 
-# Scripts
+# Scripts - exclude temporary/one-time scripts
 backend/scripts/enrichment/*
 backend/scripts/maintenance/*
 backend/scripts/migration/*
 backend/scripts/utilities/*
+
+# One-time data cleanup and investigation scripts
+backend/scripts/*cleanup*.js
+backend/scripts/*duplicate*.js
+backend/scripts/*fix-*.js
+backend/scripts/*investigate*.js
+backend/scripts/*diagnose*.js
+backend/scripts/*merge*.js
+backend/scripts/*deduplicate*.js
+backend/scripts/*validate*.js
+backend/scripts/check-*.js
+backend/scripts/test-*.js
+backend/scripts/find_*.js
+backend/scripts/execute_merge.js
+backend/scripts/simple_merge.js
+backend/scripts/comprehensive-metadata-cleanup.js
 
 # Supabase backups
 backend/supabase_backups/*

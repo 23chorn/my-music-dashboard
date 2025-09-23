@@ -36,19 +36,19 @@ export async function getDailyPlaysAll(days) {
 // Get unique counts and statistics
 export async function getUniqueCounts(callback) {
   logger.info('getUniqueCounts called');
-  
+
   try {
     const result = await pool().query(`
-      SELECT 
+      SELECT
         (SELECT COUNT(*) FROM plays) AS playCount,
         (SELECT COUNT(DISTINCT track_id) FROM plays) AS uniqueTracks,
-        (SELECT COUNT(DISTINCT artist_id) FROM plays 
+        (SELECT COUNT(DISTINCT artist_id) FROM plays
          JOIN track_artists ta ON plays.track_id = ta.track_id) AS uniqueArtists,
-        (SELECT COUNT(DISTINCT album_id) FROM plays 
-         JOIN track_albums tal ON plays.track_id = tal.track_id 
+        (SELECT COUNT(DISTINCT album_id) FROM plays
+         JOIN track_albums tal ON plays.track_id = tal.track_id
          WHERE album_id IS NOT NULL) AS uniqueAlbums
     `);
-    
+
     if (result.rows.length === 0) {
       logger.warn('No data found in getUniqueCounts');
       callback(null, {
@@ -56,24 +56,24 @@ export async function getUniqueCounts(callback) {
       });
       return;
     }
-    
+
     const row = result.rows[0];
     const playCount = parseInt(row.playcount);
     const uniqueTracks = parseInt(row.uniquetracks);
     const uniqueArtists = parseInt(row.uniqueartists);
     const uniqueAlbums = parseInt(row.uniquealbums);
-    
+
     const counts = {
       playCount,
       uniqueTrackCount: uniqueTracks,
       uniqueArtistCount: uniqueArtists,
       uniqueAlbumCount: uniqueAlbums
     };
-    
-    
+
+
     logger.info('getUniqueCounts returned basic counts');
     callback(null, counts);
-    
+
   } catch (err) {
     logger.error(`getUniqueCounts DB error: ${err}`);
     callback(err);

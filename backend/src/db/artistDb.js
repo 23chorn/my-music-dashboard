@@ -6,10 +6,6 @@ function getSharedPool() {
   return getPool();
 }
 
-export function initializeArtistDatabase() {
-  // No longer needed - using shared pool
-  logger.info('Artist database will use shared connection pool');
-}
 
 export async function getArtistInfo(artistId, callback) {
   logger.info(`getArtistInfo called with artistId=${artistId}`);

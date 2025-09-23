@@ -31,10 +31,6 @@ function normalizeReleaseDate(releaseDate) {
   }
 }
 
-export function initializeLegacySpotifyDatabase() {
-  // No longer needed - using shared pool
-  logger.info('Legacy Spotify database will use shared connection pool');
-}
 
 export class LegacySpotifyDatabaseService {
   async beginTransaction() {

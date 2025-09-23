@@ -22,6 +22,7 @@ import trendsRouter from "./src/routes/trends.js";
 import discoveriesRouter from "./src/routes/discoveries.js";
 import insightsRouter from "./src/routes/insights.js";
 import tagsRouter from "./src/routes/tags.js";
+import milestonesRouter from "./src/routes/milestones.js";
 
 const app = express();
 
@@ -54,6 +55,64 @@ app.use('/api/trends', trendsRouter);
 app.use('/api/recent-discoveries', discoveriesRouter);
 app.use('/api/insights', insightsRouter);
 app.use('/api/tags', tagsRouter);
+app.use('/api/milestones', milestonesRouter);
+
+// Legacy routes for test compatibility
+app.get('/api/health/database', async (req, res) => {
+  try {
+    const { checkDatabaseHealth } = await import('./src/db/connection.js');
+    const health = await checkDatabaseHealth();
+    res.json({
+      status: 'healthy',
+      ...health,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error("Database health check failed:", error);
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.get('/api/timezone-info', async (req, res) => {
+  try {
+    const { getTimezoneInfo } = await import('./src/utils/timezone.js');
+    const timezoneInfo = getTimezoneInfo();
+    res.json(timezoneInfo);
+  } catch (error) {
+    logger.error("Error getting timezone info:", error);
+    res.status(500).json({
+      error: 'Failed to get timezone info',
+      message: error.message
+    });
+  }
+});
+
+app.get('/api/unique-counts', async (req, res) => {
+  try {
+    const { getUniqueCounts } = await import('./src/db/analytics.js');
+    getUniqueCounts((error, counts) => {
+      if (error) {
+        logger.error("Error getting unique counts:", error);
+        res.status(500).json({
+          error: 'Failed to get unique counts',
+          message: error.message
+        });
+      } else {
+        res.json(counts);
+      }
+    });
+  } catch (error) {
+    logger.error("Error getting unique counts:", error);
+    res.status(500).json({
+      error: 'Failed to get unique counts',
+      message: error.message
+    });
+  }
+});
 
 app.get('/', (req, res) => {
   logger.info("Root endpoint hit");
