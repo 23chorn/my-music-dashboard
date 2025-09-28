@@ -61,12 +61,6 @@ export default function MenuButton() {
           </button>
           <button
             className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/insights"); }}
-          >
-            Insights
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
             onClick={() => { setMenuOpen(false); navigate("/ai-insights"); }}
           >
             AI Insights
@@ -76,6 +70,12 @@ export default function MenuButton() {
             onClick={() => { setMenuOpen(false); navigate("/tags"); }}
           >
             Tags
+          </button>
+          <button
+            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
+            onClick={() => { setMenuOpen(false); navigate("/insights"); }}
+          >
+            System and Data
           </button>
         </div>
       )}

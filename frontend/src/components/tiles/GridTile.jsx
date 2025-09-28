@@ -33,7 +33,7 @@ export default function GridTile({ label, value, sub, album, image, link, toolti
             <img
               src={image}
               alt={label}
-              className="w-10 h-10 object-cover mb-2 rounded"
+              className="w-16 h-16 object-cover mb-2 rounded"
             />
           )}
           <div className="flex flex-col items-center justify-center flex-1 space-y-0.5 w-full">

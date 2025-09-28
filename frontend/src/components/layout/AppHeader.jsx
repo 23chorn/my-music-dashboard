@@ -16,8 +16,10 @@ export default function AppHeader({
   const navigate = useNavigate();
 
   return (
-    <div className="w-full flex flex-col sm:flex-row items-start justify-between pt-4 gap-4 px-4">
-      <MenuButton />
+    <div className="w-full flex flex-col sm:flex-row items-center justify-center pt-4 gap-4 px-4 relative">
+      <div className="absolute left-4 top-4">
+        <MenuButton />
+      </div>
       <div className="w-full max-w-xl">
         <div className="relative w-full">
           <SearchBar

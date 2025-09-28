@@ -38,7 +38,7 @@ export default function InsightsView() {
 
   return (
     <PageLayout
-      title="Data Insights"
+      title="System and Data"
       subheader="Database quality, system health, and data integrity tracking"
       loading={loading}
       error={error ? `⚠️ Error Loading Data: ${error}` : null}

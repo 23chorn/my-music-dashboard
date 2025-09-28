@@ -25,9 +25,9 @@ export default function PageLayout({
   return (
     <div className="min-h-screen w-full bg-gray-950">
       <div className="w-full px-4 py-6">
-        <div className="w-full space-y-10">
+        <div className="max-w-7xl mx-auto space-y-10">
           {(title || image) && (
-            <SectionHeader 
+            <SectionHeader
               image={image}
               title={title}
               subheader={subheader}
