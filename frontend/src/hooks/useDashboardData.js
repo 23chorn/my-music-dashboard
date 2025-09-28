@@ -72,7 +72,6 @@ export default function useDashboardData() {
     setSyncing(true);
     try {
       const result = await syncTracksFromServer();
-      console.log('Sync result:', result);
       // Refresh data after sync
       if (result.addedPlays > 0) {
         // Refresh unique counts since new data was added

@@ -5,7 +5,8 @@ import {
   getAlbumInfo,
   getAlbumRecentPlays,
   getAlbumStats,
-  getAllAlbumsWithPlaycount
+  getAllAlbumsWithPlaycount,
+  getAlbumTracklist
 } from '../db/albumDb.js';
 import { getTopTracks, getTopAlbums } from '../db/topQueries.js';
 
@@ -105,6 +106,22 @@ router.get('/:id/stats', (req, res) => {
     }
     logger.info(`Returned stats for album ${req.params.id}`);
     res.json(stats);
+  });
+});
+
+// Get complete album tracklist with play counts
+router.get('/:id/tracklist', (req, res) => {
+  const albumId = Number(req.params.id);
+  const sortBy = req.query.sortBy || 'trackNumber'; // 'trackNumber' or 'playCount'
+  logger.info(`GET /api/album/${albumId}/tracklist called with sortBy=${sortBy}`);
+
+  getAlbumTracklist(albumId, sortBy, (err, tracks) => {
+    if (err) {
+      logger.error("DB error in getAlbumTracklist:", err);
+      return res.status(500).json({ error: 'DB error' });
+    }
+    logger.info(`Returned ${tracks.length} tracks for album ${albumId} tracklist (sorted by ${sortBy})`);
+    res.json(tracks);
   });
 });
 

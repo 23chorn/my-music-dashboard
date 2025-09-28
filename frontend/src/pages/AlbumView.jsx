@@ -13,6 +13,7 @@ export default function AlbumView() {
   const {
     album,
     topTracks,
+    tracklist,
     recentPlays,
     stats,
     loading,
@@ -22,7 +23,10 @@ export default function AlbumView() {
     setTrackLimit,
     trackPeriod,
     setTrackPeriod,
+    tracklistSort,
+    setTracklistSort,
     tracksLoading,
+    tracklistLoading,
     recentLoading
   } = useAlbumViewData(id);
 
@@ -50,40 +54,51 @@ export default function AlbumView() {
         </div>
       )}
 
-      <SectionLoader loading={tracksLoading}>
-        <GroupedSection
-          title="Top Tracks"
-          items={topTracks}
-          period={trackPeriod}
-          setPeriod={setTrackPeriod}
-          showPeriod={true}
-          showLimit={true}
-          limit={trackLimit}
-          setLimit={setTrackLimit}
-          mapper={track => ({
-            label: track.track,
-            sub: formatValue(`${track.playcount ?? 0} plays`),
-            link: track.id ? `/track/${track.id}` : undefined
-          })}
-          layout='list'
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={tracklistLoading}>
+          <GroupedSection
+            title="Album Tracklist"
+            items={tracklist}
+            mapper={track => ({
+              label: `${track.track_number || '–'}. ${track.name}`,
+              sub: `${formatValue(`${track.playcount ?? 0} plays`)}${track.artists ? ` • ${track.artists}` : ''}`,
+              link: track.id ? `/track/${track.id}` : undefined
+            })}
+            layout='list'
+            collapsible={true}
+            actionButton={
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">Sort by:</span>
+                <select
+                  value={tracklistSort}
+                  onChange={(e) => setTracklistSort(e.target.value)}
+                  className="bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-600 hover:border-gray-500 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="trackNumber">Track Number</option>
+                  <option value="playCount">Play Count</option>
+                </select>
+              </div>
+            }
+          />
+        </SectionLoader>
+      </div>
 
-      <SectionLoader loading={recentLoading}>
-        <GroupedSection
-          title="Recent Plays"
-          items={recentPlays}
-          limit={recentLimit}
-          setLimit={setRecentLimit}
-          showLimit={true}
-          mapper={track => ({
-            label: track.track,
-            sub: formatDateTime(track.timestamp)
-          })}
-          collapsible={true}
-        />
-      </SectionLoader>
+      <div className="bg-gray-900 rounded-lg p-6">
+        <SectionLoader loading={recentLoading}>
+          <GroupedSection
+            title="Recent Plays"
+            items={recentPlays}
+            limit={recentLimit}
+            setLimit={setRecentLimit}
+            showLimit={true}
+            mapper={track => ({
+              label: track.track,
+              sub: formatDateTime(track.timestamp)
+            })}
+            collapsible={true}
+          />
+        </SectionLoader>
+      </div>
     </PageLayout>
     );
 }

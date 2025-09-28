@@ -3,7 +3,8 @@ import {
   getAlbumInfo,
   getAlbumTopTracks,
   getAlbumRecentPlays,
-  getAlbumStats
+  getAlbumStats,
+  getAlbumTracklist
 } from "../data/albumApi";
 import { DEFAULT_LIMITS, DEFAULT_PERIODS } from "../config/appConfig";
 
@@ -14,34 +15,40 @@ export default function useAlbumViewData(albumId, {
 } = {}) {
   const [album, setAlbum] = useState(null);
   const [topTracks, setTopTracks] = useState([]);
+  const [tracklist, setTracklist] = useState([]);
   const [recentPlays, setRecentPlays] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tracksLoading, setTracksLoading] = useState(false);
+  const [tracklistLoading, setTracklistLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
   const [recentLimit, setRecentLimit] = useState(initialRecentLimit);
   const [trackLimit, setTrackLimit] = useState(initialTrackLimit);
   const [trackPeriod, setTrackPeriod] = useState(initialTrackPeriod);
+  const [tracklistSort, setTracklistSort] = useState('trackNumber');
 
   // Fetch all data on albumId change
   useEffect(() => {
     async function fetchAllData() {
       setLoading(true);
       try {
-        const [albumData, statsData, topTracksData, recentPlaysData] = await Promise.all([
+        const [albumData, statsData, topTracksData, tracklistData, recentPlaysData] = await Promise.all([
           getAlbumInfo(albumId),
           getAlbumStats(albumId),
           getAlbumTopTracks(albumId, trackLimit, trackPeriod),
+          getAlbumTracklist(albumId, tracklistSort),
           getAlbumRecentPlays(albumId, recentLimit)
         ]);
         setAlbum(albumData);
         setStats(statsData);
         setTopTracks(topTracksData);
+        setTracklist(tracklistData);
         setRecentPlays(recentPlaysData);
       } catch {
         setAlbum(null);
         setStats(null);
         setTopTracks([]);
+        setTracklist([]);
         setRecentPlays([]);
       }
       setLoading(false);
@@ -82,9 +89,26 @@ export default function useAlbumViewData(albumId, {
     if (albumId) fetchRecentPlays();
   }, [recentLimit]);
 
+  useEffect(() => {
+    async function fetchTracklist() {
+      if (!album) return; // Wait until initial data is loaded
+      setTracklistLoading(true);
+      try {
+        const tracks = await getAlbumTracklist(albumId, tracklistSort);
+        setTracklist(tracks);
+      } catch {
+        setTracklist([]);
+      } finally {
+        setTracklistLoading(false);
+      }
+    }
+    if (albumId) fetchTracklist();
+  }, [tracklistSort]);
+
   return {
     album,
     topTracks,
+    tracklist,
     recentPlays,
     stats,
     loading,
@@ -94,7 +118,10 @@ export default function useAlbumViewData(albumId, {
     setTrackLimit,
     trackPeriod,
     setTrackPeriod,
+    tracklistSort,
+    setTracklistSort,
     tracksLoading,
+    tracklistLoading,
     recentLoading
   };
 }

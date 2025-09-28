@@ -24,6 +24,12 @@ export async function getAlbumStats(id) {
   return await res.json();
 }
 
+export async function getAlbumTracklist(id, sortBy = 'trackNumber') {
+  const res = await fetch(`${API_BASE_URL}/api/album/${id}/tracklist?sortBy=${sortBy}`);
+  if (!res.ok) throw new Error('Failed to fetch album tracklist');
+  return await res.json();
+}
+
 export async function getAllAlbumsWithPlaycount(options = {}) {
   const { page = 1, limit = 50, sortBy = 'alpha', alphaCategory = null, minPlays = null, maxPlays = null } = options;
   

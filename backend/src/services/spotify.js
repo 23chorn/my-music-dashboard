@@ -317,6 +317,50 @@ class SpotifyService {
     const data = await response.json();
     return data.tracks.items;
   }
+
+  // Search for albums on Spotify
+  async searchAlbums(query, limit = 10) {
+    await this.ensureValidToken();
+
+    const encodedQuery = encodeURIComponent(query);
+    const response = await fetch(`https://api.spotify.com/v1/search?q=${encodedQuery}&type=album&limit=${limit}`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error(`Failed to search for albums: ${error}`);
+      throw new Error(`Spotify API error: ${error}`);
+    }
+
+    const data = await response.json();
+    return data;
+  }
+
+  // Get album details with tracks
+  async getAlbum(albumId) {
+    await this.ensureValidToken();
+
+    // Extract just the ID from spotify:album:id format if needed
+    const id = albumId.replace('spotify:album:', '');
+
+    const response = await fetch(`https://api.spotify.com/v1/albums/${id}`, {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      logger.error(`Failed to fetch album ${albumId}: ${error}`);
+      throw new Error(`Spotify API error: ${error}`);
+    }
+
+    const data = await response.json();
+    return data;
+  }
 }
 
 export default SpotifyService;

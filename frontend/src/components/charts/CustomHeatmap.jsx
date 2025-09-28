@@ -90,16 +90,6 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
   };
 
   const { weeks, monthLabels } = generateGitHubStyleGrid();
-  
-  // Debug: Log the week containing Sep 1st
-  if (typeof window !== 'undefined') {
-    const sep1Week = weeks.find(week => 
-      week.some(day => day.date === '2025-09-01')
-    );
-    if (sep1Week) {
-      console.log('Week containing Sep 1st:', sep1Week.map(d => `${d.date} (row ${d.dayOfWeek})`));
-    }
-  }
 
   return (
     <div className="space-y-4">

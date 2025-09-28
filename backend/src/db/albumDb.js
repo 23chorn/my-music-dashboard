@@ -172,6 +172,65 @@ export async function getAlbumStats(albumId, callback) {
   }
 }
 
+// Get all tracks for an album with play counts, with configurable sorting
+export async function getAlbumTracklist(albumId, sortBy = 'trackNumber', callback) {
+  logger.info(`getAlbumTracklist called with albumId=${albumId}, sortBy=${sortBy}`);
+  try {
+    // Determine ORDER BY clause based on sortBy parameter
+    let orderBy;
+    if (sortBy === 'playCount') {
+      orderBy = `play_counts.playcount DESC, t.name ASC`;
+    } else { // default to 'trackNumber'
+      orderBy = `
+        COALESCE(ta.disc_number, 1) ASC,
+        COALESCE(ta.track_number, 999) ASC,
+        t.name ASC
+      `;
+    }
+
+    const query = `
+      SELECT
+        t.id,
+        t.name,
+        t.duration_ms,
+        ta.track_number,
+        ta.disc_number,
+        COALESCE(play_counts.playcount, 0) AS playcount,
+        STRING_AGG(DISTINCT ar.name, ', ' ORDER BY ar.name) AS artists
+      FROM tracks t
+      JOIN track_albums ta ON t.id = ta.track_id
+      LEFT JOIN track_artists ta_artists ON t.id = ta_artists.track_id
+      LEFT JOIN artists ar ON ta_artists.artist_id = ar.id
+      LEFT JOIN (
+        SELECT track_id, COUNT(*) AS playcount
+        FROM plays
+        GROUP BY track_id
+      ) play_counts ON play_counts.track_id = t.id
+      WHERE ta.album_id = $1
+      GROUP BY t.id, t.name, t.duration_ms, ta.track_number, ta.disc_number, play_counts.playcount
+      ORDER BY ${orderBy}
+    `;
+
+    const result = await getSharedPool().query(query, [albumId]);
+
+    const tracks = result.rows.map(row => ({
+      id: parseInt(row.id),
+      name: row.name,
+      duration_ms: row.duration_ms,
+      track_number: row.track_number,
+      disc_number: row.disc_number,
+      playcount: parseInt(row.playcount),
+      artists: row.artists
+    }));
+
+    logger.info(`getAlbumTracklist returned ${tracks.length} tracks for album ${albumId} (sorted by ${sortBy})`);
+    callback(null, tracks);
+  } catch (err) {
+    logger.error(`getAlbumTracklist DB error: ${err}`);
+    callback(err);
+  }
+}
+
 export async function getAllAlbumsWithPlaycount(options = {}, callback) {
   // Handle backward compatibility - if first param is callback
   if (typeof options === 'function') {
