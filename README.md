@@ -1,92 +1,169 @@
 # 🎵 My Music Dashboard
 
-> **A comprehensive full-stack web application for analyzing and visualizing personal music listening history with advanced statistics, interactive charts, and intelligent data processing.**
+> **A comprehensive full-stack web application for analyzing and visualizing personal music listening history with advanced statistics, AI-powered insights, tagging system, interactive charts, and intelligent data processing.**
 
-![Music Dashboard](https://img.shields.io/badge/React-19-61dafb?style=flat&logo=react) ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=flat&logo=node.js) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169e1?style=flat&logo=postgresql) ![Tailwind](https://img.shields.io/badge/Tailwind-CSS-38b2ac?style=flat&logo=tailwind-css)
+![React](https://img.shields.io/badge/React-19-61dafb?style=flat&logo=react) ![Node.js](https://img.shields.io/badge/Node.js-Express%205-339933?style=flat&logo=node.js) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169e1?style=flat&logo=postgresql) ![Tailwind](https://img.shields.io/badge/Tailwind-CSS%204-38b2ac?style=flat&logo=tailwind-css) ![OpenAI](https://img.shields.io/badge/OpenAI-AI%20Insights-00a67e?style=flat&logo=openai)
 
 ## ✨ Features
 
 ### 📊 **Advanced Analytics Dashboard**
 - **Top Artists, Albums & Tracks** with dynamic period filtering (7d, 1m, 3m, 6m, 1y, all-time)
+- **Interactive Heatmaps** showing daily listening patterns with responsive sizing
 - **Unique Statistics**: Total plays, unique tracks/artists/albums, listening time, repeat factors
-- **Diversity Scores**: Analyze your music discovery patterns
-- **Interactive Charts**: Daily play heatmaps and trend visualizations
+- **Diversity Scores**: Analyze your music discovery patterns and freshness metrics
+- **Comprehensive Metrics**: Discovery rates, behavioral analysis, and listening trends
+
+### 🤖 **AI-Powered Insights**
+- **Weekly Listening Analysis** using OpenAI for personalized music insights
+- **Trend Identification** and pattern recognition in your listening habits
+- **Personalized Recommendations** based on listening behavior and preferences
+- **Historical Context** integration for deeper analysis and comparisons
+- **Smart Summaries** of your musical journey and discoveries
+
+### 🏷️ **Advanced Tagging System**
+- **Custom Tags** with user-defined colors for organizing music content
+- **Entity Tagging** for artists, albums, and tracks with visual indicators
+- **Tag-based Filtering** and browsing capabilities
+- **Tag Statistics** showing usage patterns and popular tags
+- **Bulk Tagging** operations for efficient content organization
 
 ### 🔍 **Intelligent Search & Discovery**
-- **Real-time search** across all artists, albums, and tracks
+- **Global Real-time Search** across all artists, albums, and tracks
 - **Play count ranking** for relevance-based results
-- **Advanced filtering** by alphabetical categories and play thresholds
+- **Instant Results** with keyboard navigation and context menus
+- **Advanced filtering** by alphabetical categories, play thresholds, and tags
+- **Search History** and saved searches for quick access
 
 ### 📱 **Responsive Explore Experience**
 - **Paginated browsing** with server-side performance optimization
-- **Alphabetical navigation** (A-Z + numbers/symbols)
-- **Mobile-optimized** layouts that adapt to screen size
+- **Alphabetical navigation** (A-Z + numbers/symbols) with visual indicators
+- **Mobile-optimized** layouts with touch-friendly controls
 - **Play count filtering** to discover hidden gems or focus on favorites
+- **Sorting Options** by plays, alphabetical, or discovery date
 
 ### 🎨 **Detailed Entity Views**
-- **Artist/Album/Track pages** with comprehensive statistics
-- **Recent play history** and milestone tracking
-- **Daily play charts** showing listening patterns over time
-- **Related content** discovery and cross-linking
+- **Comprehensive Entity Pages** for artists, albums, and tracks
+- **Advanced Statistics** with milestone tracking and achievements
+- **Interactive Charts** showing listening patterns and trends over time
+- **Related Content** discovery with intelligent recommendations
+- **Tag Management** directly from entity pages
+- **Recent Play History** with detailed timestamps and context
 
-### 🔄 **Dual-Source Data Sync**
-- **Spotify Web API** integration for rich metadata and recent plays
+### 📈 **System Insights & Monitoring**
+- **Data Quality Dashboard** monitoring metadata completion and sync health
+- **System Performance** metrics and database optimization insights
+- **Sync Status** tracking for Spotify and Last.fm data sources
+- **Duplicate Detection** and data integrity monitoring
+- **External ID Coverage** analysis for integration completeness
+
+### 🏆 **Milestones & Achievements**
+- **Play Count Milestones** for artists, albums, and tracks
+- **Discovery Achievements** tracking new music exploration
+- **Listening Streaks** and consistency patterns
+- **Personal Records** and notable listening sessions
+- **Achievement History** with timestamps and context
+
+### 🔄 **Robust Data Sync**
+- **Spotify Web API** integration with OAuth authentication
 - **Last.fm API** support for historical data import
-- **Intelligent deduplication** preventing data conflicts
-- **Automatic metadata enrichment** (duration, popularity, release dates, images)
+- **Intelligent deduplication** with conflict resolution
+- **Automatic metadata enrichment** (duration, popularity, release dates, images, genres)
+- **Scheduled Sync** with error handling and retry mechanisms
+- **Manual Sync Control** with force sync capabilities
 
 ### 🎯 **Modern User Experience**
 - **Hip-hop themed loading messages** with smooth transitions
-- **Full viewport layouts** ensuring consistent visual experience
-- **Centralized configuration** for easy customization
-- **Fast, responsive design** built for music exploration
+- **Context Menus** for quick actions and navigation
+- **Mobile-first Design** with optimized touch interactions
+- **Dark/Light Mode** support with system preference detection
+- **Keyboard Shortcuts** for power users
+- **Accessibility Features** with ARIA labels and screen reader support
 
 ## 🏗️ Architecture
 
-### **Frontend** (React 19 + Vite)
+### **Frontend** (React 19 + Vite + Tailwind CSS 4)
 ```
 src/
-├── components/           # Organized UI components
-│   ├── ui/              # Base components (buttons, tiles, loading)
-│   ├── layout/          # Layout components (PageLayout)
-│   ├── charts/          # Recharts visualizations
-│   └── sections/        # Page sections (grouped content)
-├── pages/               # Main views (Dashboard, Explore, Artist, Album, Track)
-├── hooks/               # Custom React hooks for data & state
-├── data/                # API client functions
-└── config/              # Centralized app configuration
+├── components/          # Organized UI components
+│   ├── ui/             # Base components (buttons, tiles, loading, context menus, tags)
+│   ├── layout/         # Layout components (AppLayout, PageLayout, AppHeader)
+│   ├── navigation/     # Navigation (SearchBar, SidePanel, MenuButton)
+│   ├── charts/         # Recharts visualizations and custom heatmaps
+│   ├── sections/       # Page sections (grouped content, milestones)
+│   ├── controls/       # Form controls (dropdowns, filters, pagination)
+│   ├── stats/          # Statistics components (cards, metrics, analysis)
+│   ├── insights/       # Data quality and system insight components
+│   ├── trends/         # Trend analysis and discovery tracking
+│   ├── track/          # Track-specific components (media lists, details)
+│   ├── explore/        # Explore page components (filters, selectors)
+│   ├── forms/          # Form components and filter controls
+│   └── common/         # Shared components (stat popups)
+├── pages/              # Main views
+│   ├── Dashboard.jsx   # Main dashboard with heatmaps
+│   ├── ExploreView.jsx # Paginated browsing
+│   ├── StatsView.jsx   # Comprehensive statistics
+│   ├── InsightsView.jsx # Data quality insights
+│   ├── AIInsightsView.jsx # AI-powered analysis
+│   ├── TagsPage.jsx    # Tag management
+│   └── [Entity]View.jsx # Artist/Album/Track pages
+├── hooks/              # Custom React hooks (useSearch, data fetching)
+├── data/               # API client functions
+└── config/             # Centralized app configuration
 ```
 
-### **Backend** (Node.js + Express + PostgreSQL)
+### **Backend** (Node.js + Express 5 + PostgreSQL)
 ```
 src/
 ├── db/                  # Modular database layer
-│   ├── connection.js    # PostgreSQL connection management
+│   ├── connection.js    # PostgreSQL connection and pool management
 │   ├── analytics.js     # Statistics and metrics queries
 │   ├── topQueries.js    # Ranking and top content queries
 │   ├── search.js        # Multi-table search functionality
+│   ├── insights.js      # Data quality and system health analysis
+│   ├── tags.js          # Tagging system database operations
+│   ├── milestones.js    # Milestone tracking and achievements
+│   ├── trends.js        # Trend analysis and discovery tracking
+│   ├── trendsMatView.js # Materialized views for performance
+│   ├── discoveries.js   # Music discovery pattern analysis
+│   ├── listeningAnalysis.js # AI-powered listening behavior analysis
+│   ├── metadata.js      # Metadata management and enrichment
 │   └── [entity]Db.js    # Specialized entity operations
 ├── routes/              # Resource-based API endpoints
+│   ├── insights.js      # Data quality and system insights
+│   ├── tags.js          # Tagging system API
+│   ├── milestones.js    # Milestone tracking
+│   ├── trends.js        # Trend analysis
+│   ├── sync.js          # Data synchronization
+│   └── [entity].js      # Entity-specific routes
 ├── services/            # External API integrations
 │   ├── musicSync.js     # Main sync coordinator
 │   ├── spotify.js       # Spotify Web API client
-│   └── lastfm.js        # Last.fm API client
-└── utils/               # Logging, timezone, period utilities
+│   ├── lastfm.js        # Last.fm API client
+│   ├── openai.js        # OpenAI API integration
+│   └── spotifyDataProcessor.js # Data processing
+├── utils/               # Utilities (Winston logging, timezone, periods)
+├── migrations/          # Database migration system
+├── scripts/             # Maintenance and sync scripts
+└── tests/               # Comprehensive test suite
 ```
 
 ### **Database Schema** (PostgreSQL)
-- **Normalized structure** with proper foreign key relationships
-- **External ID mapping** for Spotify/Last.fm integration
-- **Junction tables** for many-to-many relationships
-- **Optimized indexes** for large-scale data performance
+- **Normalized structure** with proper foreign key relationships and constraints
+- **External ID mapping** for Spotify/Last.fm integration with conflict resolution
+- **Junction tables** for many-to-many relationships (artists, albums, tracks, genres)
+- **Enhanced features**: Tags, milestones, listening analyses, and system insights
+- **Materialized views** for performance optimization on complex analytical queries
+- **Optimized indexes** for sub-second response times on large datasets
+- **Migration system** for schema evolution and data transformations
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js** (v18+)
 - **PostgreSQL** (v12+)
-- **Spotify Developer Account** (for data sync)
-- **Last.fm API Key** (optional, for historical data)
+- **Spotify Developer Account** (for data sync and OAuth)
+- **OpenAI API Key** (for AI insights - optional)
+- **Last.fm API Key** (optional, for historical data import)
 
 ### Installation
 
@@ -134,6 +211,11 @@ DATABASE_URL=postgresql://username:password@localhost:5432/music_dashboard
 # Spotify API
 SPOTIFY_CLIENT_ID=your_spotify_client_id
 SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+SPOTIFY_REDIRECT_URI=http://localhost:3001/api/spotify/callback
+
+# OpenAI API (optional - for AI insights)
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-4o-mini
 
 # Last.fm API (optional)
 LASTFM_API_KEY=your_lastfm_api_key
@@ -141,30 +223,57 @@ LASTFM_API_KEY=your_lastfm_api_key
 # App Configuration
 TZ=Europe/London
 SYNC_METHOD=spotify
+PORT=3001
+
+# Logging
+LOG_LEVEL=info
 ```
 
 ## 📊 API Reference
 
-### **Resource Endpoints**
+### **Core Resource Endpoints**
 ```
+# Artists, Albums, Tracks
 GET  /api/artist/top              # Top artists with period filtering
 GET  /api/artist/all              # Paginated artist browsing
 GET  /api/artist/:id              # Individual artist details
-GET  /api/album/top               # Top albums
-GET  /api/track/top               # Top tracks
+GET  /api/album/top               # Top albums with filtering
+GET  /api/track/top               # Top tracks with filtering
 GET  /api/track/recent            # Recent play history
-GET  /api/search?q=query          # Multi-entity search
+
+# Search & Analytics
+GET  /api/search?q=query          # Multi-entity search with ranking
 GET  /api/analytics/daily-plays   # Daily play statistics
-GET  /api/unique-counts           # Global statistics
-POST /api/spotify/sync            # Trigger data sync
+GET  /api/unique-counts           # Global statistics and metrics
+
+# AI Insights
+GET  /api/insights/ai-status      # AI service status
+POST /api/insights/analyze-week   # Trigger weekly analysis
+GET  /api/insights/analyses       # Historical AI analyses
+
+# Tagging System
+GET  /api/tags                    # All tags with statistics
+POST /api/tags/entity/:type/:id  # Add tag to entity
+GET  /api/tags/:id/entities       # Entities with specific tag
+
+# System & Sync
+GET  /api/insights                # Data quality and system health
+POST /api/spotify/sync           # Trigger data sync
+GET  /api/milestones              # Achievements and milestones
 ```
 
 ### **Query Parameters**
-- `limit` - Number of results (default: varies by endpoint)
+- `limit` - Number of results (default: varies by endpoint, max: 50)
 - `period` - Time range: `7day`, `1month`, `3month`, `6month`, `12month`, `overall`
-- `page` - Page number for pagination
-- `sortBy` - Sort method: `plays`, `alpha`
+- `page` - Page number for pagination (0-based)
+- `sortBy` - Sort method: `plays`, `alpha`, `recent`, `discovery_date`
 - `category` - Alphabetical filter: `A`, `B`, ..., `Z`, `#`
+- `tag` - Filter by tag ID or name
+- `minPlays` - Minimum play count filter
+- `maxPlays` - Maximum play count filter
+- `search` - Search query for filtering results
+- `includeStats` - Include detailed statistics in response
+- `includeTagged` - Include only tagged or untagged items
 
 ## 🛠️ Development
 
@@ -181,44 +290,68 @@ npm run preview      # Preview production build
 ```bash
 cd backend
 npm start            # Start server (port 3001)
-npm run dev          # Development with auto-reload
-```
 
-### **Database Management**
-```bash
-cd backend/scripts
-node migration-script.js    # Run database migrations
-node sync-script.js         # Manual data sync
+# Testing
+npm run test         # Run all tests
+npm run test:api     # API endpoint tests
+npm run test:services # Service integration tests
+npm run test:db      # Database operation tests
+
+# Data Management
+npm run sync:test    # Test sync configuration
+npm run sync:run     # Run scheduled sync
+npm run sync:force   # Force sync all data
+
+# Database Operations
+npm run migrate      # Run database migrations
+npm run migrate:status # Check migration status
+npm run db:info      # Database information
+
+# Performance Optimization
+npm run setup:matviews   # Setup materialized views
+npm run refresh:matviews # Refresh materialized views
 ```
 
 ## 📈 Performance Features
 
-- **Server-side pagination** for handling large datasets
-- **Optimized PostgreSQL queries** with CTEs and proper indexing
-- **Lazy loading** and code splitting in React
-- **Caching strategies** for frequently accessed data
-- **Background sync processes** for data updates
-- **Responsive image loading** with lazy loading
+- **Server-side pagination** with optimized count queries for large datasets
+- **Materialized views** for complex analytical queries with sub-second response times
+- **Optimized PostgreSQL queries** with CTEs, proper indexing, and query planning
+- **Database connection pooling** for efficient resource utilization
+- **Lazy loading** and code splitting in React for faster initial loads
+- **Virtual scrolling** for large lists and tables
+- **Intelligent caching** strategies for frequently accessed data
+- **Background sync processes** with retry mechanisms and error handling
+- **Responsive image loading** with lazy loading and progressive enhancement
+- **API response optimization** with selective field loading and compression
 
 ## 🎨 Design Philosophy
 
-- **Mobile-first responsive design** ensuring usability across all devices
-- **Hip-hop inspired loading states** for engaging user experience
-- **Consistent visual hierarchy** with Tailwind CSS utility classes
-- **Accessibility considerations** with proper ARIA labels and keyboard navigation
-- **Performance-optimized** with minimal bundle sizes and fast load times
+- **Mobile-first responsive design** with touch-optimized interactions across all devices
+- **Hip-hop inspired loading states** and personality-driven user experience
+- **Consistent visual hierarchy** with Tailwind CSS 4 utility classes and design tokens
+- **Dark/Light mode support** with system preference detection
+- **Accessibility-first** with comprehensive ARIA labels, keyboard navigation, and screen reader support
+- **Performance-optimized** with minimal bundle sizes, lazy loading, and progressive enhancement
+- **Context-aware interactions** with smart menus and intuitive navigation patterns
+- **Visual feedback** for all user actions with smooth transitions and animations
 
 ## 🔧 Customization
 
 ### **Configuration**
-- **Frontend**: Edit `src/config/appConfig.js` for limits, periods, and UI settings
-- **Backend**: Modify environment variables and database connection settings
-- **Styling**: Customize Tailwind CSS configuration in `tailwind.config.js`
+- **Frontend**: Edit `src/config/appConfig.js` for limits, periods, grid layouts, and UI settings
+- **Backend**: Modify environment variables, database settings, and sync configurations
+- **Styling**: Customize Tailwind CSS 4 configuration with design tokens and component classes
+- **AI Insights**: Configure OpenAI models, prompts, and analysis parameters
+- **Sync Settings**: Adjust sync intervals, retry logic, and data source priorities
 
 ### **Adding New Features**
-- **Database**: Add new tables/queries in appropriate `src/db/` files
-- **API**: Create new routes in `src/routes/` following resource-based patterns
-- **Frontend**: Add components in organized folders (`ui/`, `charts/`, etc.)
+- **Database**: Add new tables/queries in modular `src/db/` files with proper migrations
+- **API**: Create new routes in `src/routes/` following RESTful resource-based patterns
+- **Frontend**: Add components in organized feature folders with proper separation of concerns
+- **AI Integration**: Extend OpenAI service with new analysis types and insights
+- **Testing**: Add comprehensive test coverage for new functionality
+- **Documentation**: Update API documentation and user guides
 
 ## 📝 License
 
@@ -226,7 +359,25 @@ This is a personal project built for analyzing individual music listening histor
 
 ## 🎵 Built with Music in Mind
 
-This dashboard is designed by music lovers, for music lovers. Every feature is crafted to help you discover patterns, rediscover forgotten favorites, and gain deeper insights into your musical journey. From the hip-hop themed loading messages to the comprehensive statistics, every detail celebrates the joy of music discovery.
+This dashboard is designed by music lovers, for music lovers. Every feature is crafted to help you discover patterns, rediscover forgotten favorites, and gain deeper insights into your musical journey. From the hip-hop themed loading messages to the AI-powered weekly insights, every detail celebrates the joy of music discovery.
+
+### 🚀 **What's New**
+- **AI-Powered Insights**: Weekly listening analysis with personalized recommendations
+- **Advanced Tagging**: Organize your music with custom tags and colors
+- **Enhanced Performance**: Materialized views and optimized queries for lightning-fast responses
+- **Mobile Optimization**: Touch-friendly interface with optimized navigation
+- **System Insights**: Comprehensive data quality monitoring and sync health
+- **Milestone Tracking**: Achievement system for your listening journey
+- **Global Search**: Instant search across all content with keyboard shortcuts
+- **Context Menus**: Quick actions and navigation throughout the interface
+
+### 🔮 **Future Roadmap**
+- Social features for sharing insights and discoveries
+- Advanced playlist generation based on listening patterns
+- Music recommendation engine using collaborative filtering
+- Integration with additional music services (Apple Music, YouTube Music)
+- Real-time listening activity and live dashboard updates
+- Machine learning models for mood and genre analysis
 
 ---
 
