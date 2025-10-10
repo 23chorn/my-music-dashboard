@@ -127,21 +127,64 @@ This is a comprehensive full-stack music dashboard application for analyzing per
 - `src/config/` - **Centralized configuration** (appConfig.js with limits, periods, grid config, etc.)
 
 ### Database Schema
-The PostgreSQL database follows a normalized structure with external ID mapping:
-- **Core entities:**
-  - `artists` - Artist information with images, genres, and metadata
-  - `albums` - Albums with release dates, images, and artist relationships
-  - `tracks` - Track information with duration, popularity scores, and relationships
-  - `plays` - Individual play records with precise timestamps
-- **Integration:**
-  - `external_ids` - Spotify/Last.fm ID mappings for data integration
-  - Junction tables: `track_artists`, `track_albums`, `album_artists`, `artist_genres`
-- **Enhanced features:**
-  - `tags` - User-defined tags with colors and metadata
-  - `entity_tags` - Tag associations with artists, albums, and tracks
-  - `milestones` - Achievement tracking and milestone definitions
-  - `listening_analyses` - AI-generated listening behavior insights
-  - Materialized views for performance optimization on large datasets
+The PostgreSQL database follows a normalized structure with comprehensive relationships:
+
+**Core Music Entities:**
+- `artists` - Artist information with images and metadata
+  - `id` (IDENTITY), `name`, `image_url`, `last_fetched`
+- `albums` - Album details with release information
+  - `id` (IDENTITY), `name`, `release_date`, `release_precision`, `image_url`, `last_fetched`
+- `tracks` - Track metadata with duration and popularity
+  - `id` (IDENTITY), `name`, `duration_ms`, `popularity`, `release_date`, `release_precision`, `last_fetched`
+- `genres` - Music genre classifications
+  - `id` (IDENTITY), `name` (UNIQUE)
+- `plays` - Individual listening events with timestamps
+  - `id` (IDENTITY), `track_id` (FK), `played_at`
+
+**Relationship Tables (Many-to-Many):**
+- `track_artists` - Track-artist relationships with primary artist designation
+  - `track_id` (FK), `artist_id` (FK), `is_primary`
+- `track_albums` - Track-album relationships with disc/track numbers
+  - `track_id` (FK), `album_id` (FK), `track_number`, `disc_number`
+- `album_artists` - Album-artist relationships
+  - `album_id` (FK), `artist_id` (FK)
+- `artist_genres` - Artist-genre classifications
+  - `artist_id` (FK), `genre_id` (FK)
+
+**Data Integration:**
+- `external_ids` - External service ID mappings (Spotify, Last.fm)
+  - `id` (IDENTITY), `entity_type`, `entity_id`, `source`, `external_id`
+
+**User Features:**
+- `tags` - User-defined organizational tags
+  - `id`, `name` (UNIQUE), `color`, `created_at`, `updated_at`
+- `entity_tags` - Tag assignments to entities
+  - `id`, `tag_id` (FK), `entity_id`, `entity_type`, `created_at`
+  - Supports: 'track', 'album', 'artist' entity types
+
+**Analytics & Insights:**
+- `listening_analyses` - AI-generated weekly listening insights
+  - `id`, `week_start`, `week_end`, listening metrics, AI insights (JSONB)
+  - `mood_summary`, `key_insights`, `listening_patterns`, `musical_personality`
+  - `trends_vs_previous`, `recommendations`, `openai_model`, `openai_usage`
+- `weekly_listening_summaries` - Computed weekly statistics
+  - `id`, date range, play counts, top content (JSONB), patterns (JSONB)
+  - `repeat_factor`, `discovery_rate`, daily/hourly patterns
+
+**System Management:**
+- `metadata` - Application metadata and configuration
+  - `key`, `value`, `updated_at`
+- `schema_migrations` - Database migration tracking
+  - `id`, `version` (UNIQUE), `name`, `applied_at`, `checksum`
+
+**Custom Types:**
+- `release_precision_enum` - Date precision levels ('day', 'month', 'year')
+- Entity type constraints for flexible polymorphic relationships
+
+**Performance Optimizations:**
+- Materialized views for complex analytical queries
+- Proper indexing on frequently queried columns
+- Foreign key constraints ensuring data integrity
 
 ### Key Features
 - **Dashboard:** Top artists, albums, tracks with advanced period filtering (7d, 1m, 3m, 6m, 1y, all) and interactive heatmaps
@@ -161,23 +204,23 @@ The PostgreSQL database follows a normalized structure with external ID mapping:
 ### API Endpoints (Resource-based)
 
 **Artists:**
-- `GET /api/artist/top` - Top artists with period/limit filtering
-- `GET /api/artist/all` - Paginated artist browsing with alphabetical filtering
-- `GET /api/artist/:id` - Individual artist details with comprehensive stats
-- `GET /api/artist/:id/stats` - Artist-specific statistics and analytics
+- `GET /api/artists/top` - Top artists with period/limit filtering
+- `GET /api/artists/all` - Paginated artist browsing with alphabetical filtering
+- `GET /api/artists/:id` - Individual artist details with comprehensive stats
+- `GET /api/artists/:id/stats` - Artist-specific statistics and analytics
 
 **Albums:**
-- `GET /api/album/top` - Top albums with period/limit/artist filtering
-- `GET /api/album/all` - Paginated album browsing with filtering options
-- `GET /api/album/:id` - Individual album details with track listings
-- `GET /api/album/:id/stats` - Album-specific statistics and play patterns
+- `GET /api/albums/top` - Top albums with period/limit/artist filtering
+- `GET /api/albums/all` - Paginated album browsing with filtering options
+- `GET /api/albums/:id` - Individual album details with track listings
+- `GET /api/albums/:id/stats` - Album-specific statistics and play patterns
 
 **Tracks:**
-- `GET /api/track/top` - Top tracks with period/limit/artist/album filtering
-- `GET /api/track/recent` - Recent play history with pagination
-- `GET /api/track/all` - Paginated track browsing with play count filtering
-- `GET /api/track/:id` - Individual track details with comprehensive metadata
-- `GET /api/track/:id/stats` - Track-specific statistics and listening patterns
+- `GET /api/tracks/top` - Top tracks with period/limit/artist/album filtering
+- `GET /api/tracks/recent` - Recent play history with pagination
+- `GET /api/tracks/all` - Paginated track browsing with play count filtering
+- `GET /api/tracks/:id` - Individual track details with comprehensive metadata
+- `GET /api/tracks/:id/stats` - Track-specific statistics and listening patterns
 
 **Analytics & Search:**
 - `GET /api/analytics/daily-plays` - Daily play counts for heatmap charts
@@ -231,9 +274,13 @@ The PostgreSQL database follows a normalized structure with external ID mapping:
 - PostgreSQL with parameterized queries and `to_timestamp()` for Unix timestamps
 - Complex CTEs for ranking, album selection, and analytics logic
 - Materialized views for performance optimization on large datasets
+- JSONB columns for flexible data storage (insights, patterns, top content)
 - External ID mapping for Spotify/Last.fm integration with conflict resolution
-- Proper indexing and query optimization for sub-second response times
-- Migration system for schema evolution and data transformations
+- Polymorphic entity relationships using CHECK constraints
+- Custom enum types for controlled vocabularies (release_precision)
+- Proper indexing on foreign keys, timestamps, and frequently queried columns
+- Migration system with version tracking and rollback capabilities
+- Data integrity enforced through foreign key constraints and CHECK constraints
 
 **API Design:**
 - RESTful resource-based routing with consistent URL patterns

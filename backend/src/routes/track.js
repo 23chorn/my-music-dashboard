@@ -14,7 +14,7 @@ import { getRecentTracks } from '../db/plays.js';
 // Get top tracks (replaces /api/top-tracks)
 router.get('/top', (req, res) => {
   const { limit = 5, period = "overall", artistId = null, albumId = null } = req.query;
-  logger.info(`GET /api/track/top called with limit=${limit}, period=${period}, artistId=${artistId}, albumId=${albumId}`);
+  logger.info(`GET /api/tracks/top called with limit=${limit}, period=${period}, artistId=${artistId}, albumId=${albumId}`);
   getTopTracks({ limit: Number(limit), period, artistId, albumId }, (err, tracks) => {
     if (err) {
       logger.error(`Error in getTopTracks: ${err}`);
@@ -28,7 +28,7 @@ router.get('/top', (req, res) => {
 // Get recent tracks (replaces /api/recent-tracks)
 router.get('/recent', (req, res) => {
   const { limit = 5 } = req.query;
-  logger.info(`GET /api/track/recent called with limit=${limit}`);
+  logger.info(`GET /api/tracks/recent called with limit=${limit}`);
   getRecentTracks(Number(limit), (err, tracks) => {
     if (err) {
       logger.error(`Error in getRecentTracks: ${err}`);
@@ -48,7 +48,7 @@ router.get('/all', (req, res) => {
   const minPlays = req.query.minPlays ? parseInt(req.query.minPlays) : null;
   const maxPlays = req.query.maxPlays ? parseInt(req.query.maxPlays) : null;
   
-  logger.info(`GET /api/track/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
+  logger.info(`GET /api/tracks/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
   
   const options = { page, limit, sortBy, alphaCategory, minPlays, maxPlays };
   getAllTracksWithPlaycount(options, (err, rows) => {
@@ -63,7 +63,7 @@ router.get('/all', (req, res) => {
 
 // Get track info
 router.get('/:id', (req, res) => {
-  logger.info(`GET /api/track/${req.params.id} called`);
+  logger.info(`GET /api/tracks/${req.params.id} called`);
   getTrackInfo(req.params.id, (err, track) => {
     if (err) {
       logger.error("DB error in getTrackInfo:", err);
@@ -82,7 +82,7 @@ router.get('/:id', (req, res) => {
 router.get('/:id/recent-plays', (req, res) => {
   const trackId = Number(req.params.id);
   const limit = Number(req.query.limit) || 10;
-  logger.info(`GET /api/track/${trackId}/recent-plays?limit=${limit}`);
+  logger.info(`GET /api/tracks/${trackId}/recent-plays?limit=${limit}`);
   
   getTrackRecentPlays(trackId, limit, (err, plays) => {
     if (err) {
@@ -97,7 +97,7 @@ router.get('/:id/recent-plays', (req, res) => {
 // Get track stats
 router.get('/:id/stats', (req, res) => {
   const trackId = Number(req.params.id);
-  logger.info(`GET /api/track/${trackId}/stats`);
+  logger.info(`GET /api/tracks/${trackId}/stats`);
   
   getTrackStats(trackId, (err, stats) => {
     if (err) {
@@ -113,7 +113,7 @@ router.get('/:id/stats', (req, res) => {
 router.get('/:id/daily-plays', (req, res) => {
   const trackId = Number(req.params.id);
   const days = Number(req.query.days) || 90;
-  logger.info(`GET /api/track/${trackId}/daily-plays?days=${days}`);
+  logger.info(`GET /api/tracks/${trackId}/daily-plays?days=${days}`);
   
   getTrackDailyPlays(trackId, days, (err, dailyPlays) => {
     if (err) {

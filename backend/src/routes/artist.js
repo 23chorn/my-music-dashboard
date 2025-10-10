@@ -14,7 +14,7 @@ import { getTopTracks, getTopAlbums, getTopArtists } from '../db/topQueries.js';
 // Get top artists (replaces /api/top-artists)
 router.get('/top', (req, res) => {
   const { limit = 5, period = "overall" } = req.query;
-  logger.info(`GET /api/artist/top called with limit=${limit}, period=${period}`);
+  logger.info(`GET /api/artists/top called with limit=${limit}, period=${period}`);
   getTopArtists(Number(limit), period, (err, artists) => {
     if (err) {
       logger.error(`Error in getTopArtists: ${err}`);
@@ -34,7 +34,7 @@ router.get('/all', (req, res) => {
   const minPlays = req.query.minPlays ? parseInt(req.query.minPlays) : null;
   const maxPlays = req.query.maxPlays ? parseInt(req.query.maxPlays) : null;
   
-  logger.info(`GET /api/artist/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
+  logger.info(`GET /api/artists/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
   
   const options = { page, limit, sortBy, alphaCategory, minPlays, maxPlays };
   getAllArtistsWithPlaycount(options, (err, rows) => {
@@ -48,7 +48,7 @@ router.get('/all', (req, res) => {
 });
 
 router.get('/:id', (req, res) => {
-  logger.info(`GET /api/artist/${req.params.id} called`);
+  logger.info(`GET /api/artists/${req.params.id} called`);
   getArtistInfo(req.params.id, (err, artist) => {
     if (err) {
       logger.error("DB error in getArtistInfo:", err);
@@ -67,7 +67,7 @@ router.get('/:id/top-tracks', (req, res) => {
   const artistId = req.params.id;
   const limit = Number(req.query.limit) || 10;
   const period = req.query.period || 'overall';
-  logger.info(`GET /api/artist/${artistId}/top-tracks?limit=${limit}&period=${period}`);
+  logger.info(`GET /api/artists/${artistId}/top-tracks?limit=${limit}&period=${period}`);
   getTopTracks({ artistId, limit, period }, (err, tracks) => {
     if (err) {
       logger.error("DB error in getTopTracks:", err);
@@ -82,7 +82,7 @@ router.get('/:id/top-albums', (req, res) => {
   const artistId = req.params.id;
   const limit = Number(req.query.limit) || 10;
   const period = req.query.period || 'overall';
-  logger.info(`GET /api/artist/${artistId}/top-albums?limit=${limit}&period=${period}`);
+  logger.info(`GET /api/artists/${artistId}/top-albums?limit=${limit}&period=${period}`);
   getTopAlbums({ artistId, limit, period }, (err, albums) => {
     if (err) {
       logger.error("DB error in getTopAlbums:", err);
@@ -96,7 +96,7 @@ router.get('/:id/top-albums', (req, res) => {
 router.get('/:id/recent-plays', (req, res) => {
   const artistId = req.params.id;
   const limit = Number(req.query.limit) || 10;
-  logger.info(`GET /api/artist/${artistId}/recent-plays?limit=${limit}`);
+  logger.info(`GET /api/artists/${artistId}/recent-plays?limit=${limit}`);
   getArtistRecentPlays(artistId, limit, (err, plays) => {
     if (err) {
       logger.error("DB error in getArtistRecentPlays:", err);
@@ -108,7 +108,7 @@ router.get('/:id/recent-plays', (req, res) => {
 });
 
 router.get('/:id/stats', (req, res) => {
-  logger.info(`GET /api/artist/${req.params.id}/stats called`);
+  logger.info(`GET /api/artists/${req.params.id}/stats called`);
   getArtistStats(req.params.id, (err, stats) => {
     if (err) {
       logger.error("DB error in getArtistStats:", err);
@@ -120,7 +120,7 @@ router.get('/:id/stats', (req, res) => {
 });
 
 router.get('/:id/milestones', (req, res) => {
-  logger.info(`GET /api/artist/${req.params.id}/milestones called`);
+  logger.info(`GET /api/artists/${req.params.id}/milestones called`);
   getArtistMilestones(req.params.id, (err, milestones) => {
     if (err) {
       logger.error("DB error in getArtistMilestones:", err);
@@ -134,7 +134,7 @@ router.get('/:id/milestones', (req, res) => {
 router.get('/:id/daily-plays', (req, res) => {
   const artistId = req.params.id;
   const days = Number(req.query.days) || 30;
-  logger.info(`GET /api/artist/${artistId}/daily-plays?days=${days}`);
+  logger.info(`GET /api/artists/${artistId}/daily-plays?days=${days}`);
   getArtistDailyPlays(artistId, days, (err, rows) => {
     if (err) {
       logger.error("DB error in getArtistDailyPlays:", err);

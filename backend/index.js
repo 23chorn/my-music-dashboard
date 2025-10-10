@@ -23,6 +23,7 @@ import discoveriesRouter from "./src/routes/discoveries.js";
 import insightsRouter from "./src/routes/insights.js";
 import tagsRouter from "./src/routes/tags.js";
 import milestonesRouter from "./src/routes/milestones.js";
+import triviaRouter from "./src/routes/trivia.js";
 
 const app = express();
 
@@ -44,9 +45,9 @@ logger.info(`🔧 Starting server in ${process.env.NODE_ENV || "development"} mo
 
 // Resource-based routes
 app.use('/api/search', searchRouter);
-app.use('/api/artist', artistRouter);
-app.use('/api/album', albumRouter);
-app.use('/api/track', trackRouter);
+app.use('/api/artists', artistRouter);
+app.use('/api/albums', albumRouter);
+app.use('/api/tracks', trackRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/spotify', spotifyRouter);
 app.use('/api/system', systemRouter);
@@ -56,6 +57,7 @@ app.use('/api/recent-discoveries', discoveriesRouter);
 app.use('/api/insights', insightsRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/milestones', milestonesRouter);
+app.use('/api/trivia', triviaRouter);
 
 // Legacy routes for test compatibility
 app.get('/api/health/database', async (req, res) => {
@@ -119,9 +121,9 @@ app.get('/', (req, res) => {
   res.send(`🎵 My Music Dashboard API is running!
 
 Available endpoints:
-📊 Artists: /api/artist/top, /api/artist/all, /api/artist/:id, /api/artist/:id/stats
-💿 Albums: /api/album/top, /api/album/all, /api/album/:id, /api/album/:id/stats  
-🎵 Tracks: /api/track/top, /api/track/recent, /api/track/all, /api/track/:id, /api/track/:id/stats
+📊 Artists: /api/artists/top, /api/artists/all, /api/artists/:id, /api/artists/:id/stats
+💿 Albums: /api/albums/top, /api/albums/all, /api/albums/:id, /api/albums/:id/stats  
+🎵 Tracks: /api/tracks/top, /api/tracks/recent, /api/tracks/all, /api/tracks/:id, /api/tracks/:id/stats
 📈 Analytics: /api/analytics/daily-plays
 🔍 Search: /api/search?q=query
 🎧 Spotify: /api/spotify (external service integration)

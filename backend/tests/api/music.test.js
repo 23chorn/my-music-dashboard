@@ -11,8 +11,8 @@ describe('Music API Tests', () => {
   });
 
   describe('Top Lists API', () => {
-    test('GET /api/artist/top - should return top artists', async () => {
-      const response = await client.get('/api/artist/top?limit=5');
+    test('GET /api/artists/top - should return top artists', async () => {
+      const response = await client.get('/api/artists/top?limit=5');
       assertValidResponse(response, 200);
       
       const artists = await response.json();
@@ -31,8 +31,8 @@ describe('Music API Tests', () => {
       }
     });
 
-    test('GET /api/album/top - should return top albums', async () => {
-      const response = await client.get('/api/album/top?limit=5');
+    test('GET /api/albums/top - should return top albums', async () => {
+      const response = await client.get('/api/albums/top?limit=5');
       assertValidResponse(response, 200);
       
       const albums = await response.json();
@@ -45,8 +45,8 @@ describe('Music API Tests', () => {
       }
     });
 
-    test('GET /api/track/top - should return top tracks', async () => {
-      const response = await client.get('/api/track/top?limit=5');
+    test('GET /api/tracks/top - should return top tracks', async () => {
+      const response = await client.get('/api/tracks/top?limit=5');
       assertValidResponse(response, 200);
       
       const tracks = await response.json();
@@ -61,8 +61,8 @@ describe('Music API Tests', () => {
   });
 
   describe('Recent Tracks API', () => {
-    test('GET /api/track/recent - should return recent tracks', async () => {
-      const response = await client.get('/api/track/recent?limit=10');
+    test('GET /api/tracks/recent - should return recent tracks', async () => {
+      const response = await client.get('/api/tracks/recent?limit=10');
       assertValidResponse(response, 200);
       
       const tracks = await response.json();
@@ -87,7 +87,7 @@ describe('Music API Tests', () => {
       const periods = ['7d', '1m', '3m', '6m', '1y', 'overall'];
       
       for (const period of periods) {
-        const response = await client.get(`/api/artist/top?period=${period}&limit=3`);
+        const response = await client.get(`/api/artists/top?period=${period}&limit=3`);
         assertValidResponse(response, 200);
         
         const artists = await response.json();

@@ -13,7 +13,7 @@ import { getTopTracks, getTopAlbums } from '../db/topQueries.js';
 // Get top albums (replaces /api/top-albums)
 router.get('/top', (req, res) => {
   const { limit = 5, period = "overall", artistId = null } = req.query;
-  logger.info(`GET /api/album/top called with limit=${limit}, period=${period}, artistId=${artistId}`);
+  logger.info(`GET /api/albums/top called with limit=${limit}, period=${period}, artistId=${artistId}`);
   getTopAlbums({ limit: Number(limit), period, artistId }, (err, albums) => {
     if (err) {
       logger.error(`Error in getTopAlbums: ${err}`);
@@ -33,7 +33,7 @@ router.get('/all', (req, res) => {
   const minPlays = req.query.minPlays ? parseInt(req.query.minPlays) : null;
   const maxPlays = req.query.maxPlays ? parseInt(req.query.maxPlays) : null;
   
-  logger.info(`GET /api/album/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
+  logger.info(`GET /api/albums/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
   
   const options = { page, limit, sortBy, alphaCategory, minPlays, maxPlays };
   getAllAlbumsWithPlaycount(options, (err, rows) => {
@@ -48,7 +48,7 @@ router.get('/all', (req, res) => {
 
 // Get album info
 router.get('/:id', (req, res) => {
-  logger.info(`GET /api/album/${req.params.id} called`);
+  logger.info(`GET /api/albums/${req.params.id} called`);
   getAlbumInfo(req.params.id, (err, album) => {
     if (err) {
       logger.error("DB error in getAlbumInfo:", err);
@@ -68,7 +68,7 @@ router.get('/:id/top-tracks', (req, res) => {
   const albumId = req.params.id;
   const limit = Number(req.query.limit) || 10;
   const period = req.query.period || "overall";
-  logger.info(`GET /api/album/${albumId}/top-tracks?limit=${limit}&period=${period}`);
+  logger.info(`GET /api/albums/${albumId}/top-tracks?limit=${limit}&period=${period}`);
 
   // Pass albumId as an optional parameter to getTopTracks
   getTopTracks({ limit, period, albumId }, (err, tracks) => {
@@ -85,7 +85,7 @@ router.get('/:id/top-tracks', (req, res) => {
 router.get('/:id/recent-plays', (req, res) => {
   const albumId = Number(req.params.id);
   const limit = Number(req.query.limit) || 10;
-  logger.info(`GET /api/album/${albumId}/recent-plays?limit=${limit}`);
+  logger.info(`GET /api/albums/${albumId}/recent-plays?limit=${limit}`);
   getAlbumRecentPlays( albumId, limit , (err, plays) => {
     if (err) {
       logger.error("DB error in getAlbumRecentPlays:", err);
@@ -98,7 +98,7 @@ router.get('/:id/recent-plays', (req, res) => {
 
 // Get album stats
 router.get('/:id/stats', (req, res) => {
-  logger.info(`GET /api/album/${req.params.id}/stats called`);
+  logger.info(`GET /api/albums/${req.params.id}/stats called`);
   getAlbumStats(req.params.id, (err, stats) => {
     if (err) {
       logger.error("DB error in getAlbumStats:", err);
@@ -113,7 +113,7 @@ router.get('/:id/stats', (req, res) => {
 router.get('/:id/tracklist', (req, res) => {
   const albumId = Number(req.params.id);
   const sortBy = req.query.sortBy || 'trackNumber'; // 'trackNumber' or 'playCount'
-  logger.info(`GET /api/album/${albumId}/tracklist called with sortBy=${sortBy}`);
+  logger.info(`GET /api/albums/${albumId}/tracklist called with sortBy=${sortBy}`);
 
   getAlbumTracklist(albumId, sortBy, (err, tracks) => {
     if (err) {

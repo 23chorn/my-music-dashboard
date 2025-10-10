@@ -67,6 +67,12 @@ export default function MenuButton() {
           </button>
           <button
             className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
+            onClick={() => { setMenuOpen(false); navigate("/trivia"); }}
+          >
+            Trivia
+          </button>
+          <button
+            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
             onClick={() => { setMenuOpen(false); navigate("/tags"); }}
           >
             Tags

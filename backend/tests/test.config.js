@@ -36,10 +36,10 @@ export const testConfig = {
     },
     
     music: {
-      topArtists: '/api/artist/top',
-      topAlbums: '/api/album/top', 
-      topTracks: '/api/track/top',
-      recentTracks: '/api/track/recent',
+      topArtists: '/api/artists/top',
+      topAlbums: '/api/albums/top', 
+      topTracks: '/api/tracks/top',
+      recentTracks: '/api/tracks/recent',
       search: '/api/search',
       dailyPlays: '/api/analytics/daily-plays'
     },

@@ -148,13 +148,43 @@ src/
 ```
 
 ### **Database Schema** (PostgreSQL)
+
+**Core Tables:**
+```sql
+-- Music entities
+artists (id, name, image_url, last_fetched)
+albums (id, name, release_date, release_precision, image_url, last_fetched)
+tracks (id, name, duration_ms, popularity, release_date, release_precision, last_fetched)
+genres (id, name)
+plays (id, track_id, played_at)
+
+-- Relationship tables
+track_artists (track_id, artist_id, is_primary)
+track_albums (track_id, album_id, track_number, disc_number)
+album_artists (album_id, artist_id)
+artist_genres (artist_id, genre_id)
+
+-- Integration & features
+external_ids (id, entity_type, entity_id, source, external_id)
+tags (id, name, color, created_at, updated_at)
+entity_tags (id, tag_id, entity_id, entity_type, created_at)
+
+-- Analytics & insights
+listening_analyses (id, week_start, week_end, metrics, ai_insights_jsonb)
+weekly_listening_summaries (id, week_range, stats, top_content_jsonb)
+metadata (key, value, updated_at)
+schema_migrations (id, version, name, applied_at, checksum)
+```
+
+**Key Features:**
 - **Normalized structure** with proper foreign key relationships and constraints
+- **JSONB columns** for flexible analytics data (insights, top content, patterns)
 - **External ID mapping** for Spotify/Last.fm integration with conflict resolution
-- **Junction tables** for many-to-many relationships (artists, albums, tracks, genres)
-- **Enhanced features**: Tags, milestones, listening analyses, and system insights
+- **Polymorphic relationships** using entity_type constraints for flexible tagging
+- **Custom enum types** for controlled vocabularies (release_precision_enum)
 - **Materialized views** for performance optimization on complex analytical queries
-- **Optimized indexes** for sub-second response times on large datasets
-- **Migration system** for schema evolution and data transformations
+- **Comprehensive indexing** for sub-second response times on large datasets
+- **Migration system** with version tracking for schema evolution
 
 ## 🚀 Quick Start
 
@@ -197,8 +227,18 @@ src/
 
 4. **Database Setup**
    ```bash
-   # Create PostgreSQL database and run migrations
-   # (See backend/scripts/ for migration utilities)
+   # Create PostgreSQL database
+   createdb music_dashboard
+
+   # Run database migrations
+   cd backend
+   npm run migrate
+
+   # Setup materialized views for performance
+   npm run setup:matviews
+
+   # Check migration status
+   npm run migrate:status
    ```
 
 ### Environment Configuration
@@ -228,6 +268,41 @@ PORT=3001
 # Logging
 LOG_LEVEL=info
 ```
+
+## 🗄️ Database Schema Details
+
+### **Entity Relationships**
+```
+Artists ←→ Tracks (many-to-many via track_artists)
+Albums  ←→ Tracks (many-to-many via track_albums)
+Albums  ←→ Artists (many-to-many via album_artists)
+Artists ←→ Genres (many-to-many via artist_genres)
+Tracks  → Plays (one-to-many)
+All Entities ←→ Tags (polymorphic via entity_tags)
+```
+
+### **Key Schema Features**
+
+**Flexible Data Types:**
+- `release_precision_enum`: Handles varying date precision ('day', 'month', 'year')
+- `JSONB columns`: Store complex analytics data with queryable structure
+- `entity_type constraints`: Enable polymorphic relationships for tagging system
+
+**Analytics Tables:**
+- `listening_analyses`: AI-generated weekly insights with OpenAI metadata
+- `weekly_listening_summaries`: Computed statistics with top content and patterns
+- `plays`: Individual listening events for precise tracking
+
+**Data Integrity:**
+- Foreign key constraints across all relationships
+- Unique constraints on critical fields (tag names, genre names)
+- Check constraints for entity types and data validation
+- Primary keys using IDENTITY columns for performance
+
+**Integration Support:**
+- `external_ids`: Maps internal IDs to Spotify/Last.fm IDs
+- `metadata`: Application configuration and sync state
+- `schema_migrations`: Version control for database evolution
 
 ## 📊 API Reference
 
