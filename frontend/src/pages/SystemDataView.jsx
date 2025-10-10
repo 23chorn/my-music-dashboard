@@ -7,30 +7,30 @@ import ExternalIdCoverage from "../components/insights/ExternalIdCoverage";
 import DuplicateTracking from "../components/insights/DuplicateTracking";
 import MetadataCompletion from "../components/insights/MetadataCompletion";
 import useStatsData from "../hooks/useStatsData";
-import { getInsightsData } from "../data/insightsApi";
+import { getSystemData } from "../data/systemDataApi";
 
-export default function InsightsView() {
+export default function SystemDataView() {
   const { timezoneInfo, loading: statsLoading, error: statsError } = useStatsData();
   const [insightsData, setInsightsData] = useState({});
   const [insightsLoading, setInsightsLoading] = useState(true);
   const [insightsError, setInsightsError] = useState(null);
 
   useEffect(() => {
-    async function fetchInsightsData() {
+    async function fetchSystemData() {
       try {
         setInsightsLoading(true);
-        const data = await getInsightsData();
+        const data = await getSystemData();
         setInsightsData(data);
         setInsightsError(null);
       } catch (err) {
-        console.error("Failed to fetch insights data:", err);
+        console.error("Failed to fetch system data:", err);
         setInsightsError(err.message);
       } finally {
         setInsightsLoading(false);
       }
     }
 
-    fetchInsightsData();
+    fetchSystemData();
   }, []);
 
   const loading = statsLoading || insightsLoading;

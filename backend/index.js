@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config({ path: '.env' });
+import 'dotenv/config';
 
 // Set timezone for the application
 process.env.TZ = process.env.TZ || 'Europe/London';

@@ -5,7 +5,7 @@ import AlbumView from "../../pages/AlbumView";
 import TrackView from "../../pages/TrackView";
 import ExploreView from "../../pages/ExploreView";
 import StatsView from "../../pages/StatsView";
-import InsightsView from "../../pages/InsightsView";
+import SystemDataView from "../../pages/SystemDataView";
 import AIInsightsView from "../../pages/AIInsightsView";
 import TagsPage from "../../pages/TagsPage";
 import TagFilterPage from "../../pages/TagFilterPage";
@@ -24,7 +24,7 @@ export default function AppLayout({ searchProps }) {
           <Route path="/track/:id" element={<TrackView />} />
           <Route path="/explore" element={<ExploreView />} />
           <Route path="/stats" element={<StatsView />} />
-          <Route path="/insights" element={<InsightsView />} />
+          <Route path="/insights" element={<SystemDataView />} />
           <Route path="/ai-insights" element={<AIInsightsView />} />
           <Route path="/tags" element={<TagsPage />} />
           <Route path="/tags/:tagId" element={<TagFilterPage />} />

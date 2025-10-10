@@ -12,7 +12,7 @@ export async function createTriviaSession(sessionData) {
   try {
     const result = await pool().query(`
       INSERT INTO trivia_sessions (session_name, difficulty_level, question_count, session_data)
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4::jsonb)
       RETURNING id, created_at
     `, [sessionName, difficultyLevel, questionCount, JSON.stringify(sessionMetadata)]);
 
@@ -35,12 +35,17 @@ export async function saveTriviasQuestions(sessionId, questions) {
 
     for (let i = 0; i < questions.length; i++) {
       const question = questions[i];
+
+      // Ensure JSONB fields are properly formatted
+      const options = question.options ? JSON.stringify(question.options) : null;
+      const dataSource = question.data_source ? JSON.stringify(question.data_source) : '{}';
+
       await client.query(`
         INSERT INTO trivia_questions (
           session_id, question_text, question_type, difficulty_level,
           category, correct_answer, options, explanation, data_source, order_in_session
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9::jsonb, $10)
       `, [
         sessionId,
         question.question_text,
@@ -48,9 +53,9 @@ export async function saveTriviasQuestions(sessionId, questions) {
         question.difficulty_level,
         question.category,
         question.correct_answer,
-        JSON.stringify(question.options || null),
+        options,
         question.explanation,
-        JSON.stringify(question.data_source || {}),
+        dataSource,
         i + 1
       ]);
     }
@@ -68,7 +73,7 @@ export async function saveTriviasQuestions(sessionId, questions) {
 }
 
 /**
- * Get trivia session with questions
+ * Get trivia session with questions and responses
  */
 export async function getTriviaSession(sessionId) {
   try {
@@ -86,8 +91,15 @@ export async function getTriviaSession(sessionId) {
       ORDER BY order_in_session
     `, [sessionId]);
 
+    const responsesResult = await pool().query(`
+      SELECT * FROM trivia_responses
+      WHERE session_id = $1
+      ORDER BY answered_at
+    `, [sessionId]);
+
     const session = sessionResult.rows[0];
     session.questions = questionsResult.rows;
+    session.responses = responsesResult.rows;
 
     return session;
   } catch (error) {
@@ -119,9 +131,9 @@ export async function saveTriviaResponse(responseData) {
 /**
  * Complete trivia session and calculate final score
  */
-export async function completeTriviaSession(sessionId) {
+export async function completeTriviaSession(sessionId, completionTimeSeconds = null) {
   try {
-    const scoreResult = await pool.query(`
+    const scoreResult = await pool().query(`
       SELECT
         COUNT(*) as total_questions,
         COUNT(*) FILTER (WHERE is_correct = true) as correct_answers
@@ -134,13 +146,13 @@ export async function completeTriviaSession(sessionId) {
 
     await pool().query(`
       UPDATE trivia_sessions
-      SET completed_at = CURRENT_TIMESTAMP, score = $1, total_questions = $2
-      WHERE id = $3
-    `, [score, parseInt(total_questions), sessionId]);
+      SET completed_at = CURRENT_TIMESTAMP, score = $1, total_questions = $2, completion_time_seconds = $3
+      WHERE id = $4
+    `, [score, parseInt(total_questions), completionTimeSeconds, sessionId]);
 
-    logger.info(`Completed trivia session ${sessionId}: ${score}/${total_questions}`);
+    logger.info(`Completed trivia session ${sessionId}: ${score}/${total_questions} in ${completionTimeSeconds}s`);
 
-    return { sessionId, score, totalQuestions: parseInt(total_questions) };
+    return { sessionId, score, totalQuestions: parseInt(total_questions), completionTimeSeconds };
   } catch (error) {
     logger.error(`Error completing trivia session: ${error.message}`);
     throw error;
@@ -154,15 +166,17 @@ export async function getRecentTriviaSessions(limit = 10) {
   try {
     const result = await pool().query(`
       SELECT
-        id, session_name, difficulty_level, question_count,
-        created_at, completed_at, score, total_questions,
+        ts.id, ts.session_name, ts.difficulty_level, ts.question_count,
+        ts.created_at, ts.completed_at, ts.score, ts.total_questions,
+        ts.completion_time_seconds,
         CASE
-          WHEN completed_at IS NOT NULL AND total_questions > 0
-          THEN ROUND((score::numeric / total_questions) * 100, 1)
+          WHEN ts.completed_at IS NOT NULL AND ts.total_questions > 0
+          THEN ROUND((ts.score::numeric / ts.total_questions) * 100, 1)
           ELSE NULL
-        END as percentage
-      FROM trivia_sessions
-      ORDER BY created_at DESC
+        END as percentage,
+        (SELECT COUNT(*) FROM trivia_responses tr WHERE tr.session_id = ts.id) as answered_questions
+      FROM trivia_sessions ts
+      ORDER BY ts.created_at DESC
       LIMIT $1
     `, [limit]);
 
@@ -178,7 +192,7 @@ export async function getRecentTriviaSessions(limit = 10) {
  */
 export async function getTriviaStats() {
   try {
-    const statsResult = await pool.query(`
+    const statsResult = await pool().query(`
       SELECT
         COUNT(*) as total_sessions,
         COUNT(*) FILTER (WHERE completed_at IS NOT NULL) as completed_sessions,
@@ -189,7 +203,7 @@ export async function getTriviaStats() {
       FROM trivia_sessions
     `);
 
-    const questionsResult = await pool.query(`
+    const questionsResult = await pool().query(`
       SELECT
         COUNT(*) as total_questions,
         COUNT(DISTINCT category) as categories_covered,
@@ -198,7 +212,7 @@ export async function getTriviaStats() {
       LEFT JOIN trivia_responses tr ON tq.id = tr.question_id
     `);
 
-    const categoryStats = await pool.query(`
+    const categoryStats = await pool().query(`
       SELECT
         tq.category,
         COUNT(*) as questions_count,
@@ -247,7 +261,7 @@ export async function logTriviaGeneration(logData) {
         categories_requested, openai_model, openai_usage, generation_time_seconds,
         success, error_message, data_period_start, data_period_end
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11, $12)
       RETURNING id
     `, [
       generationType,
@@ -268,6 +282,70 @@ export async function logTriviaGeneration(logData) {
   } catch (error) {
     logger.error(`Error logging trivia generation: ${error.message}`);
     throw error;
+  }
+}
+
+/**
+ * Replay a trivia session (create new session with same questions)
+ */
+export async function replayTriviaSession(originalSessionId) {
+  const client = await pool().connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // Get original session
+    const originalSession = await client.query(`
+      SELECT session_name, difficulty_level, question_count, session_data
+      FROM trivia_sessions
+      WHERE id = $1
+    `, [originalSessionId]);
+
+    if (originalSession.rows.length === 0) {
+      throw new Error('Original session not found');
+    }
+
+    const original = originalSession.rows[0];
+
+    // Create new session with "Replay" prefix
+    const newSession = await client.query(`
+      INSERT INTO trivia_sessions (session_name, difficulty_level, question_count, session_data)
+      VALUES ($1, $2, $3, $4::jsonb)
+      RETURNING id, created_at
+    `, [
+      `Replay: ${original.session_name}`,
+      original.difficulty_level,
+      original.question_count,
+      JSON.stringify(original.session_data || {})
+    ]);
+
+    const newSessionId = newSession.rows[0].id;
+
+    // Copy all questions from original session
+    await client.query(`
+      INSERT INTO trivia_questions (
+        session_id, question_text, question_type, difficulty_level,
+        category, correct_answer, options, explanation, data_source, order_in_session
+      )
+      SELECT
+        $1, question_text, question_type, difficulty_level,
+        category, correct_answer, options, explanation, data_source, order_in_session
+      FROM trivia_questions
+      WHERE session_id = $2
+      ORDER BY order_in_session
+    `, [newSessionId, originalSessionId]);
+
+    await client.query('COMMIT');
+
+    logger.info(`Created replay session ${newSessionId} from original session ${originalSessionId}`);
+
+    return newSession.rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    logger.error(`Error replaying trivia session: ${error.message}`);
+    throw error;
+  } finally {
+    client.release();
   }
 }
 
@@ -335,14 +413,14 @@ export async function getListeningDataForTrivia(options = {}) {
     if (includeListeningPatterns) {
       const patternsResult = await pool().query(`
         SELECT
-          DATE_TRUNC('day', played_at) as date,
+          DATE_TRUNC('day', p.played_at) as date,
           COUNT(*) as plays,
-          COUNT(DISTINCT track_id) as unique_tracks,
+          COUNT(DISTINCT p.track_id) as unique_tracks,
           COUNT(DISTINCT ta.artist_id) as unique_artists
         FROM plays p
         JOIN track_artists ta ON p.track_id = ta.track_id
         WHERE ${periodQuery}
-        GROUP BY DATE_TRUNC('day', played_at)
+        GROUP BY DATE_TRUNC('day', p.played_at)
         ORDER BY date
       `);
 

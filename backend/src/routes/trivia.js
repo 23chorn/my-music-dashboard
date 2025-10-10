@@ -10,7 +10,8 @@ import {
   getRecentTriviaSessions,
   getTriviaStats,
   logTriviaGeneration,
-  getListeningDataForTrivia
+  getListeningDataForTrivia,
+  replayTriviaSession
 } from '../db/trivia.js';
 
 const router = express.Router();
@@ -209,12 +210,13 @@ router.post('/sessions/:id/responses', async (req, res) => {
 router.post('/sessions/:id/complete', async (req, res) => {
   try {
     const sessionId = parseInt(req.params.id);
+    const { completionTimeSeconds } = req.body;
 
     if (isNaN(sessionId)) {
       return res.status(400).json({ error: 'Invalid session ID' });
     }
 
-    const result = await completeTriviaSession(sessionId);
+    const result = await completeTriviaSession(sessionId, completionTimeSeconds);
     res.json(result);
 
   } catch (error) {
@@ -288,6 +290,32 @@ router.post('/quick', async (req, res) => {
   } catch (error) {
     logger.error(`Error generating quick trivia: ${error.message}`);
     res.status(500).json({ error: 'Failed to generate quick trivia' });
+  }
+});
+
+// POST /api/trivia/sessions/:id/replay - Replay a completed trivia session
+router.post('/sessions/:id/replay', async (req, res) => {
+  try {
+    const originalSessionId = parseInt(req.params.id);
+
+    if (isNaN(originalSessionId)) {
+      return res.status(400).json({ error: 'Invalid session ID' });
+    }
+
+    // Create new session with same questions
+    const newSession = await replayTriviaSession(originalSessionId);
+
+    // Get full session with questions
+    const fullSession = await getTriviaSession(newSession.id);
+
+    res.json({
+      session: fullSession,
+      message: 'Session replayed successfully'
+    });
+
+  } catch (error) {
+    logger.error(`Error replaying trivia session: ${error.message}`);
+    res.status(500).json({ error: 'Failed to replay trivia session', details: error.message });
   }
 });
 

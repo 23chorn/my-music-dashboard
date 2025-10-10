@@ -252,6 +252,26 @@ Make questions personal and engaging. Use specific data from their listening his
   }
 }
 
-// Export singleton instance
-const triviaAI = new TriviaAIService();
-export default triviaAI;
+// Lazy initialization to ensure environment variables are loaded
+let triviaAIInstance = null;
+
+export default {
+  get instance() {
+    if (!triviaAIInstance) {
+      triviaAIInstance = new TriviaAIService();
+    }
+    return triviaAIInstance;
+  },
+  isAvailable() {
+    return this.instance.isAvailable();
+  },
+  generateTriviaQuestions(...args) {
+    return this.instance.generateTriviaQuestions(...args);
+  },
+  generateQuickTrivia(...args) {
+    return this.instance.generateQuickTrivia(...args);
+  },
+  generateThemedTrivia(...args) {
+    return this.instance.generateThemedTrivia(...args);
+  }
+};

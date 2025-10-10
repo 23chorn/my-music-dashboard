@@ -27,8 +27,10 @@ export const submitTriviaAnswer = async (sessionId, answerData) => {
 };
 
 // Complete trivia session
-export const completeTriviaSession = async (sessionId) => {
-  const response = await axios.post(`${API_BASE_URL}/trivia/sessions/${sessionId}/complete`);
+export const completeTriviaSession = async (sessionId, completionTimeSeconds = null) => {
+  const response = await axios.post(`${API_BASE_URL}/trivia/sessions/${sessionId}/complete`, {
+    completionTimeSeconds
+  });
   return response.data;
 };
 
@@ -55,5 +57,11 @@ export const generateQuickTrivia = async (options = {}) => {
 // Get available trivia themes
 export const getTriviaThemes = async () => {
   const response = await axios.get(`${API_BASE_URL}/trivia/themes`);
+  return response.data;
+};
+
+// Replay a trivia session
+export const replayTriviaSession = async (sessionId) => {
+  const response = await axios.post(`${API_BASE_URL}/trivia/sessions/${sessionId}/replay`);
   return response.data;
 };
