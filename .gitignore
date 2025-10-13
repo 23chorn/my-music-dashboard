@@ -46,6 +46,7 @@ backend/scripts/*merge*.js
 backend/scripts/*deduplicate*.js
 backend/scripts/*validate*.js
 backend/scripts/check-*.js
+!backend/scripts/check-matviews.js
 backend/scripts/test-*.js
 backend/scripts/find_*.js
 backend/scripts/execute_merge.js
