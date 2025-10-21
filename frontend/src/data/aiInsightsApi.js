@@ -83,6 +83,27 @@ export async function getListeningAnalyses(limit = 10) {
 }
 
 /**
+ * Delete a listening analysis by ID
+ */
+export async function deleteAnalysis(analysisId) {
+  try {
+    const response = await fetch(`${API_URL}/listening-analyses/${analysisId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to delete analysis');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting analysis:', error);
+    throw error;
+  }
+}
+
+/**
  * Calculate week dates for analysis
  */
 export function getWeekDates(weeksAgo = 1) {

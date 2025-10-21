@@ -17,7 +17,7 @@ class OpenAIService {
   }
 
   /**
-   * Analyze weekly listening data and provide mood/behavior insights
+   * Analyze listening data for any date range and provide mood/behavior insights
    */
   async analyzeWeeklyListening(weeklyData, historicalContext = null) {
     if (!this.client) {
@@ -40,12 +40,13 @@ Your analysis should be:
 - Encouraging and positive in tone
 - Specific to the music data provided
 - Include actionable observations
+- IMPORTANT: Do NOT use terms like "this week", "weekly", or "week's" - the data can be for ANY date range (day, week, month, etc.). Use general terms like "during this period", "in this timeframe", "throughout these listening sessions", etc.
 
 Return your response as a JSON object with this structure:
 {
-  "mood_summary": "Brief overall mood assessment",
+  "mood_summary": "Brief overall mood assessment for the period (avoid week-specific language)",
   "key_insights": ["insight1", "insight2", "insight3"],
-  "listening_patterns": "Analysis of when and how they listen",
+  "listening_patterns": "Analysis of when and how they listen during this period",
   "musical_personality": "What their music choices say about them",
   "trends_vs_previous": "Comparison to historical data if available",
   "recommendations": "Suggestions based on patterns"
@@ -85,7 +86,7 @@ Return your response as a JSON object with this structure:
   }
 
   /**
-   * Build the prompt for weekly listening analysis
+   * Build the prompt for listening analysis (any date range)
    */
   buildAnalysisPrompt(weeklyData, historicalContext) {
     const {
@@ -102,7 +103,7 @@ Return your response as a JSON object with this structure:
       daily_patterns
     } = weeklyData;
 
-    let prompt = `Analyze this week's listening data (${week_start} to ${week_end}):
+    let prompt = `Analyze the listening data for this period (${week_start} to ${week_end}):
 
 LISTENING OVERVIEW:
 - Total plays: ${total_plays}
@@ -110,13 +111,13 @@ LISTENING OVERVIEW:
 - Unique artists: ${unique_artists}
 - Repeat factor: ${(total_plays / unique_tracks).toFixed(1)}x
 
-TOP ARTISTS THIS WEEK:
+TOP ARTISTS DURING THIS PERIOD:
 ${top_artists.map((artist, i) => `${i + 1}. ${artist.name} (${artist.plays} plays)`).join('\n')}
 
-TOP TRACKS THIS WEEK:
+TOP TRACKS DURING THIS PERIOD:
 ${top_tracks.map((track, i) => `${i + 1}. "${track.name}" by ${track.artist} (${track.plays} plays)`).join('\n')}
 
-TOP ALBUMS THIS WEEK:
+TOP ALBUMS DURING THIS PERIOD:
 ${top_albums.map((album, i) => `${i + 1}. "${album.name}" by ${album.artist} (${album.plays} plays)`).join('\n')}
 
 LISTENING PATTERNS:
@@ -129,8 +130,8 @@ MUSICAL DIVERSITY:
 - Discovery rate: ${((unique_tracks / total_plays) * 100).toFixed(1)}% new tracks`;
 
     if (historicalContext) {
-      prompt += `\n\nCOMPARISON TO PREVIOUS WEEKS:
-- Previous week plays: ${historicalContext.previous_week_plays || 'N/A'}
+      prompt += `\n\nCOMPARISON TO PREVIOUS PERIODS:
+- Previous period plays: ${historicalContext.previous_week_plays || 'N/A'}
 - Trend: ${historicalContext.trend || 'First analysis'}
 - Notable changes: ${historicalContext.notable_changes || 'Establishing baseline'}`;
     } else {

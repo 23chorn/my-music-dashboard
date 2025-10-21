@@ -7,7 +7,8 @@ import {
   saveWeeklyListeningSummary,
   saveListeningAnalysis,
   getHistoricalContext,
-  getListeningAnalyses
+  getListeningAnalyses,
+  deleteListeningAnalysis
 } from '../db/listeningAnalysis.js';
 
 const router = express.Router();
@@ -219,6 +220,37 @@ router.get('/ai-status', async (req, res) => {
     logger.error(`Error checking AI status: ${error.message}`);
     res.status(500).json({
       error: 'Failed to check AI status',
+      details: error.message
+    });
+  }
+});
+
+// DELETE /api/insights/listening-analyses/:id - Delete a listening analysis
+router.delete('/listening-analyses/:id', async (req, res) => {
+  try {
+    const analysisId = parseInt(req.params.id);
+
+    if (isNaN(analysisId)) {
+      return res.status(400).json({ error: 'Invalid analysis ID' });
+    }
+
+    const deleted = await deleteListeningAnalysis(analysisId);
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Analysis not found' });
+    }
+
+    logger.info(`Deleted analysis ID ${analysisId}: ${deleted.week_start} to ${deleted.week_end}`);
+    res.json({
+      success: true,
+      message: 'Analysis deleted successfully',
+      deleted
+    });
+
+  } catch (error) {
+    logger.error(`Error deleting analysis: ${error.message}`);
+    res.status(500).json({
+      error: 'Failed to delete analysis',
       details: error.message
     });
   }

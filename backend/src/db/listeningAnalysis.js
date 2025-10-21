@@ -336,7 +336,7 @@ export async function getListeningAnalyses(limit = 10) {
         wls.repeat_factor
       FROM listening_analyses la
       LEFT JOIN weekly_listening_summaries wls ON la.week_start = wls.week_start
-      ORDER BY la.week_start DESC
+      ORDER BY la.analysis_date DESC
       LIMIT $1
     `;
 
@@ -363,6 +363,32 @@ export async function getListeningAnalyses(limit = 10) {
 
   } catch (error) {
     logger.error('Error getting listening analyses:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete a listening analysis by ID
+ */
+export async function deleteListeningAnalysis(analysisId) {
+  try {
+    const query = `
+      DELETE FROM listening_analyses
+      WHERE id = $1
+      RETURNING id, week_start, week_end
+    `;
+
+    const result = await pool().query(query, [analysisId]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    logger.info(`Deleted listening analysis with ID: ${analysisId}`);
+    return result.rows[0];
+
+  } catch (error) {
+    logger.error('Error deleting listening analysis:', error);
     throw error;
   }
 }
