@@ -23,6 +23,7 @@ import insightsRouter from "./src/routes/insights.js";
 import tagsRouter from "./src/routes/tags.js";
 import milestonesRouter from "./src/routes/milestones.js";
 import triviaRouter from "./src/routes/trivia.js";
+import chatRouter from "./src/routes/chat.js";
 
 const app = express();
 
@@ -57,6 +58,7 @@ app.use('/api/insights', insightsRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/milestones', milestonesRouter);
 app.use('/api/trivia', triviaRouter);
+app.use('/api/chat', chatRouter);
 
 // Legacy routes for test compatibility
 app.get('/api/health/database', async (req, res) => {

@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { FaBars } from "react-icons/fa";
+import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 
 export default function MenuButton() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    browse: true,
+    aiAnalysis: false,
+    tools: false
+  });
   const navigate = useNavigate();
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -26,6 +32,18 @@ export default function MenuButton() {
     };
   }, [menuOpen]);
 
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const handleNavigate = (path) => {
+    setMenuOpen(false);
+    navigate(path);
+  };
+
   return (
     <div>
       <button
@@ -39,50 +57,112 @@ export default function MenuButton() {
       {menuOpen && (
         <div
           ref={dropdownRef}
-          className="menu-dropdown mt-2 bg-gray-900 border border-gray-700 rounded shadow-lg py-2 w-40 absolute top-10 left-0 z-50"
+          className="menu-dropdown mt-2 bg-gray-900 border border-gray-700 rounded shadow-lg py-2 w-56 absolute top-10 left-0 z-50"
         >
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/"); }}
-          >
-            Dashboard
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/explore"); }}
-          >
-            Explore
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/stats"); }}
-          >
-            Stats
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/ai-insights"); }}
-          >
-            AI Insights
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/trivia"); }}
-          >
-            Trivia
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/tags"); }}
-          >
-            Tags
-          </button>
-          <button
-            className="block w-full text-left px-4 py-2 hover:bg-blue-900 text-blue-300"
-            onClick={() => { setMenuOpen(false); navigate("/insights"); }}
-          >
-            System and Data
-          </button>
+          {/* Browse Section */}
+          <div className="border-b border-gray-700">
+            <button
+              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-800"
+              onClick={() => toggleSection('browse')}
+            >
+              <span>Browse</span>
+              {expandedSections.browse ? (
+                <ChevronDownIcon className="h-4 w-4" />
+              ) : (
+                <ChevronRightIcon className="h-4 w-4" />
+              )}
+            </button>
+            {expandedSections.browse && (
+              <div className="pb-1">
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/")}
+                >
+                  Dashboard
+                </button>
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/explore")}
+                >
+                  Explore
+                </button>
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/stats")}
+                >
+                  Stats
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* AI & Analysis Section */}
+          <div className="border-b border-gray-700">
+            <button
+              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-800"
+              onClick={() => toggleSection('aiAnalysis')}
+            >
+              <span>AI & Analysis</span>
+              {expandedSections.aiAnalysis ? (
+                <ChevronDownIcon className="h-4 w-4" />
+              ) : (
+                <ChevronRightIcon className="h-4 w-4" />
+              )}
+            </button>
+            {expandedSections.aiAnalysis && (
+              <div className="pb-1">
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/ai-insights")}
+                >
+                  AI Insights
+                </button>
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/chat")}
+                >
+                  AI Chat
+                </button>
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/insights")}
+                >
+                  System Insights
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Tools Section */}
+          <div>
+            <button
+              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-800"
+              onClick={() => toggleSection('tools')}
+            >
+              <span>Tools</span>
+              {expandedSections.tools ? (
+                <ChevronDownIcon className="h-4 w-4" />
+              ) : (
+                <ChevronRightIcon className="h-4 w-4" />
+              )}
+            </button>
+            {expandedSections.tools && (
+              <div className="pb-1">
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/tags")}
+                >
+                  Tags
+                </button>
+                <button
+                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  onClick={() => handleNavigate("/trivia")}
+                >
+                  Trivia
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

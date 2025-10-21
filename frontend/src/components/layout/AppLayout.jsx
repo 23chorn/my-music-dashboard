@@ -10,6 +10,7 @@ import AIInsightsView from "../../pages/AIInsightsView";
 import TagsPage from "../../pages/TagsPage";
 import TagFilterPage from "../../pages/TagFilterPage";
 import TriviaPage from "../../pages/TriviaPage";
+import ChatView from "../../pages/ChatView";
 import AppHeader from "./AppHeader";
 
 export default function AppLayout({ searchProps }) {
@@ -26,6 +27,7 @@ export default function AppLayout({ searchProps }) {
           <Route path="/stats" element={<StatsView />} />
           <Route path="/insights" element={<SystemDataView />} />
           <Route path="/ai-insights" element={<AIInsightsView />} />
+          <Route path="/chat" element={<ChatView />} />
           <Route path="/tags" element={<TagsPage />} />
           <Route path="/tags/:tagId" element={<TagFilterPage />} />
           <Route path="/trivia" element={<TriviaPage />} />

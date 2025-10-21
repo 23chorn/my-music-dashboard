@@ -1,0 +1,406 @@
+import { useState, useEffect, useRef } from 'react';
+import {
+  ChatBubbleLeftRightIcon,
+  PaperAirplaneIcon,
+  PlusIcon,
+  TrashIcon,
+  PencilIcon
+} from '@heroicons/react/24/outline';
+import {
+  getConversations,
+  getConversation,
+  createConversation,
+  deleteConversation,
+  updateConversationTitle,
+  sendMessage
+} from '../data/chatApi.js';
+import PageLayout from '../components/layout/PageLayout.jsx';
+import LoadingPage from '../components/ui/LoadingPage.jsx';
+
+export default function ChatView() {
+  const [conversations, setConversations] = useState([]);
+  const [currentConversation, setCurrentConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
+  const [editingConversationId, setEditingConversationId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    loadConversations();
+  }, []);
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const loadConversations = async () => {
+    try {
+      setLoading(true);
+      const result = await getConversations(50);
+      setConversations(result.conversations || []);
+
+      // Auto-select first conversation if exists
+      if (result.conversations && result.conversations.length > 0) {
+        await selectConversation(result.conversations[0].id);
+      }
+    } catch (err) {
+      setError('Failed to load conversations');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectConversation = async (conversationId) => {
+    try {
+      const result = await getConversation(conversationId);
+      setCurrentConversation(result.conversation);
+      setMessages(result.conversation.messages || []);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load conversation');
+      console.error(err);
+    }
+  };
+
+  const handleNewConversation = async () => {
+    try {
+      const result = await createConversation();
+      await loadConversations();
+      await selectConversation(result.conversation.id);
+    } catch (err) {
+      setError('Failed to create conversation');
+      console.error(err);
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId) => {
+    if (!window.confirm('Are you sure you want to delete this conversation?')) {
+      return;
+    }
+
+    try {
+      await deleteConversation(conversationId);
+      await loadConversations();
+
+      // Clear current if deleted
+      if (currentConversation?.id === conversationId) {
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+    } catch (err) {
+      setError('Failed to delete conversation');
+      console.error(err);
+    }
+  };
+
+  const handleStartRename = (conversationId, currentTitle) => {
+    setEditingConversationId(conversationId);
+    setEditingTitle(currentTitle || '');
+  };
+
+  const handleCancelRename = () => {
+    setEditingConversationId(null);
+    setEditingTitle('');
+  };
+
+  const handleSaveRename = async (conversationId) => {
+    if (!editingTitle.trim()) {
+      setError('Title cannot be empty');
+      return;
+    }
+
+    try {
+      await updateConversationTitle(conversationId, editingTitle.trim());
+      await loadConversations();
+
+      // Update current conversation title if it's the one being edited
+      if (currentConversation?.id === conversationId) {
+        setCurrentConversation({ ...currentConversation, title: editingTitle.trim() });
+      }
+
+      setEditingConversationId(null);
+      setEditingTitle('');
+    } catch (err) {
+      setError('Failed to rename conversation');
+      console.error(err);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+
+    if (!inputMessage.trim() || !currentConversation) return;
+
+    const userMessage = inputMessage.trim();
+    setInputMessage('');
+    setSending(true);
+    setError(null);
+
+    // Add user message to UI immediately
+    const tempUserMessage = {
+      role: 'user',
+      content: userMessage,
+      created_at: new Date().toISOString()
+    };
+    setMessages(prev => [...prev, tempUserMessage]);
+
+    try {
+      const result = await sendMessage(currentConversation.id, userMessage);
+
+      // Replace temp message and add AI response
+      await selectConversation(currentConversation.id);
+    } catch (err) {
+      setError(err.message || 'Failed to send message');
+      // Remove the temp message on error
+      setMessages(prev => prev.filter(m => m !== tempUserMessage));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <PageLayout title="AI Chat" showBackButton={false}>
+        <LoadingPage />
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout title="AI Chat" showBackButton={false}>
+      <div className="flex h-[calc(100vh-180px)] bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
+
+        {/* Sidebar - Conversations List */}
+        <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+          <div className="p-4 border-b border-gray-700">
+            <button
+              onClick={handleNewConversation}
+              className="w-full flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700
+                       text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span>New Chat</span>
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {conversations.length === 0 ? (
+              <div className="p-4 text-center text-gray-500 text-sm">
+                No conversations yet
+              </div>
+            ) : (
+              <div className="space-y-1 p-2">
+                {conversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                      currentConversation?.id === conv.id
+                        ? 'bg-gray-700'
+                        : 'hover:bg-gray-700/50'
+                    }`}
+                  >
+                    <div
+                      className="flex-1 min-w-0"
+                      onClick={() => selectConversation(conv.id)}
+                    >
+                      <p className="text-sm text-white truncate">
+                        {conv.title || conv.first_message || 'New Conversation'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {conv.message_count} messages
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteConversation(conv.id);
+                      }}
+                      className="ml-2 p-1 text-gray-400 hover:text-red-400 transition-colors"
+                      title="Delete"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {!currentConversation ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <ChatBubbleLeftRightIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-300 mb-2">
+                  No conversation selected
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Start a new conversation to ask questions about your listening data
+                </p>
+                <button
+                  onClick={handleNewConversation}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+                >
+                  Start Chatting
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Conversation Header */}
+              <div className="border-b border-gray-700 px-4 py-3 bg-gray-800/50">
+                {editingConversationId === currentConversation?.id ? (
+                  // Editing mode
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="text"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSaveRename(currentConversation.id);
+                        } else if (e.key === 'Escape') {
+                          handleCancelRename();
+                        }
+                      }}
+                      className="flex-1 bg-gray-800 border border-blue-500 rounded-lg px-3 py-2 text-white
+                               focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Conversation title..."
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleSaveRename(currentConversation.id)}
+                      className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm
+                               transition-colors flex items-center gap-1"
+                      title="Save"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelRename}
+                      className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm
+                               transition-colors"
+                      title="Cancel"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  // Normal mode
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-white truncate">
+                      {currentConversation?.title || currentConversation?.first_message || 'New Conversation'}
+                    </h2>
+                    <button
+                      onClick={() => handleStartRename(
+                        currentConversation.id,
+                        currentConversation.title || currentConversation.first_message || 'New Conversation'
+                      )}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:text-white
+                               hover:bg-gray-700 rounded-lg transition-colors"
+                      title="Rename conversation"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                      Rename
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Messages Area */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <p className="mb-4">Ask me anything about your listening history!</p>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-blue-400">Try asking:</p>
+                      <p>&quot;What are my top artists this month?&quot;</p>
+                      <p>&quot;How many times have I listened to Kendrick Lamar?&quot;</p>
+                      <p>&quot;What were my listening stats last week?&quot;</p>
+                    </div>
+                  </div>
+                ) : (
+                  messages.map((msg, index) => (
+                    <div
+                      key={index}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-gray-100'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-xs mt-1 opacity-70">
+                          {new Date(msg.created_at).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+
+                {sending && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-700 rounded-lg px-4 py-2">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Error Display */}
+              {error && (
+                <div className="px-4 py-2 bg-red-900/20 border-t border-red-700">
+                  <p className="text-sm text-red-300">{error}</p>
+                </div>
+              )}
+
+              {/* Input Area */}
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Ask me about your listening data..."
+                    disabled={sending}
+                    className="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white
+                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500
+                             disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!inputMessage.trim() || sending}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed
+                             text-white p-2 rounded-lg transition-colors"
+                  >
+                    <PaperAirplaneIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    </PageLayout>
+  );
+}

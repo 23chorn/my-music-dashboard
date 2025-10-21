@@ -7,7 +7,10 @@ import {
   ClockIcon,
   LightBulbIcon,
   MusicalNoteIcon,
-  TrashIcon
+  TrashIcon,
+  ChartBarIcon,
+  ArrowTrendingUpIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 import {
   checkAIStatus,
@@ -462,11 +465,47 @@ export default function AIInsightsView() {
                     </div>
                   )}
 
+                  {/* Listening Patterns */}
+                  {analysis.listening_patterns && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-blue-400 mb-1 flex items-center space-x-1">
+                        <ChartBarIcon className="h-4 w-4" />
+                        <span>Listening Patterns</span>
+                      </h4>
+                      <p className="text-sm text-gray-300">{analysis.listening_patterns}</p>
+                    </div>
+                  )}
+
                   {/* Musical Personality */}
                   {analysis.musical_personality && (
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-400 mb-1">Musical Personality</h4>
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-blue-400 mb-1 flex items-center space-x-1">
+                        <MusicalNoteIcon className="h-4 w-4" />
+                        <span>Musical Personality</span>
+                      </h4>
                       <p className="text-sm text-gray-300">{analysis.musical_personality}</p>
+                    </div>
+                  )}
+
+                  {/* Trends vs Previous */}
+                  {analysis.trends_vs_previous && (
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-blue-400 mb-1 flex items-center space-x-1">
+                        <ArrowTrendingUpIcon className="h-4 w-4" />
+                        <span>Trends & Changes</span>
+                      </h4>
+                      <p className="text-sm text-gray-300">{analysis.trends_vs_previous}</p>
+                    </div>
+                  )}
+
+                  {/* Recommendations */}
+                  {analysis.recommendations && (
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-400 mb-1 flex items-center space-x-1">
+                        <StarIcon className="h-4 w-4" />
+                        <span>Recommendations</span>
+                      </h4>
+                      <p className="text-sm text-gray-300">{analysis.recommendations}</p>
                     </div>
                   )}
                 </div>
