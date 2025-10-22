@@ -10,8 +10,8 @@ describe('Music Sync API Tests', () => {
     await waitForServer();
   });
 
-  test('GET /api/sync-status - should return sync status', async () => {
-    const response = await client.get('/api/sync-status');
+  test('GET /api/sync/status - should return sync status', async () => {
+    const response = await client.get('/api/sync/status');
     assertValidResponse(response, 200);
     
     const status = await response.json();
@@ -24,9 +24,9 @@ describe('Music Sync API Tests', () => {
     console.log(`✅ Sync status: method=${status.currentMethod}, available methods configured`);
   });
 
-  test('POST /api/switch-sync-method - should handle method switching', async () => {
+  test('POST /api/sync/switch-method - should handle method switching', async () => {
     // Test invalid method
-    const invalidResponse = await client.post('/api/switch-sync-method', { method: 'invalid' });
+    const invalidResponse = await client.post('/api/sync/switch-method', { method: 'invalid' });
     assertValidResponse(invalidResponse, 400);
     
     const invalidResult = await invalidResponse.json();
@@ -36,7 +36,7 @@ describe('Music Sync API Tests', () => {
     const validMethods = ['spotify', 'lastfm'];
     
     for (const method of validMethods) {
-      const response = await client.post('/api/switch-sync-method', { method });
+      const response = await client.post('/api/sync/switch-method', { method });
       
       // May succeed or fail depending on configuration
       if (response.ok) {
@@ -100,8 +100,8 @@ describe('Music Sync API Tests', () => {
   });
 
   describe('Sync Endpoint', () => {
-    test('POST /api/sync-tracks - should handle unified sync', async () => {
-      const response = await client.post('/api/sync-tracks', { force: false });
+    test('POST /api/sync/plays - should handle unified sync', async () => {
+      const response = await client.post('/api/sync/plays', { force: false });
       
       if (response.ok) {
         const result = await response.json();

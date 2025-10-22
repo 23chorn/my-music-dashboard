@@ -1,17 +1,20 @@
 import express from 'express';
 import logger from '../utils/logger.js';
-import { getAllInsights } from '../db/insights.js';
-import OpenAIService from '../services/openai.js';
+import { AnalysisService } from '../services/ai/index.js';
 import {
+  getAllInsights,
   generateWeeklyListeningSummary,
   saveWeeklyListeningSummary,
   saveListeningAnalysis,
   getHistoricalContext,
   getListeningAnalyses,
   deleteListeningAnalysis
-} from '../db/listeningAnalysis.js';
+} from '../db/analytics/index.js';
 
 const router = express.Router();
+
+// Analysis service instance
+const analysisService = new AnalysisService();
 
 // GET /api/insights - Get comprehensive data quality and system insights
 router.get('/', async (req, res) => {
@@ -27,16 +30,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// OpenAI service will be initialized on first use
-let openaiService = null;
-
-function getOpenAIService() {
-  if (!openaiService) {
-    openaiService = new OpenAIService();
-  }
-  return openaiService;
-}
-
 // POST /api/insights/analyze-week - Generate AI analysis for a specific week
 router.post('/analyze-week', async (req, res) => {
   try {
@@ -46,7 +39,7 @@ router.post('/analyze-week', async (req, res) => {
       return res.status(400).json({ error: 'weekStart and weekEnd are required' });
     }
 
-    if (!getOpenAIService().isAvailable()) {
+    if (!analysisService.isAvailable()) {
       return res.status(503).json({
         error: 'AI analysis unavailable',
         message: 'OpenAI service not configured. Please add OPENAI_API_KEY to environment variables.'
@@ -72,7 +65,7 @@ router.post('/analyze-week', async (req, res) => {
     const historicalContext = await getHistoricalContext(weekStart);
 
     // Generate AI analysis
-    const analysisResult = await getOpenAIService().analyzeWeeklyListening(weeklyData, historicalContext);
+    const analysisResult = await analysisService.analyzeListeningPeriod(weeklyData, historicalContext);
 
     if (!analysisResult.success) {
       throw new Error('AI analysis failed');
@@ -139,7 +132,7 @@ router.get('/listening-analyses', async (req, res) => {
 // POST /api/insights/analyze-last-week - Analyze the previous week automatically
 router.post('/analyze-last-week', async (req, res) => {
   try {
-    if (!getOpenAIService().isAvailable()) {
+    if (!analysisService.isAvailable()) {
       return res.status(503).json({
         error: 'AI analysis unavailable',
         message: 'OpenAI service not configured'
@@ -169,7 +162,7 @@ router.post('/analyze-last-week', async (req, res) => {
     // Save summary and generate analysis
     await saveWeeklyListeningSummary(weeklyData);
     const historicalContext = await getHistoricalContext(weekStart);
-    const analysisResult = await getOpenAIService().analyzeWeeklyListening(weeklyData, historicalContext);
+    const analysisResult = await analysisService.analyzeListeningPeriod(weeklyData, historicalContext);
 
     // Save analysis
     await saveListeningAnalysis(
@@ -205,7 +198,7 @@ router.post('/analyze-last-week', async (req, res) => {
 // GET /api/insights/ai-status - Check if AI analysis is available
 router.get('/ai-status', async (req, res) => {
   try {
-    const isAvailable = getOpenAIService().isAvailable();
+    const isAvailable = analysisService.isAvailable();
 
     res.json({
       available: isAvailable,

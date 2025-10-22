@@ -6,10 +6,10 @@ import {
   getTrackRecentPlays,
   getTrackStats,
   getTrackDailyPlays,
-  getAllTracksWithPlaycount
-} from '../db/trackDb.js';
-import { getTopTracks } from '../db/topQueries.js';
-import { getRecentTracks } from '../db/plays.js';
+  getAllTracksWithPlaycount,
+  getRecentTracks
+} from '../db/entities/index.js';
+import { getTopTracks } from '../db/aggregations/index.js';
 
 // Get top tracks (replaces /api/top-tracks)
 router.get('/top', (req, res) => {

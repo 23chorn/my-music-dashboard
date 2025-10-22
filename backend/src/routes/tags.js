@@ -8,7 +8,7 @@ import {
   getTagStats,
   deleteTag,
   updateTag
-} from '../db/tags.js';
+} from '../db/features/tags/index.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();

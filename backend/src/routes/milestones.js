@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllMilestones, getQuickestTrackMilestones, getQuickestAlbumMilestones, getQuickestArtistMilestones } from '../db/milestones.js';
+import { getAllMilestones, getQuickestTrackMilestones, getQuickestAlbumMilestones, getQuickestArtistMilestones } from '../db/features/milestones/index.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();

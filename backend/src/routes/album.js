@@ -7,8 +7,8 @@ import {
   getAlbumStats,
   getAllAlbumsWithPlaycount,
   getAlbumTracklist
-} from '../db/albumDb.js';
-import { getTopTracks, getTopAlbums } from '../db/topQueries.js';
+} from '../db/entities/index.js';
+import { getTopTracks, getTopAlbums } from '../db/aggregations/index.js';
 
 // Get top albums (replaces /api/top-albums)
 router.get('/top', (req, res) => {

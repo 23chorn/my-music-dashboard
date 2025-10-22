@@ -289,8 +289,158 @@ YOUR MUSICAL DIVERSITY:
               required: ['query']
             }
           }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getTopAlbums',
+            description: 'Get the user\'s top albums for a specific time period',
+            parameters: {
+              type: 'object',
+              properties: {
+                period: {
+                  type: 'string',
+                  enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
+                  description: 'Time period'
+                },
+                limit: {
+                  type: 'number',
+                  description: 'Number of albums to return',
+                  default: 10
+                }
+              },
+              required: ['period']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getGenreBreakdown',
+            description: 'Get genre distribution and percentages for the user\'s listening in a time period',
+            parameters: {
+              type: 'object',
+              properties: {
+                period: {
+                  type: 'string',
+                  enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
+                  description: 'Time period for genre analysis'
+                }
+              },
+              required: ['period']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getListeningTimePatterns',
+            description: 'Get listening time patterns including peak hours, days of week, and session info',
+            parameters: {
+              type: 'object',
+              properties: {}
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getDiscoveryStats',
+            description: 'Get statistics about new music discovery (new artists, tracks, albums) for a time period',
+            parameters: {
+              type: 'object',
+              properties: {
+                period: {
+                  type: 'string',
+                  enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
+                  description: 'Time period for discovery analysis'
+                }
+              },
+              required: ['period']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getRecentDiscoveries',
+            description: 'Get recently discovered tracks (tracks played for the first time)',
+            parameters: {
+              type: 'object',
+              properties: {
+                limit: {
+                  type: 'number',
+                  description: 'Number of recent discoveries to return',
+                  default: 10
+                }
+              }
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'compareArtists',
+            description: 'Compare listening statistics between two artists',
+            parameters: {
+              type: 'object',
+              properties: {
+                artist1: {
+                  type: 'string',
+                  description: 'First artist name'
+                },
+                artist2: {
+                  type: 'string',
+                  description: 'Second artist name'
+                }
+              },
+              required: ['artist1', 'artist2']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getAlbumDetails',
+            description: 'Get detailed information about a specific album including tracks and play counts',
+            parameters: {
+              type: 'object',
+              properties: {
+                albumName: {
+                  type: 'string',
+                  description: 'Name of the album to look up'
+                }
+              },
+              required: ['albumName']
+            }
+          }
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'getTrackDetails',
+            description: 'Get detailed information about a specific track including play history',
+            parameters: {
+              type: 'object',
+              properties: {
+                trackName: {
+                  type: 'string',
+                  description: 'Name of the track to look up'
+                }
+              },
+              required: ['trackName']
+            }
+          }
         }
       ];
+
+      // Calculate time period context
+      const now = new Date();
+      const timeContext = {
+        current_date: now.toISOString().split('T')[0],
+        day_of_week: now.toLocaleDateString('en-US', { weekday: 'long' }),
+        current_month: now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      };
 
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o-mini',
@@ -299,6 +449,11 @@ YOUR MUSICAL DIVERSITY:
             role: 'system',
             content: `You are a helpful AI assistant for analyzing music listening data. You can answer questions about the user's listening history, preferences, and patterns.
 
+CURRENT DATE CONTEXT:
+- Today's date: ${timeContext.current_date}
+- Day of week: ${timeContext.day_of_week}
+- Current month: ${timeContext.current_month}
+
 When the user asks questions:
 - Use the available tools to fetch relevant data
 - Provide specific, data-driven insights
@@ -306,14 +461,17 @@ When the user asks questions:
 - Use "you/your" when referring to the user
 - Highlight interesting patterns or trends
 - Keep responses concise but informative
+- When mentioning time periods, be specific about what dates they cover
 
-Available time periods:
-- 7d: Last 7 days
-- 1m: Last month
-- 3m: Last 3 months
-- 6m: Last 6 months
-- 1y: Last year
-- all: All time`
+AVAILABLE TIME PERIODS AND THEIR MEANINGS:
+- 7d: Last 7 days (from ${new Date(now - 7*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 1m: Last 30 days (from ${new Date(now - 30*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 3m: Last 90 days (from ${new Date(now - 90*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 6m: Last 180 days (from ${new Date(now - 180*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 1y: Last 365 days (from ${new Date(now - 365*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- all: All time (complete listening history)
+
+IMPORTANT: When you receive data from the functions, remember that the data covers the ENTIRE period specified, not just recent days. For example, if asking for "1m" data, the plays/artists/tracks span the full 30-day period.`
           },
           ...messages
         ],
@@ -343,7 +501,13 @@ Available time periods:
             messages: [
               {
                 role: 'system',
-                content: 'You are a helpful AI assistant for analyzing music listening data.'
+                content: `You are a helpful AI assistant for analyzing music listening data.
+
+CURRENT DATE CONTEXT:
+- Today's date: ${timeContext.current_date}
+- Current month: ${timeContext.current_month}
+
+The data you just received covers the time period requested. Provide insights about this specific timeframe when responding to the user.`
               },
               ...messages,
               responseMessage,

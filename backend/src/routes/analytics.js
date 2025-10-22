@@ -1,6 +1,6 @@
 import express from "express";
-import { getDailyPlaysAll, getUniqueCounts, getBehaviorAnalysis, getCalculatedMetrics, getDiscoveryFreshness } from "../db/analytics.js";
-import { getAllMilestones } from "../db/milestones.js";
+import { getDailyPlaysAll, getUniqueCounts, getBehaviorAnalysis, getCalculatedMetrics, getDiscoveryFreshness } from "../db/analytics/index.js";
+import { getAllMilestones } from "../db/features/milestones/index.js";
 import logger from "../utils/logger.js";
 
 const router = express.Router();

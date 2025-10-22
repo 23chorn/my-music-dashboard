@@ -1,3 +1,6 @@
+// Load environment variables for tests
+import 'dotenv/config';
+
 import { describe, test, before, after } from 'node:test';
 import { strict as assert } from 'node:assert';
 import { initializeDatabase, getPool, checkDatabaseHealth, closeDatabase } from '../../src/db/connection.js';

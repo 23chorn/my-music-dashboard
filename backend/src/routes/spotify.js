@@ -1,8 +1,8 @@
 import express from 'express';
 const router = express.Router();
 import MusicSyncService from '../services/musicSync.js';
-import SpotifyService from '../services/spotify.js';
-import { getTopTracksForPlaylist } from '../db/topQueries.js';
+import { SpotifyService } from '../services/external/spotify/index.js';
+import { getTopTracksForPlaylist } from '../db/aggregations/index.js';
 import { getPool } from '../db/connection.js';
 import logger from '../utils/logger.js';
 

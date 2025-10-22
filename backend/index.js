@@ -96,7 +96,7 @@ app.get('/api/timezone-info', async (req, res) => {
 
 app.get('/api/unique-counts', async (req, res) => {
   try {
-    const { getUniqueCounts } = await import('./src/db/analytics.js');
+    const { getUniqueCounts } = await import('./src/db/analytics/index.js');
     getUniqueCounts((error, counts) => {
       if (error) {
         logger.error("Error getting unique counts:", error);

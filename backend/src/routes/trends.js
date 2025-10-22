@@ -1,6 +1,5 @@
 import express from 'express';
-import { getTrendsData } from '../db/trends.js';
-import { getTrendsDataFromMatView, checkMatViewFreshness, refreshMatViews, getMatViewStats, getCumulativeDiscoveryData } from '../db/trendsMatView.js';
+import { getTrendsData, getTrendsDataFromMatView, checkMatViewFreshness, refreshMatViews, getMatViewStats, getCumulativeDiscoveryData } from '../db/features/trends/index.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();

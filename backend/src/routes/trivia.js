@@ -1,6 +1,6 @@
 import express from 'express';
 import logger from '../utils/logger.js';
-import triviaAI from '../services/triviaAI.js';
+import { triviaService as triviaAI } from '../services/ai/index.js';
 import {
   createTriviaSession,
   saveTriviasQuestions,
@@ -12,7 +12,7 @@ import {
   logTriviaGeneration,
   getListeningDataForTrivia,
   replayTriviaSession
-} from '../db/trivia.js';
+} from '../db/features/trivia/index.js';
 
 const router = express.Router();
 

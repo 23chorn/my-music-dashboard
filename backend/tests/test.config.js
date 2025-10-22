@@ -2,6 +2,9 @@
  * Test configuration for Music Dashboard Backend
  */
 
+// Load environment variables from .env file
+import 'dotenv/config';
+
 export const testConfig = {
   // Server configuration
   server: {

@@ -1,6 +1,6 @@
 import express from 'express';
 import logger from '../utils/logger.js';
-import { getRecentDiscoveries } from '../db/discoveries.js';
+import { getRecentDiscoveries } from '../db/features/trends/index.js';
 
 const router = express.Router();
 
