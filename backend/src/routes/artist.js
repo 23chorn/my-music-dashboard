@@ -12,10 +12,26 @@ import {
 import { getTopTracks, getTopAlbums, getTopArtists } from '../db/aggregations/index.js';
 
 // Get top artists (replaces /api/top-artists)
+// Supports both period-based queries and custom date ranges
+// Examples:
+//   /api/artists/top?limit=10&period=1month
+//   /api/artists/top?limit=10&startDate=2025-08-01&endDate=2025-08-31
 router.get('/top', (req, res) => {
-  const { limit = 5, period = "overall" } = req.query;
-  logger.info(`GET /api/artists/top called with limit=${limit}, period=${period}`);
-  getTopArtists(Number(limit), period, (err, artists) => {
+  const {
+    limit = 5,
+    period = "overall",
+    startDate = null,
+    endDate = null
+  } = req.query;
+
+  logger.info(`GET /api/artists/top called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}`);
+
+  // If custom date range is provided, use object format; otherwise use period string (backward compatible)
+  const periodOrOptions = (startDate && endDate)
+    ? { period, startDate, endDate }
+    : period;
+
+  getTopArtists(Number(limit), periodOrOptions, (err, artists) => {
     if (err) {
       logger.error(`Error in getTopArtists: ${err}`);
       return res.status(500).json({ error: 'DB error' });

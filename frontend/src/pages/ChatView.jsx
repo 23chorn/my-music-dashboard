@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   ChatBubbleLeftRightIcon,
   PaperAirplaneIcon,
@@ -343,7 +344,29 @@ export default function ChatView() {
                             : 'bg-gray-700 text-gray-100'
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        {msg.role === 'assistant' ? (
+                          <div className="text-sm prose prose-invert prose-sm max-w-none">
+                            <ReactMarkdown
+                              components={{
+                                // Style markdown elements for chat
+                                h1: ({node, ...props}) => <h1 className="text-lg font-bold mt-2 mb-1" {...props} />,
+                                h2: ({node, ...props}) => <h2 className="text-base font-bold mt-2 mb-1" {...props} />,
+                                h3: ({node, ...props}) => <h3 className="text-sm font-bold mt-1 mb-1" {...props} />,
+                                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                                ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                                li: ({node, ...props}) => <li className="ml-2" {...props} />,
+                                strong: ({node, ...props}) => <strong className="font-semibold text-blue-300" {...props} />,
+                                code: ({node, ...props}) => <code className="bg-gray-600 px-1 rounded text-xs" {...props} />,
+                                pre: ({node, ...props}) => <pre className="bg-gray-600 p-2 rounded text-xs overflow-x-auto mb-2" {...props} />
+                              }}
+                            >
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        )}
                         <p className="text-xs mt-1 opacity-70">
                           {new Date(msg.created_at).toLocaleTimeString()}
                         </p>

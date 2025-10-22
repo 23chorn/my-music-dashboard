@@ -61,8 +61,8 @@ class ChatService {
             }
             resolve(artists.map(a => ({
               name: a.artist,
-              plays: a.playcount,
-              image: a.image
+              plays: a.playcount
+              // Note: Image URLs excluded from AI responses for cleaner chat formatting
             })));
           });
         });
@@ -170,8 +170,8 @@ class ChatService {
               resolve({
                 name: artistData.name,
                 plays: artistData.play_count || 0,
-                image: artistData.image_url,
                 genres: artistData.genres || []
+                // Note: Image URLs excluded from AI responses for cleaner chat formatting
               });
             });
           });
@@ -213,7 +213,10 @@ class ChatService {
        */
       getTopAlbums: async (args) => {
         return new Promise((resolve, reject) => {
-          getTopAlbums(args.limit || 10, args.period || 'overall', (err, albums) => {
+          getTopAlbums({
+            limit: args.limit || 10,
+            period: args.period || 'overall'
+          }, (err, albums) => {
             if (err) {
               return reject(err);
             }
@@ -221,8 +224,8 @@ class ChatService {
               name: a.album,
               artist: a.artist,
               plays: a.playcount,
-              image: a.image,
               releaseDate: a.releaseDate
+              // Note: Image URLs excluded from AI responses for cleaner chat formatting
             })));
           });
         });
@@ -324,6 +327,72 @@ class ChatService {
             resolve(details);
           });
         });
+      },
+
+      /**
+       * Get top artists for a custom date range
+       */
+      getTopArtistsByDateRange: async (args) => {
+        return new Promise((resolve, reject) => {
+          getTopArtists(
+            args.limit || 10,
+            {
+              startDate: args.startDate,
+              endDate: args.endDate
+            },
+            (err, artists) => {
+              if (err) return reject(err);
+              resolve(artists.map(a => ({
+                name: a.artist,
+                plays: a.playcount
+                // Note: Image URLs excluded from AI responses for cleaner chat formatting
+              })));
+            }
+          );
+        });
+      },
+
+      /**
+       * Get top tracks for a custom date range
+       */
+      getTopTracksByDateRange: async (args) => {
+        return new Promise((resolve, reject) => {
+          getTopTracks({
+            limit: args.limit || 10,
+            startDate: args.startDate,
+            endDate: args.endDate
+          }, (err, tracks) => {
+            if (err) return reject(err);
+            resolve(tracks.map(t => ({
+              name: t.track,
+              artist: t.artist,
+              album: t.album,
+              plays: t.playcount
+            })));
+          });
+        });
+      },
+
+      /**
+       * Get top albums for a custom date range
+       */
+      getTopAlbumsByDateRange: async (args) => {
+        return new Promise((resolve, reject) => {
+          getTopAlbums({
+            limit: args.limit || 10,
+            startDate: args.startDate,
+            endDate: args.endDate
+          }, (err, albums) => {
+            if (err) return reject(err);
+            resolve(albums.map(a => ({
+              name: a.album,
+              artist: a.artist,
+              plays: a.playcount,
+              releaseDate: a.releaseDate
+              // Note: Image URLs excluded from AI responses for cleaner chat formatting
+            })));
+          });
+        });
       }
     };
   }
@@ -354,7 +423,17 @@ CURRENT DATE CONTEXT:
 - Day of week: ${timeContext.day_of_week}
 - Current month: ${timeContext.current_month}
 
-When the user asks questions:
+FORMATTING RULES (VERY IMPORTANT):
+- ALWAYS format your responses using markdown for better readability
+- Use **bold** for artist names, album names, and track names
+- Use numbered lists (1., 2., 3.) for rankings and top items
+- Use bullet points (•) for insights and patterns
+- Use headers (## or ###) to organize different sections
+- Format play counts with commas (e.g., 1,234 plays)
+- Never include raw URLs or technical IDs in your response
+- Present data in a clean, scannable format
+
+RESPONSE STYLE:
 - Use the available tools to fetch relevant data
 - Provide specific, data-driven insights
 - Be conversational and friendly
@@ -363,15 +442,53 @@ When the user asks questions:
 - Keep responses concise but informative
 - When mentioning time periods, be specific about what dates they cover
 
-AVAILABLE TIME PERIODS AND THEIR MEANINGS:
-- 7d: Last 7 days (from ${new Date(now - 7*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
-- 1m: Last 30 days (from ${new Date(now - 30*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
-- 3m: Last 90 days (from ${new Date(now - 90*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
-- 6m: Last 180 days (from ${new Date(now - 180*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
-- 1y: Last 365 days (from ${new Date(now - 365*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
-- all: All time (complete listening history)
+EXAMPLE GOOD RESPONSE FORMAT:
+"Here are your top 5 artists this month:
 
-IMPORTANT: When you receive data from the functions, remember that the data covers the ENTIRE period specified, not just recent days. For example, if asking for "1m" data, the plays/artists/tracks span the full 30-day period.`;
+1. **Drake** - 234 plays
+2. **The Weeknd** - 187 plays
+3. **Kendrick Lamar** - 156 plays
+4. **SZA** - 142 plays
+5. **Travis Scott** - 128 plays
+
+### Insights:
+• You've been listening to Drake 25% more than last month
+• Hip-hop and R&B dominate your top artists"
+
+AVAILABLE TIME PERIODS AND THEIR MEANINGS:
+- 7day: Last 7 days (from ${new Date(now - 7*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 1month: Last 30 days (from ${new Date(now - 30*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 3month: Last 90 days (from ${new Date(now - 90*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 6month: Last 180 days (from ${new Date(now - 180*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- 12month: Last 365 days (from ${new Date(now - 365*24*60*60*1000).toISOString().split('T')[0]} to ${timeContext.current_date})
+- overall: All time (complete listening history)
+
+HOW TO INTERPRET USER TIME REQUESTS (VERY IMPORTANT):
+
+**For ROLLING WINDOWS** (relative to today):
+When user says:                     → Use function:
+- "last week" / "this week"         → getTopArtists with period="7day"
+- "last month" / "this month"       → getTopArtists with period="1month"
+- "last 30 days"                    → getTopArtists with period="1month"
+- "past few months" / "recently"    → getTopArtists with period="3month"
+- "this year" / "last year"         → getTopArtists with period="12month"
+- "all time" / "ever" / "total"     → getTopArtists with period="overall"
+
+**For SPECIFIC CALENDAR PERIODS** (exact dates):
+When user says:                     → Use function:
+- "August 2025"                     → getTopArtistsByDateRange with startDate="2025-08-01", endDate="2025-08-31"
+- "September 2024"                  → getTopArtistsByDateRange with startDate="2024-09-01", endDate="2024-09-30"
+- "January 1-15, 2025"              → getTopArtistsByDateRange with startDate="2025-01-01", endDate="2025-01-15"
+- "Q1 2025"                         → getTopArtistsByDateRange with startDate="2025-01-01", endDate="2025-03-31"
+- "First week of August"            → getTopArtistsByDateRange with startDate="2025-08-01", endDate="2025-08-07"
+
+CRITICAL RULES:
+1. Rolling windows (7day, 1month) = LAST X days from today
+2. Calendar periods = SPECIFIC start and end dates
+3. "last month" = rolling window (use 1month), "August" = calendar month (use date range)
+4. When in doubt, ask user to clarify!
+
+IMPORTANT: When you receive data from the functions, remember that the data covers the ENTIRE period specified, not just recent days. For example, if asking for "1month" data, the plays/artists/tracks span the full 30-day period.`;
 
     // Get initial response from AI
     const response = await this.openai.createChatCompletion(
@@ -382,18 +499,37 @@ IMPORTANT: When you receive data from the functions, remember that the data cove
 
     const responseMessage = response.choices[0].message;
 
-    // Check if the AI wants to call a tool
+    // Check if the AI wants to call tools
     if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-      const toolCall = responseMessage.tool_calls[0];
-      const functionName = toolCall.function.name;
-      const functionArgs = JSON.parse(toolCall.function.arguments);
+      logger.info(`AI requested ${responseMessage.tool_calls.length} tool call(s)`);
 
-      logger.info(`AI calling function: ${functionName} with args:`, functionArgs);
+      // Execute ALL tool calls in parallel
+      const toolResults = await Promise.all(
+        responseMessage.tool_calls.map(async (toolCall) => {
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
 
-      // Execute the function
-      const functionResult = await this.executeChatFunction(functionName, functionArgs);
+          logger.info(`AI calling function: ${functionName} with args:`, functionArgs);
 
-      // Get final response with function result
+          try {
+            const functionResult = await this.executeChatFunction(functionName, functionArgs);
+            return {
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: JSON.stringify(functionResult)
+            };
+          } catch (error) {
+            logger.error(`Error executing ${functionName}:`, error);
+            return {
+              role: 'tool',
+              tool_call_id: toolCall.id,
+              content: JSON.stringify({ error: error.message })
+            };
+          }
+        })
+      );
+
+      // Get final response with ALL function results
       const secondResponse = await this.openai.createChatCompletion(
         [
           { role: 'system', content: `You are a helpful AI assistant for analyzing music listening data.
@@ -402,25 +538,43 @@ CURRENT DATE CONTEXT:
 - Today's date: ${timeContext.current_date}
 - Current month: ${timeContext.current_month}
 
+FORMATTING RULES (VERY IMPORTANT):
+- ALWAYS format your responses using markdown for better readability
+- Use **bold** for artist names, album names, and track names
+- Use numbered lists (1., 2., 3.) for rankings and top items
+- Use bullet points (•) for insights and patterns
+- Use headers (## or ###) to organize different sections
+- Format play counts with commas (e.g., 1,234 plays)
+- NEVER include image URLs, markdown images, or any URLs in your response
+- NEVER mention technical fields like "image_url" or show raw data
+- Present data in a clean, scannable format that looks good in a chat interface
+
+EXAMPLE GOOD RESPONSE:
+"Here are your top 5 artists this month:
+
+1. **Drake** - 234 plays
+2. **The Weeknd** - 187 plays
+3. **Kendrick Lamar** - 156 plays
+
+### Insights:
+• Hip-hop dominates your listening this month
+• You've discovered 3 new artists"
+
 The data you just received covers the time period requested. Provide insights about this specific timeframe when responding to the user.` },
           ...messages,
           responseMessage,
-          {
-            role: 'tool',
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(functionResult)
-          }
+          ...toolResults  // Include ALL tool results
         ]
       );
 
       return {
         success: true,
         message: secondResponse.choices[0].message.content,
-        functionCall: {
-          name: functionName,
-          arguments: functionArgs,
-          result: functionResult
-        },
+        functionCalls: responseMessage.tool_calls.map((toolCall, index) => ({
+          name: toolCall.function.name,
+          arguments: JSON.parse(toolCall.function.arguments),
+          result: JSON.parse(toolResults[index].content)
+        })),
         usage: {
           ...response.usage,
           total_tokens: response.usage.total_tokens + secondResponse.usage.total_tokens

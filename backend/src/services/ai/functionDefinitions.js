@@ -8,14 +8,14 @@ export const CHAT_FUNCTIONS = [
     type: 'function',
     function: {
       name: 'getTopArtists',
-      description: 'Get the user\'s top artists for a specific time period',
+      description: 'Get the user\'s top artists for a specific time period. IMPORTANT: Use rolling windows (7d=last 7 days, 1m=last 30 days, NOT calendar months)',
       parameters: {
         type: 'object',
         properties: {
           period: {
             type: 'string',
-            enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
-            description: 'Time period: 7d (week), 1m (month), 3m, 6m, 1y (year), all'
+            enum: ['7day', '1month', '3month', '6month', '12month', 'overall'],
+            description: 'Time period: 7day (last 7 days), 1month (last 30 days), 3month (last 90 days), 6month (last 180 days), 12month (last 365 days), overall (all time). Use 1month for "last month" requests.'
           },
           limit: {
             type: 'number',
@@ -31,14 +31,14 @@ export const CHAT_FUNCTIONS = [
     type: 'function',
     function: {
       name: 'getTopTracks',
-      description: 'Get the user\'s top tracks for a specific time period',
+      description: 'Get the user\'s top tracks for a specific time period. Use rolling windows (1month=last 30 days, NOT calendar months)',
       parameters: {
         type: 'object',
         properties: {
           period: {
             type: 'string',
-            enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
-            description: 'Time period'
+            enum: ['7day', '1month', '3month', '6month', '12month', 'overall'],
+            description: 'Time period: 7day (last 7 days), 1month (last 30 days), 3month (last 90 days), 6month (last 180 days), 12month (last 365 days), overall (all time)'
           },
           limit: {
             type: 'number',
@@ -105,14 +105,14 @@ export const CHAT_FUNCTIONS = [
     type: 'function',
     function: {
       name: 'getTopAlbums',
-      description: 'Get the user\'s top albums for a specific time period',
+      description: 'Get the user\'s top albums for a specific time period. Use rolling windows (1month=last 30 days, NOT calendar months)',
       parameters: {
         type: 'object',
         properties: {
           period: {
             type: 'string',
-            enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
-            description: 'Time period'
+            enum: ['7day', '1month', '3month', '6month', '12month', 'overall'],
+            description: 'Time period: 7day (last 7 days), 1month (last 30 days), 3month (last 90 days), 6month (last 180 days), 12month (last 365 days), overall (all time)'
           },
           limit: {
             type: 'number',
@@ -128,14 +128,14 @@ export const CHAT_FUNCTIONS = [
     type: 'function',
     function: {
       name: 'getGenreBreakdown',
-      description: 'Get genre distribution and percentages for the user\'s listening in a time period',
+      description: 'Get genre distribution and percentages for the user\'s listening in a time period. Use rolling windows (1month=last 30 days)',
       parameters: {
         type: 'object',
         properties: {
           period: {
             type: 'string',
-            enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
-            description: 'Time period for genre analysis'
+            enum: ['7day', '1month', '3month', '6month', '12month', 'overall'],
+            description: 'Time period: 7day (last 7 days), 1month (last 30 days), 3month (last 90 days), 6month (last 180 days), 12month (last 365 days), overall (all time)'
           }
         },
         required: ['period']
@@ -157,14 +157,14 @@ export const CHAT_FUNCTIONS = [
     type: 'function',
     function: {
       name: 'getDiscoveryStats',
-      description: 'Get statistics about new music discovery (new artists, tracks, albums) for a time period',
+      description: 'Get statistics about new music discovery (new artists, tracks, albums) for a time period. Use rolling windows (1month=last 30 days)',
       parameters: {
         type: 'object',
         properties: {
           period: {
             type: 'string',
-            enum: ['7d', '1m', '3m', '6m', '1y', 'all'],
-            description: 'Time period for discovery analysis'
+            enum: ['7day', '1month', '3month', '6month', '12month', 'overall'],
+            description: 'Time period: 7day (last 7 days), 1month (last 30 days), 3month (last 90 days), 6month (last 180 days), 12month (last 365 days), overall (all time)'
           }
         },
         required: ['period']
@@ -240,6 +240,84 @@ export const CHAT_FUNCTIONS = [
           }
         },
         required: ['trackName']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getTopArtistsByDateRange',
+      description: 'Get top artists for a specific calendar date range (e.g., "August 2025", "January 1-15, 2025"). Use this for SPECIFIC MONTHS or DATE RANGES, not rolling windows.',
+      parameters: {
+        type: 'object',
+        properties: {
+          startDate: {
+            type: 'string',
+            description: 'Start date in YYYY-MM-DD format (e.g., "2025-08-01" for August 1st, 2025)'
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date in YYYY-MM-DD format (e.g., "2025-08-31" for August 31st, 2025)'
+          },
+          limit: {
+            type: 'number',
+            description: 'Number of artists to return',
+            default: 10
+          }
+        },
+        required: ['startDate', 'endDate']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getTopTracksByDateRange',
+      description: 'Get top tracks for a specific calendar date range. Use this for SPECIFIC MONTHS or DATE RANGES, not rolling windows.',
+      parameters: {
+        type: 'object',
+        properties: {
+          startDate: {
+            type: 'string',
+            description: 'Start date in YYYY-MM-DD format (e.g., "2025-08-01")'
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date in YYYY-MM-DD format (e.g., "2025-08-31")'
+          },
+          limit: {
+            type: 'number',
+            description: 'Number of tracks to return',
+            default: 10
+          }
+        },
+        required: ['startDate', 'endDate']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'getTopAlbumsByDateRange',
+      description: 'Get top albums for a specific calendar date range. Use this for SPECIFIC MONTHS or DATE RANGES, not rolling windows.',
+      parameters: {
+        type: 'object',
+        properties: {
+          startDate: {
+            type: 'string',
+            description: 'Start date in YYYY-MM-DD format (e.g., "2025-08-01")'
+          },
+          endDate: {
+            type: 'string',
+            description: 'End date in YYYY-MM-DD format (e.g., "2025-08-31")'
+          },
+          limit: {
+            type: 'number',
+            description: 'Number of albums to return',
+            default: 10
+          }
+        },
+        required: ['startDate', 'endDate']
       }
     }
   }

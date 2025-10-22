@@ -5,20 +5,34 @@
  */
 
 import { getPool } from '../connection.js';
-import { getPeriodTimestamp } from '../../utils/period.js';
+import { getPeriodTimestamp, parsePeriodOrDateRange } from '../../utils/period.js';
 import logger from '../../utils/logger.js';
 
 const pool = () => getPool();
 
 /**
- * Get top artists for a period
+ * Get top artists for a period or custom date range
  * @param {number} limit - Maximum number of artists to return
- * @param {string} period - Time period (7d, 1m, 3m, 6m, 1y, all)
+ * @param {string|Object} periodOrOptions - Period code (e.g., "1month") OR options object { period, startDate, endDate }
  * @param {Function} callback - Callback function
+ *
+ * @example
+ * // Old style (backward compatible)
+ * getTopArtists(10, "1month", callback)
+ *
+ * @example
+ * // New style with period
+ * getTopArtists(10, { period: "1month" }, callback)
+ *
+ * @example
+ * // New style with date range
+ * getTopArtists(10, { startDate: "2025-08-01", endDate: "2025-08-31" }, callback)
  */
-export async function getTopArtists(limit, period = "overall", callback) {
-  logger.info(`getTopArtists called with limit=${limit}, period=${period}`);
-  const fromTimestamp = getPeriodTimestamp(period);
+export async function getTopArtists(limit, periodOrOptions = "overall", callback) {
+  // Parse period or date range (backward compatible)
+  const { period, startDate, endDate, fromTimestamp, toTimestamp } = parsePeriodOrDateRange(periodOrOptions);
+
+  logger.info(`getTopArtists called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}`);
 
   let query = `
     SELECT
@@ -32,10 +46,21 @@ export async function getTopArtists(limit, period = "overall", callback) {
   `;
 
   const params = [limit];
+  const conditions = [];
 
+  // Add date range conditions
   if (fromTimestamp !== null) {
-    query += ` WHERE p.played_at >= to_timestamp($2)`;
     params.push(fromTimestamp);
+    conditions.push(`p.played_at >= to_timestamp($${params.length})`);
+  }
+
+  if (toTimestamp !== null) {
+    params.push(toTimestamp);
+    conditions.push(`p.played_at <= to_timestamp($${params.length})`);
+  }
+
+  if (conditions.length > 0) {
+    query += ` WHERE ` + conditions.join(' AND ');
   }
 
   query += `
@@ -62,17 +87,38 @@ export async function getTopArtists(limit, period = "overall", callback) {
 }
 
 /**
- * Get top tracks for a period
+ * Get top tracks for a period or custom date range
  * @param {Object} options - Query options
  * @param {number} options.limit - Maximum number of tracks to return
- * @param {string} options.period - Time period (7d, 1m, 3m, 6m, 1y, all)
+ * @param {string} options.period - Time period (7day, 1month, 3month, etc.)
+ * @param {string} options.startDate - Optional: Start date in YYYY-MM-DD format
+ * @param {string} options.endDate - Optional: End date in YYYY-MM-DD format
  * @param {number|null} options.artistId - Optional artist filter
  * @param {number|null} options.albumId - Optional album filter
  * @param {Function} callback - Callback function
+ *
+ * @example
+ * // Period-based query
+ * getTopTracks({ limit: 10, period: "1month" }, callback)
+ *
+ * @example
+ * // Custom date range query
+ * getTopTracks({ limit: 10, startDate: "2025-08-01", endDate: "2025-08-31" }, callback)
  */
-export async function getTopTracks({ limit, period = "overall", artistId = null, albumId = null }, callback) {
-  logger.info(`getTopTracks called with limit=${limit}, period=${period}, artistId=${artistId}, albumId=${albumId}`);
-  const fromTimestamp = getPeriodTimestamp(period);
+export async function getTopTracks({
+  limit,
+  period = "overall",
+  startDate = null,
+  endDate = null,
+  artistId = null,
+  albumId = null
+}, callback) {
+  // Parse period or date range
+  const { fromTimestamp, toTimestamp } = parsePeriodOrDateRange(
+    startDate && endDate ? { startDate, endDate } : period
+  );
+
+  logger.info(`getTopTracks called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}, artistId=${artistId}, albumId=${albumId}`);
 
   let query = `
     WITH ranked_albums AS (
@@ -119,10 +165,17 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
   const params = [];
   let paramCount = 0;
 
+  // Add date range conditions
   if (fromTimestamp !== null) {
     paramCount++;
     conditions.push(`p.played_at >= to_timestamp($${paramCount})`);
     params.push(fromTimestamp);
+  }
+
+  if (toTimestamp !== null) {
+    paramCount++;
+    conditions.push(`p.played_at <= to_timestamp($${paramCount})`);
+    params.push(toTimestamp);
   }
 
   if (artistId !== null) {
@@ -169,16 +222,36 @@ export async function getTopTracks({ limit, period = "overall", artistId = null,
 }
 
 /**
- * Get top albums for a period
+ * Get top albums for a period or custom date range
  * @param {Object} options - Query options
  * @param {number} options.limit - Maximum number of albums to return
- * @param {string} options.period - Time period (7d, 1m, 3m, 6m, 1y, all)
+ * @param {string} options.period - Time period (7day, 1month, 3month, etc.)
+ * @param {string} options.startDate - Optional: Start date in YYYY-MM-DD format
+ * @param {string} options.endDate - Optional: End date in YYYY-MM-DD format
  * @param {number|null} options.artistId - Optional artist filter
  * @param {Function} callback - Callback function
+ *
+ * @example
+ * // Period-based query
+ * getTopAlbums({ limit: 10, period: "1month" }, callback)
+ *
+ * @example
+ * // Custom date range query
+ * getTopAlbums({ limit: 10, startDate: "2025-08-01", endDate: "2025-08-31" }, callback)
  */
-export async function getTopAlbums({ limit, period = "overall", artistId = null }, callback) {
-  logger.info(`getTopAlbums called with limit=${limit}, period=${period}, artistId=${artistId}`);
-  const fromTimestamp = getPeriodTimestamp(period);
+export async function getTopAlbums({
+  limit,
+  period = "overall",
+  startDate = null,
+  endDate = null,
+  artistId = null
+}, callback) {
+  // Parse period or date range
+  const { fromTimestamp, toTimestamp } = parsePeriodOrDateRange(
+    startDate && endDate ? { startDate, endDate } : period
+  );
+
+  logger.info(`getTopAlbums called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}, artistId=${artistId}`);
 
   let query = `
     SELECT
@@ -198,10 +271,17 @@ export async function getTopAlbums({ limit, period = "overall", artistId = null 
   const params = [];
   let paramCount = 0;
 
+  // Add date range conditions
   if (fromTimestamp !== null) {
     paramCount++;
     conditions.push(`p.played_at >= to_timestamp($${paramCount})`);
     params.push(fromTimestamp);
+  }
+
+  if (toTimestamp !== null) {
+    paramCount++;
+    conditions.push(`p.played_at <= to_timestamp($${paramCount})`);
+    params.push(toTimestamp);
   }
 
   if (artistId !== null) {

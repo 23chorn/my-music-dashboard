@@ -188,12 +188,13 @@ router.post('/message', async (req, res) => {
     // Process message through chat service
     const aiResponse = await chatService.processMessage(formattedMessages);
 
-    // Save assistant message
+    // Save assistant message (support both single functionCall and multiple functionCalls)
+    const functionCallData = aiResponse.functionCalls || aiResponse.functionCall || null;
     const assistantMessage = await addMessage(
       conversationId,
       'assistant',
       aiResponse.message,
-      aiResponse.functionCall || null,
+      functionCallData,
       { usage: aiResponse.usage }
     );
 

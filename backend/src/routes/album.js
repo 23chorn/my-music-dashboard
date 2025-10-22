@@ -11,10 +11,29 @@ import {
 import { getTopTracks, getTopAlbums } from '../db/aggregations/index.js';
 
 // Get top albums (replaces /api/top-albums)
+// Supports both period-based queries and custom date ranges
+// Examples:
+//   /api/albums/top?limit=10&period=1month
+//   /api/albums/top?limit=10&startDate=2025-08-01&endDate=2025-08-31
+//   /api/albums/top?limit=10&period=1month&artistId=123
 router.get('/top', (req, res) => {
-  const { limit = 5, period = "overall", artistId = null } = req.query;
-  logger.info(`GET /api/albums/top called with limit=${limit}, period=${period}, artistId=${artistId}`);
-  getTopAlbums({ limit: Number(limit), period, artistId }, (err, albums) => {
+  const {
+    limit = 5,
+    period = "overall",
+    startDate = null,
+    endDate = null,
+    artistId = null
+  } = req.query;
+
+  logger.info(`GET /api/albums/top called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}, artistId=${artistId}`);
+
+  getTopAlbums({
+    limit: Number(limit),
+    period,
+    startDate,
+    endDate,
+    artistId
+  }, (err, albums) => {
     if (err) {
       logger.error(`Error in getTopAlbums: ${err}`);
       return res.status(500).json({ error: 'DB error' });
