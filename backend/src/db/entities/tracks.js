@@ -255,19 +255,43 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
     callback = options;
     options = {};
   }
-  
-  const { page = 1, limit = 50, sortBy = 'alpha', alphaCategory = null, minPlays = null, maxPlays = null } = options;
-  logger.info(`getAllTracksWithPlaycount called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
-  
+
+  const {
+    page = 1,
+    limit = 50,
+    sortBy = 'alpha',
+    alphaCategory = null,
+    minPlays = null,
+    maxPlays = null,
+    releaseYearStart = null,
+    releaseYearEnd = null
+  } = options;
+  logger.info(`getAllTracksWithPlaycount called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}, releaseYearStart=${releaseYearStart}, releaseYearEnd=${releaseYearEnd}`);
+
   try {
     let query;
     let queryParams = [];
     let paramCount = 0;
 
+    // Build WHERE clause for release date filtering (applied to tracks table)
+    let whereClause = '';
+    if (releaseYearStart !== null || releaseYearEnd !== null) {
+      const conditions = [];
+      if (releaseYearStart !== null) {
+        conditions.push(`EXTRACT(YEAR FROM t.release_date) >= $${++paramCount}`);
+        queryParams.push(releaseYearStart);
+      }
+      if (releaseYearEnd !== null) {
+        conditions.push(`EXTRACT(YEAR FROM t.release_date) <= $${++paramCount}`);
+        queryParams.push(releaseYearEnd);
+      }
+      whereClause = `WHERE ${conditions.join(' AND ')}`;
+    }
+
     if (sortBy === 'plays') {
       // Sort by playcount descending with pagination
       let havingClause = 'HAVING COUNT(p.id) > 0';
-      
+
       if (minPlays !== null || maxPlays !== null) {
         const conditions = [];
         if (minPlays !== null) {
@@ -280,15 +304,15 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
         }
         havingClause = `HAVING ${conditions.join(' AND ')}`;
       }
-      
+
       query = `
         WITH track_primary_album AS (
-          SELECT 
+          SELECT
             t.id as track_id,
             al.image_url as primary_album_image,
             ROW_NUMBER() OVER (
-              PARTITION BY t.id 
-              ORDER BY 
+              PARTITION BY t.id
+              ORDER BY
                 al.release_date DESC NULLS LAST,
                 al.id DESC
             ) as album_rank
@@ -296,14 +320,15 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
           LEFT JOIN track_albums tal ON t.id = tal.track_id
           LEFT JOIN albums al ON tal.album_id = al.id
         )
-        SELECT 
-          t.id, 
-          t.name, 
+        SELECT
+          t.id,
+          t.name,
           COUNT(p.id) AS playcount,
           tpa.primary_album_image as image_url
         FROM tracks t
         LEFT JOIN plays p ON t.id = p.track_id
         LEFT JOIN track_primary_album tpa ON t.id = tpa.track_id AND tpa.album_rank = 1
+        ${whereClause}
         GROUP BY t.id, t.name, tpa.primary_album_image
         ${havingClause}
         ORDER BY playcount DESC, t.name ASC
@@ -313,7 +338,7 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
     } else {
       // Alphabetical sorting with category filtering
       let havingClause = 'HAVING COUNT(p.id) > 0';
-      
+
       if (minPlays !== null || maxPlays !== null) {
         const conditions = [];
         if (minPlays !== null) {
@@ -326,15 +351,15 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
         }
         havingClause = `HAVING ${conditions.join(' AND ')}`;
       }
-      
+
       const baseQuery = `
         WITH track_primary_album AS (
-          SELECT 
+          SELECT
             t.id as track_id,
             al.image_url as primary_album_image,
             ROW_NUMBER() OVER (
-              PARTITION BY t.id 
-              ORDER BY 
+              PARTITION BY t.id
+              ORDER BY
                 al.release_date DESC NULLS LAST,
                 al.id DESC
             ) as album_rank
@@ -342,30 +367,47 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
           LEFT JOIN track_albums tal ON t.id = tal.track_id
           LEFT JOIN albums al ON tal.album_id = al.id
         )
-        SELECT 
-          t.id, 
-          t.name, 
+        SELECT
+          t.id,
+          t.name,
           COUNT(p.id) AS playcount,
           tpa.primary_album_image as image_url
         FROM tracks t
         LEFT JOIN plays p ON t.id = p.track_id
         LEFT JOIN track_primary_album tpa ON t.id = tpa.track_id AND tpa.album_rank = 1
       `;
-      
+
       if (alphaCategory && alphaCategory !== '#') {
+        // Combine WHERE clauses
+        let combinedWhere = whereClause;
+        if (combinedWhere) {
+          combinedWhere += ` AND UPPER(t.name) LIKE $${++paramCount}`;
+        } else {
+          combinedWhere = `WHERE UPPER(t.name) LIKE $${++paramCount}`;
+        }
+        queryParams.push(`${alphaCategory}%`);
+
         query = `
           ${baseQuery}
-          WHERE UPPER(t.name) LIKE $${++paramCount}
+          ${combinedWhere}
           GROUP BY t.id, t.name, tpa.primary_album_image
           ${havingClause}
           ORDER BY t.name ASC
           LIMIT $${++paramCount} OFFSET $${++paramCount}
         `;
-        queryParams.push(`${alphaCategory}%`, limit, (page - 1) * limit);
+        queryParams.push(limit, (page - 1) * limit);
       } else if (alphaCategory === '#') {
+        // Combine WHERE clauses
+        let combinedWhere = whereClause;
+        if (combinedWhere) {
+          combinedWhere += ` AND NOT (UPPER(t.name) ~ '^[A-Z]')`;
+        } else {
+          combinedWhere = `WHERE NOT (UPPER(t.name) ~ '^[A-Z]')`;
+        }
+
         query = `
           ${baseQuery}
-          WHERE NOT (UPPER(t.name) ~ '^[A-Z]')
+          ${combinedWhere}
           GROUP BY t.id, t.name, tpa.primary_album_image
           ${havingClause}
           ORDER BY t.name ASC
@@ -376,6 +418,7 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
         // Default alphabetical sort
         query = `
           ${baseQuery}
+          ${whereClause}
           GROUP BY t.id, t.name, tpa.primary_album_image
           ${havingClause}
           ORDER BY t.name ASC

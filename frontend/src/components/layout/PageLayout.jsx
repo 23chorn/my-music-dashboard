@@ -1,14 +1,15 @@
 import SectionHeader from "../sections/SectionHeader";
 import LoadingPage from "../ui/LoadingPage";
 
-export default function PageLayout({ 
-  loading, 
-  error, 
-  title, 
-  image, 
-  subheader, 
+export default function PageLayout({
+  loading,
+  error,
+  title,
+  image,
+  subheader,
   subheaderLink,
-  children 
+  metadata,
+  children
 }) {
   if (loading) {
     return <LoadingPage message="Loading your music data..." />;
@@ -32,6 +33,7 @@ export default function PageLayout({
               title={title}
               subheader={subheader}
               subheaderLink={subheaderLink}
+              metadata={metadata}
             />
           )}
           {children}

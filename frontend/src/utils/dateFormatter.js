@@ -41,3 +41,27 @@ export function formatDateString(dateString) {
     timeZoneName: 'short'
   });
 }
+
+export function formatReleaseDate(dateString, precision) {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+
+  if (precision === 'day') {
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  } else if (precision === 'month') {
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long'
+    });
+  } else if (precision === 'year') {
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric'
+    });
+  }
+
+  return "N/A";
+}

@@ -25,8 +25,17 @@ export async function getTrackDailyPlays(id, days) {
 }
 
 export async function getAllTracksWithPlaycount(options = {}) {
-  const { page = 1, limit = 50, sortBy = 'alpha', alphaCategory = null, minPlays = null, maxPlays = null } = options;
-  
+  const {
+    page = 1,
+    limit = 50,
+    sortBy = 'alpha',
+    alphaCategory = null,
+    minPlays = null,
+    maxPlays = null,
+    releaseYearStart = null,
+    releaseYearEnd = null
+  } = options;
+
   const params = new URLSearchParams();
   params.set('page', page.toString());
   params.set('limit', limit.toString());
@@ -40,7 +49,13 @@ export async function getAllTracksWithPlaycount(options = {}) {
   if (maxPlays !== null) {
     params.set('maxPlays', maxPlays.toString());
   }
-  
+  if (releaseYearStart !== null) {
+    params.set('releaseYearStart', releaseYearStart.toString());
+  }
+  if (releaseYearEnd !== null) {
+    params.set('releaseYearEnd', releaseYearEnd.toString());
+  }
+
   const res = await fetch(`${API_BASE_URL}/api/tracks/all?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch all tracks');
   return await res.json();

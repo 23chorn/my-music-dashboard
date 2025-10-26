@@ -51,10 +51,12 @@ router.get('/all', (req, res) => {
   const alphaCategory = req.query.alphaCategory || null;
   const minPlays = req.query.minPlays ? parseInt(req.query.minPlays) : null;
   const maxPlays = req.query.maxPlays ? parseInt(req.query.maxPlays) : null;
-  
-  logger.info(`GET /api/albums/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}`);
-  
-  const options = { page, limit, sortBy, alphaCategory, minPlays, maxPlays };
+  const releaseYearStart = req.query.releaseYearStart ? parseInt(req.query.releaseYearStart) : null;
+  const releaseYearEnd = req.query.releaseYearEnd ? parseInt(req.query.releaseYearEnd) : null;
+
+  logger.info(`GET /api/albums/all called with page=${page}, limit=${limit}, sortBy=${sortBy}, alphaCategory=${alphaCategory}, minPlays=${minPlays}, maxPlays=${maxPlays}, releaseYearStart=${releaseYearStart}, releaseYearEnd=${releaseYearEnd}`);
+
+  const options = { page, limit, sortBy, alphaCategory, minPlays, maxPlays, releaseYearStart, releaseYearEnd };
   getAllAlbumsWithPlaycount(options, (err, rows) => {
     if (err) {
       logger.error("DB error in getAllAlbumsWithPlaycount:", err);

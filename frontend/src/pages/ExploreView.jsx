@@ -9,6 +9,7 @@ import GroupedSection from "../components/sections/GroupedSection";
 import DataTypeSelector from "../components/explore/DataTypeSelector";
 import SortControls from "../components/explore/SortControls";
 import PlayCountFilters from "../components/explore/PlayCountFilters";
+import ReleaseDateFilter from "../components/explore/ReleaseDateFilter";
 import AlphaCategorySelector from "../components/explore/AlphaCategorySelector";
 import PaginationControls from "../components/explore/PaginationControls";
 import { DEFAULT_LIMITS, ALPHA_CATEGORIES } from "../config/appConfig";
@@ -46,6 +47,14 @@ export default function ExploreView() {
     const saved = localStorage.getItem('exploreView_maxPlays');
     return saved && saved !== '' && saved !== 'NaN' ? parseInt(saved) : '';
   });
+  const [releaseYearStart, setReleaseYearStart] = useState(() => {
+    const saved = localStorage.getItem('exploreView_releaseYearStart');
+    return saved && saved !== '' && saved !== 'NaN' ? parseInt(saved) : '';
+  });
+  const [releaseYearEnd, setReleaseYearEnd] = useState(() => {
+    const saved = localStorage.getItem('exploreView_releaseYearEnd');
+    return saved && saved !== '' && saved !== 'NaN' ? parseInt(saved) : '';
+  });
   const navigate = useNavigate();
 
   // Save state to localStorage whenever it changes
@@ -74,6 +83,14 @@ export default function ExploreView() {
   }, [maxPlays]);
 
   useEffect(() => {
+    localStorage.setItem('exploreView_releaseYearStart', releaseYearStart === '' ? '' : releaseYearStart.toString());
+  }, [releaseYearStart]);
+
+  useEffect(() => {
+    localStorage.setItem('exploreView_releaseYearEnd', releaseYearEnd === '' ? '' : releaseYearEnd.toString());
+  }, [releaseYearEnd]);
+
+  useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
@@ -84,7 +101,9 @@ export default function ExploreView() {
           sortBy,
           alphaCategory: sortBy === "alpha" ? alphaCategory : null,
           minPlays: minPlays !== '' ? minPlays : null,
-          maxPlays: maxPlays !== '' ? maxPlays : null
+          maxPlays: maxPlays !== '' ? maxPlays : null,
+          releaseYearStart: releaseYearStart !== '' ? releaseYearStart : null,
+          releaseYearEnd: releaseYearEnd !== '' ? releaseYearEnd : null
         };
 
         if (dataType === "artist") {
@@ -102,7 +121,7 @@ export default function ExploreView() {
       setLoading(false);
     }
     fetchData();
-  }, [dataType, page, sortBy, alphaCategory, minPlays, maxPlays]);
+  }, [dataType, page, sortBy, alphaCategory, minPlays, maxPlays, releaseYearStart, releaseYearEnd]);
 
   const alphaCategories = [
     ...ALPHA_CATEGORIES.letters,
@@ -133,7 +152,7 @@ export default function ExploreView() {
       subheader="Browse all artists by playcount or alphabetically."
     >
       <div className="mb-4 flex flex-wrap gap-4 items-center">
-        <DataTypeSelector 
+        <DataTypeSelector
           dataTypes={DATA_TYPES}
           selectedType={dataType}
           onTypeChange={(newDataType) => {
@@ -141,15 +160,15 @@ export default function ExploreView() {
             setPage(1); // Reset to first page when changing data type
           }}
         />
-        
-        <SortControls 
+
+        <SortControls
           sortBy={sortBy}
           onSortChange={(newSortBy) => {
             setSortBy(newSortBy);
             setPage(1); // Reset to first page when changing sort method
           }}
         />
-        
+
         <PlayCountFilters
           minPlays={minPlays}
           maxPlays={maxPlays}
@@ -167,6 +186,27 @@ export default function ExploreView() {
             setPage(1); // Reset to first page when clearing filters
           }}
         />
+
+        {/* Show Release Date filter only for albums and tracks */}
+        {(dataType === 'album' || dataType === 'track') && (
+          <ReleaseDateFilter
+            releaseYearStart={releaseYearStart}
+            releaseYearEnd={releaseYearEnd}
+            onReleaseYearStartChange={(newYear) => {
+              setReleaseYearStart(newYear);
+              setPage(1); // Reset to first page when changing filters
+            }}
+            onReleaseYearEndChange={(newYear) => {
+              setReleaseYearEnd(newYear);
+              setPage(1); // Reset to first page when changing filters
+            }}
+            onClearFilter={() => {
+              setReleaseYearStart('');
+              setReleaseYearEnd('');
+              setPage(1); // Reset to first page when clearing filters
+            }}
+          />
+        )}
       </div>
       
       {sortBy === "alpha" && (

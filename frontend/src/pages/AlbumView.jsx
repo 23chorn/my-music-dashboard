@@ -6,7 +6,7 @@ import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
 import TagManager from "../components/ui/TagManager";
 import { formatValue } from "../utils/numberFormat";
-import { formatDateTime } from "../utils/dateFormatter";
+import { formatDateTime, formatReleaseDate } from "../utils/dateFormatter";
 
 export default function AlbumView() {
   const { id } = useParams();
@@ -39,6 +39,7 @@ export default function AlbumView() {
       title={album?.name}
       subheader={album?.artist}
       subheaderLink={album?.artist_id ? `/artist/${album.artist_id}` : undefined}
+      metadata={album?.release_date ? formatReleaseDate(album.release_date, album.release_precision) : null}
     >
       <StatsSection stats={stats} type="album" title="Album Stats" />
 
