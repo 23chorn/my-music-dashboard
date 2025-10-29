@@ -154,8 +154,13 @@ router.post('/create-playlist', async (req, res) => {
     };
 
     const periodName = periodDisplayMap[period] || period;
-    const playlistName = `Chorn's Top ${limit} - ${periodName}`;
-    const description = `Top ${limit} tracks from my listening history over the past ${periodName.toLowerCase()}. Generated from my Music Dashboard.`;
+
+    // Add short form date to playlist name (e.g., "28/12/24")
+    const now = new Date();
+    const shortDate = `${now.getDate()}/${now.getMonth() + 1}/${String(now.getFullYear()).slice(-2)}`;
+
+    const playlistName = `Chorn's Top ${limit} - ${periodName} (${shortDate})`;
+    const description = `Top ${limit} tracks from my listening history over the past ${periodName.toLowerCase()}. Generated from my Music Dashboard on ${shortDate}.`;
 
     // Create the playlist
     const playlist = await spotifyService.createPlaylist(
