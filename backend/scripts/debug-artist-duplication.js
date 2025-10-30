@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { config } from 'dotenv';
-import { initializeDatabase, getPool } from './src/db/connection.js';
+import { initializeDatabase, getPool } from '../src/db/connection.js';
 
 config();
 
