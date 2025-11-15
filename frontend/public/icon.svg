@@ -1,0 +1,30 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGradient)"/>
+  
+  <!-- Waveform bars with better definition -->
+  <g transform="translate(256, 256)">
+    <!-- Leftmost bar -->
+    <rect x="-130" y="-45" width="35" height="90" rx="17.5" fill="white" opacity="0.95"/>
+    
+    <!-- Left-center bar -->
+    <rect x="-75" y="-85" width="35" height="170" rx="17.5" fill="white" opacity="0.95"/>
+    
+    <!-- Center bar (tallest) -->
+    <rect x="-17.5" y="-120" width="35" height="240" rx="17.5" fill="white"/>
+    
+    <!-- Right-center bar -->
+    <rect x="40" y="-85" width="35" height="170" rx="17.5" fill="white" opacity="0.95"/>
+    
+    <!-- Rightmost bar -->
+    <rect x="95" y="-45" width="35" height="90" rx="17.5" fill="white" opacity="0.95"/>
+  </g>
+</svg>

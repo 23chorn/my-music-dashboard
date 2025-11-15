@@ -1,8 +1,13 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import useSearch from "./hooks/useSearch";
+import { useServiceWorker } from "./hooks/useServiceWorker";
 import AppLayout from "./components/layout/AppLayout";
+import InstallPrompt from "./components/ui/InstallPrompt";
 
 function AppContent() {
+  // Register service worker
+  useServiceWorker();
+
   const {
     searchQuery,
     setSearchQuery,
@@ -25,7 +30,12 @@ function AppContent() {
     clearSearch
   };
 
-  return <AppLayout searchProps={searchProps} />;
+  return (
+    <>
+      <AppLayout searchProps={searchProps} />
+      <InstallPrompt />
+    </>
+  );
 }
 
 export default function App() {
