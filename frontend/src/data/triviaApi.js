@@ -1,34 +1,34 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 // Check trivia system status
 export const checkTriviaStatus = async () => {
-  const response = await axios.get(`${API_BASE_URL}/trivia/status`);
+  const response = await axios.get(`${API_BASE_URL}/api/trivia/status`);
   return response.data;
 };
 
 // Create new trivia session
 export const createTriviaSession = async (sessionOptions) => {
-  const response = await axios.post(`${API_BASE_URL}/trivia/sessions`, sessionOptions);
+  const response = await axios.post(`${API_BASE_URL}/api/trivia/sessions`, sessionOptions);
   return response.data;
 };
 
 // Get trivia session by ID
 export const getTriviaSession = async (sessionId) => {
-  const response = await axios.get(`${API_BASE_URL}/trivia/sessions/${sessionId}`);
+  const response = await axios.get(`${API_BASE_URL}/api/trivia/sessions/${sessionId}`);
   return response.data;
 };
 
 // Submit answer to question
 export const submitTriviaAnswer = async (sessionId, answerData) => {
-  const response = await axios.post(`${API_BASE_URL}/trivia/sessions/${sessionId}/responses`, answerData);
+  const response = await axios.post(`${API_BASE_URL}/api/trivia/sessions/${sessionId}/responses`, answerData);
   return response.data;
 };
 
 // Complete trivia session
 export const completeTriviaSession = async (sessionId, completionTimeSeconds = null) => {
-  const response = await axios.post(`${API_BASE_URL}/trivia/sessions/${sessionId}/complete`, {
+  const response = await axios.post(`${API_BASE_URL}/api/trivia/sessions/${sessionId}/complete`, {
     completionTimeSeconds
   });
   return response.data;
@@ -36,7 +36,7 @@ export const completeTriviaSession = async (sessionId, completionTimeSeconds = n
 
 // Get recent trivia sessions
 export const getRecentTriviaSessions = async (limit = 10) => {
-  const response = await axios.get(`${API_BASE_URL}/trivia/sessions`, {
+  const response = await axios.get(`${API_BASE_URL}/api/trivia/sessions`, {
     params: { limit }
   });
   return response.data;
@@ -44,24 +44,24 @@ export const getRecentTriviaSessions = async (limit = 10) => {
 
 // Get trivia statistics
 export const getTriviaStats = async () => {
-  const response = await axios.get(`${API_BASE_URL}/trivia/stats`);
+  const response = await axios.get(`${API_BASE_URL}/api/trivia/stats`);
   return response.data;
 };
 
 // Generate quick trivia (without saving to session)
 export const generateQuickTrivia = async (options = {}) => {
-  const response = await axios.post(`${API_BASE_URL}/trivia/quick`, options);
+  const response = await axios.post(`${API_BASE_URL}/api/trivia/quick`, options);
   return response.data;
 };
 
 // Get available trivia themes
 export const getTriviaThemes = async () => {
-  const response = await axios.get(`${API_BASE_URL}/trivia/themes`);
+  const response = await axios.get(`${API_BASE_URL}/api/trivia/themes`);
   return response.data;
 };
 
 // Replay a trivia session
 export const replayTriviaSession = async (sessionId) => {
-  const response = await axios.post(`${API_BASE_URL}/trivia/sessions/${sessionId}/replay`);
+  const response = await axios.post(`${API_BASE_URL}/api/trivia/sessions/${sessionId}/replay`);
   return response.data;
 };
