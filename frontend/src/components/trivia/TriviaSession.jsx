@@ -211,24 +211,51 @@ export default function TriviaSession({ session, onComplete, onBack }) {
           // Remove duplicates if any
           rankingOptions = [...new Set(rankingOptions)];
 
+          // If no options, show error with skip option
+          if (rankingOptions.length === 0) {
+            return (
+              <div className="text-center py-8">
+                <div className="text-red-400 mb-4">
+                  <p className="font-semibold mb-2">Error: No ranking options available for this question</p>
+                  <p className="text-sm text-gray-400">This question has incomplete data and cannot be answered.</p>
+                </div>
+                <button
+                  onClick={() => {
+                    // Skip this question by marking it as answered with empty string
+                    handleAnswer('');
+                  }}
+                  className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors"
+                >
+                  Skip This Question
+                </button>
+              </div>
+            );
+          }
+
           return (
             <div>
               <p className="text-sm text-gray-400 mb-4">
-                Enter numbers (1-{rankingOptions.length}) to rank these items in order
+                Drag and drop to reorder, or enter numbers (1-{rankingOptions.length}) to rank from most to least
               </p>
               <div className="space-y-3">
                 {rankingOptions.map((option, index) => (
                   <div key={`${option}-${index}`} className="flex items-center space-x-3">
-                    <input
-                      type="number"
-                      min="1"
-                      max={rankingOptions.length}
-                      defaultValue={index + 1}
-                      className="w-20 p-3 border border-gray-600 rounded-lg bg-gray-900 text-white text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      id={`rank-${currentQuestion.id}-${index}`}
-                    />
-                    <div className="flex-1 p-4 bg-gray-900 border border-gray-700 rounded-lg text-white">
-                      {option}
+                    <div className="flex flex-col items-center">
+                      <input
+                        type="number"
+                        min="1"
+                        max={rankingOptions.length}
+                        defaultValue={index + 1}
+                        className="w-16 p-2 border border-gray-600 rounded-lg bg-gray-900 text-white text-center focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-semibold"
+                        id={`rank-${currentQuestion.id}-${index}`}
+                      />
+                      <span className="text-xs text-gray-500 mt-1">Rank</span>
+                    </div>
+                    <div className="flex-1 p-4 bg-gray-800 border-2 border-gray-700 rounded-lg text-white hover:border-blue-500 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{option}</span>
+                        <span className="text-sm text-gray-500">#{index + 1}</span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -243,7 +270,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
                   const answer = sorted.map(r => r.item).join(',');
                   handleAnswer(answer);
                 }}
-                className="mt-4 w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                className="mt-6 w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
               >
                 Submit Ranking
               </button>

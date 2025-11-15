@@ -7,13 +7,14 @@ import {
   PlayIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
-import { getRecentTriviaSessions, replayTriviaSession } from '../../data/triviaApi';
+import { getRecentTriviaSessions, replayTriviaSession, getTriviaSession } from '../../data/triviaApi';
 
 export default function TriviaHistory({ onBack, onSessionSelect }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [replayingId, setReplayingId] = useState(null);
+  const [loadingSessionId, setLoadingSessionId] = useState(null);
 
   useEffect(() => {
     loadSessions();
@@ -42,6 +43,20 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
       setError('Failed to replay trivia session');
     } finally {
       setReplayingId(null);
+    }
+  };
+
+  const handleContinueSession = async (session) => {
+    try {
+      setLoadingSessionId(session.id);
+      // Fetch full session with questions
+      const fullSession = await getTriviaSession(session.id);
+      onSessionSelect(fullSession);
+    } catch (err) {
+      console.error('Error loading session:', err);
+      setError('Failed to load trivia session');
+    } finally {
+      setLoadingSessionId(null);
     }
   };
 
@@ -175,11 +190,21 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                 <div className="flex items-center space-x-2">
                   {!session.completed_at && (
                     <button
-                      onClick={() => onSessionSelect(session)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm"
+                      onClick={() => handleContinueSession(session)}
+                      disabled={loadingSessionId === session.id}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <PlayIcon className="h-4 w-4 mr-1" />
-                      Continue
+                      {loadingSessionId === session.id ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <PlayIcon className="h-4 w-4 mr-1" />
+                          Continue
+                        </>
+                      )}
                     </button>
                   )}
 

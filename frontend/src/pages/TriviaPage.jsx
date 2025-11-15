@@ -40,6 +40,13 @@ export default function TriviaPage() {
     loadTriviaData();
   }, []);
 
+  // Reload data when returning to overview
+  useEffect(() => {
+    if (currentView === 'overview') {
+      loadTriviaData();
+    }
+  }, [currentView]);
+
   const loadTriviaData = async () => {
     try {
       setLoading(true);

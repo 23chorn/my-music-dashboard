@@ -39,7 +39,7 @@ router.post('/sessions', async (req, res) => {
       sessionName,
       questionCount = 10,
       difficulty = 'mixed',
-      categories = ['top_tracks', 'top_artists', 'listening_patterns'],
+      categories = ['top_tracks', 'top_artists', 'listening_patterns', 'music_knowledge'],
       period = '6month',
       theme = null
     } = req.body;
@@ -325,8 +325,8 @@ router.get('/themes', (req, res) => {
     {
       id: 'discovery_journey',
       name: 'Discovery Journey',
-      description: 'Questions about when and how you discovered your favorite artists',
-      categories: ['discovery_dates', 'top_artists', 'music_knowledge'],
+      description: 'Questions about your favorite artists and listening journey',
+      categories: ['top_artists', 'music_knowledge', 'listening_patterns'],
       difficulty: 'medium',
       questionCount: 8
     },
@@ -342,7 +342,7 @@ router.get('/themes', (req, res) => {
       id: 'deep_cuts',
       name: 'Deep Cuts',
       description: 'Test your knowledge of your music collection\'s hidden gems',
-      categories: ['top_tracks', 'music_knowledge', 'discovery_dates'],
+      categories: ['top_tracks', 'music_knowledge', 'top_albums'],
       difficulty: 'hard',
       questionCount: 10
     },
