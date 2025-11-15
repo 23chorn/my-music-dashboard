@@ -8,6 +8,7 @@ import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     // Check if already installed
@@ -17,6 +18,10 @@ export default function InstallPrompt() {
     if (isInstalled) {
       return;
     }
+
+    // Detect iOS
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    setIsIOS(iOS);
 
     // Check if user has previously dismissed the prompt
     const dismissed = localStorage.getItem('pwa-install-dismissed');
@@ -30,7 +35,7 @@ export default function InstallPrompt() {
       }
     }
 
-    // Listen for the beforeinstallprompt event
+    // Listen for the beforeinstallprompt event (Android/Desktop Chrome)
     const handleBeforeInstallPrompt = (e) => {
       // Prevent the default mini-infobar from appearing
       e.preventDefault();
@@ -41,6 +46,18 @@ export default function InstallPrompt() {
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // For iOS, show the prompt after a delay (no beforeinstallprompt event on iOS)
+    if (iOS && !dismissed) {
+      const timer = setTimeout(() => {
+        setShowPrompt(true);
+      }, 3000); // Show after 3 seconds
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -85,9 +102,15 @@ export default function InstallPrompt() {
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold">Install Music Dashboard</h3>
-              <p className="mt-1 text-xs text-gray-200">
-                Add to your home screen for quick access and offline support
-              </p>
+              {isIOS ? (
+                <p className="mt-1 text-xs text-gray-200">
+                  Tap the Share button <span className="inline-block">⬆️</span> then "Add to Home Screen"
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-gray-200">
+                  Add to your home screen for quick access and offline support
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -98,20 +121,32 @@ export default function InstallPrompt() {
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
-        <div className="mt-4 flex space-x-3">
-          <button
-            onClick={handleInstallClick}
-            className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-purple-900 hover:bg-gray-100 transition-colors"
-          >
-            Install
-          </button>
-          <button
-            onClick={handleDismiss}
-            className="px-4 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors"
-          >
-            Not now
-          </button>
-        </div>
+        {!isIOS && (
+          <div className="mt-4 flex space-x-3">
+            <button
+              onClick={handleInstallClick}
+              className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-purple-900 hover:bg-gray-100 transition-colors"
+            >
+              Install
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="px-4 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors"
+            >
+              Not now
+            </button>
+          </div>
+        )}
+        {isIOS && (
+          <div className="mt-4">
+            <button
+              onClick={handleDismiss}
+              className="w-full px-4 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors text-center"
+            >
+              Got it
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
