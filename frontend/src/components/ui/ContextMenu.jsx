@@ -13,7 +13,11 @@ export default function ContextMenu({
   const [spotifyData, setSpotifyData] = useState(null);
   const [loading, setLoading] = useState(false);
   const menuRef = useRef(null);
-  const touchTimeoutRef = useRef(null);
+
+  // Detect if device is mobile (disable context menu on mobile)
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   ('ontouchstart' in window) ||
+                   (navigator.maxTouchPoints > 0);
 
   // Show context menu at given position
   const showContextMenu = async (x, y) => {
@@ -46,37 +50,16 @@ export default function ContextMenu({
     }
   };
 
-  // Handle right-click (desktop)
+  // Handle right-click (desktop only)
   const handleContextMenu = async (e) => {
+    // Only allow context menu on desktop browsers, not mobile
+    if (isMobile) {
+      return; // Don't prevent default on mobile, allow normal behavior
+    }
+
     e.preventDefault();
     e.stopPropagation();
     showContextMenu(e.clientX, e.clientY);
-  };
-
-  // Handle touch start (mobile long press)
-  const handleTouchStart = (e) => {
-    // Clear any existing timeout
-    if (touchTimeoutRef.current) {
-      clearTimeout(touchTimeoutRef.current);
-    }
-
-    // Set timeout for long press (500ms)
-    touchTimeoutRef.current = setTimeout(() => {
-      const touch = e.touches[0];
-      if (touch) {
-        // Prevent default touch behavior and show context menu
-        e.preventDefault();
-        showContextMenu(touch.clientX, touch.clientY);
-      }
-    }, 300);
-  };
-
-  // Handle touch end/cancel - clear timeout if touch released early
-  const handleTouchEnd = () => {
-    if (touchTimeoutRef.current) {
-      clearTimeout(touchTimeoutRef.current);
-      touchTimeoutRef.current = null;
-    }
   };
 
   // Handle click outside to close menu
@@ -104,15 +87,6 @@ export default function ContextMenu({
     };
   }, [showMenu]);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (touchTimeoutRef.current) {
-        clearTimeout(touchTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const handleOpenSpotify = () => {
     if (spotifyData) {
       // Use Spotify URI to open in desktop app instead of web browser
@@ -132,9 +106,7 @@ export default function ContextMenu({
     <>
       <div
         onContextMenu={handleContextMenu}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
+        // Touch handlers removed for mobile - no long press
         className={`${className}`}
       >
         {children}
