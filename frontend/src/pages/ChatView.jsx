@@ -16,7 +16,6 @@ import {
   sendMessage
 } from '../data/chatApi.js';
 import PageLayout from '../components/layout/PageLayout.jsx';
-import LoadingPage from '../components/ui/LoadingPage.jsx';
 
 export default function ChatView() {
   const [conversations, setConversations] = useState([]);
@@ -165,16 +164,8 @@ export default function ChatView() {
     }
   };
 
-  if (loading) {
-    return (
-      <PageLayout title="AI Chat" showBackButton={false}>
-        <LoadingPage />
-      </PageLayout>
-    );
-  }
-
   return (
-    <PageLayout title="AI Chat" showBackButton={false}>
+    <PageLayout title="AI Chat" showBackButton={false} loading={loading}>
       <div className="flex h-[calc(100vh-180px)] bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
 
         {/* Sidebar - Conversations List */}

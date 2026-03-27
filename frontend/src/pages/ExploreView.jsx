@@ -150,6 +150,7 @@ export default function ExploreView() {
     <PageLayout
       title="Explore"
       subheader="Browse all artists by playcount or alphabetically."
+      loading={loading}
     >
       <div className="mb-4 flex flex-wrap gap-4 items-center">
         <DataTypeSelector
@@ -221,19 +222,15 @@ export default function ExploreView() {
         />
       )}
 
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <GroupedSection
-          title={DATA_TYPES.find(t => t.key === dataType)?.label || "Items"}
-          items={tiles}
-          showPeriod={false}
-          showLimit={false}
-          mapper={tile => tile}
-          layout="grid"
-          Renderer={GridTile}
-        />
-      )}
+      <GroupedSection
+        title={DATA_TYPES.find(t => t.key === dataType)?.label || "Items"}
+        items={tiles}
+        showPeriod={false}
+        showLimit={false}
+        mapper={tile => tile}
+        layout="grid"
+        Renderer={GridTile}
+      />
 
       <PaginationControls
         currentPage={page}

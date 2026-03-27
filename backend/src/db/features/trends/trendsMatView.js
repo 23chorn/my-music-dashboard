@@ -242,20 +242,3 @@ export async function getCumulativeDiscoveryData(days = 90, callback) {
 }
 
 // Hybrid approach: use materialized views for historical data, real-time for recent
-export async function getHybridTrendsData(days = 90, callback) {
-  logger.info(`getHybridTrendsData called with days=${days}`);
-  
-  try {
-    if (days <= 90) {
-      // For short periods, use real-time calculation (existing function)
-      const { getTrendsData } = await import('./trends.js');
-      return getTrendsData(days, callback);
-    } else {
-      // For longer periods, use materialized views
-      return getTrendsDataFromMatView(days, callback);
-    }
-  } catch (err) {
-    logger.error(`getHybridTrendsData error: ${err}`);
-    callback(err);
-  }
-}

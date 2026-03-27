@@ -12,7 +12,6 @@ import {
   XCircleIcon
 } from '@heroicons/react/24/outline';
 import PageLayout from '../components/layout/PageLayout';
-import LoadingPage from '../components/ui/LoadingPage';
 import TriviaSession from '../components/trivia/TriviaSession';
 import TriviaSessionReview from '../components/trivia/TriviaSessionReview';
 import TriviaHistory from '../components/trivia/TriviaHistory';
@@ -83,10 +82,6 @@ export default function TriviaPage() {
     setCurrentView('overview');
     loadTriviaData(); // Refresh data
   };
-
-  if (loading) {
-    return <LoadingPage />;
-  }
 
   if (error) {
     return (
@@ -268,7 +263,7 @@ export default function TriviaPage() {
   );
 
   return (
-    <PageLayout>
+    <PageLayout loading={loading}>
       {currentView === 'overview' && renderOverview()}
       {currentView === 'session' && currentSession && (
         <TriviaSession

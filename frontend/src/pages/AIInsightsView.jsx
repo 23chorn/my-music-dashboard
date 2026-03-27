@@ -20,7 +20,6 @@ import {
   deleteAnalysis
 } from '../data/aiInsightsApi.js';
 import PageLayout from '../components/layout/PageLayout.jsx';
-import LoadingPage from '../components/ui/LoadingPage.jsx';
 
 export default function AIInsightsView() {
   const [aiStatus, setAiStatus] = useState(null);
@@ -192,16 +191,8 @@ export default function AIInsightsView() {
     return diffDays;
   };
 
-  if (loading) {
-    return (
-      <PageLayout title="AI Insights" showBackButton={false}>
-        <LoadingPage />
-      </PageLayout>
-    );
-  }
-
   return (
-    <PageLayout title="AI Insights" showBackButton={false}>
+    <PageLayout title="AI Insights" showBackButton={false} loading={loading}>
       <div className="space-y-6">
 
         {/* AI Status Section */}

@@ -43,30 +43,6 @@ export async function analyzeWeek(weekStart, weekEnd) {
 }
 
 /**
- * Analyze the previous week automatically
- */
-export async function analyzeLastWeek() {
-  try {
-    const response = await fetch(`${API_URL}/analyze-last-week`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Analysis failed');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error analyzing last week:', error);
-    throw error;
-  }
-}
-
-/**
  * Get all historical listening analyses
  */
 export async function getListeningAnalyses(limit = 10) {

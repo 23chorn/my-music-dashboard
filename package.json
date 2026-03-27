@@ -14,9 +14,13 @@
     "web-streams-polyfill": "^3.3.3"
   },
   "scripts": {
+    "dev": "concurrently --names backend,frontend --prefix-colors blue,magenta \"npm start --prefix backend\" \"npm run dev --prefix frontend\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

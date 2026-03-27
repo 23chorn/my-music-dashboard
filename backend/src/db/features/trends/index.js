@@ -14,8 +14,7 @@ export {
   checkMatViewFreshness,
   refreshMatViews,
   getMatViewStats,
-  getCumulativeDiscoveryData,
-  getHybridTrendsData
+  getCumulativeDiscoveryData
 } from './trendsMatView.js';
 
 // Discovery tracking
