@@ -121,7 +121,12 @@ export async function getTopTracks({
   logger.info(`getTopTracks called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}, artistId=${artistId}, albumId=${albumId}`);
 
   let query = `
-    WITH ranked_albums AS (
+    WITH album_track_counts AS (
+      SELECT album_id, COUNT(*) AS track_count
+      FROM track_albums
+      GROUP BY album_id
+    ),
+    ranked_albums AS (
       SELECT
         t.id as track_id,
         tal.album_id,
@@ -131,12 +136,14 @@ export async function getTopTracks({
         ROW_NUMBER() OVER (
           PARTITION BY t.id
           ORDER BY
+            COALESCE(atc.track_count, 0) DESC,  -- prefer the album over a single/EP
             al.release_date DESC NULLS LAST,
             al.id DESC
         ) as album_rank
       FROM tracks t
       LEFT JOIN track_albums tal ON t.id = tal.track_id
       LEFT JOIN albums al ON tal.album_id = al.id
+      LEFT JOIN album_track_counts atc ON tal.album_id = atc.album_id
     )
     SELECT
       t.id,

@@ -154,23 +154,31 @@ export async function getRecentTracks(limit, callback) {
   logger.info(`getRecentTracks called with limit=${limit}`);
   
   const query = `
-    WITH ranked_albums AS (
-      SELECT 
+    WITH album_track_counts AS (
+      SELECT album_id, COUNT(*) AS track_count
+      FROM track_albums
+      GROUP BY album_id
+    ),
+    ranked_albums AS (
+      SELECT
         t.id as track_id,
         tal.album_id,
         al.name as album_name,
+        al.image_url as album_image,
         al.release_date,
         ROW_NUMBER() OVER (
-          PARTITION BY t.id 
-          ORDER BY 
+          PARTITION BY t.id
+          ORDER BY
+            COALESCE(atc.track_count, 0) DESC,  -- prefer the album over a single/EP
             al.release_date DESC NULLS LAST,
             al.id DESC  -- Use higher ID as tiebreaker (more recent insert)
         ) as album_rank
       FROM tracks t
       LEFT JOIN track_albums tal ON t.id = tal.track_id
       LEFT JOIN albums al ON tal.album_id = al.id
+      LEFT JOIN album_track_counts atc ON tal.album_id = atc.album_id
     )
-    SELECT 
+    SELECT
       t.id as track_id,
       t.name as track_name,
       (
@@ -183,17 +191,18 @@ export async function getRecentTracks(limit, callback) {
         ) artist_data
       ) as artist_names,
       ra.album_name,
+      ra.album_image,
       p.played_at
     FROM tracks t
     JOIN track_artists ta ON t.id = ta.track_id
     JOIN artists a ON ta.artist_id = a.id
     JOIN plays p ON t.id = p.track_id
     LEFT JOIN ranked_albums ra ON t.id = ra.track_id AND ra.album_rank = 1
-    GROUP BY t.id, t.name, ra.album_name, p.played_at, p.id
+    GROUP BY t.id, t.name, ra.album_name, ra.album_image, p.played_at, p.id
     ORDER BY p.played_at DESC
     LIMIT $1
   `;
-  
+
   try {
     const result = await pool().query(query, [limit]);
     const tracks = result.rows.map(row => ({
@@ -201,6 +210,7 @@ export async function getRecentTracks(limit, callback) {
       track: row.track_name,
       artist: row.artist_names,
       album: row.album_name,
+      albumImage: row.album_image,
       timestamp: Math.floor(new Date(row.played_at).getTime() / 1000)
     }));
     

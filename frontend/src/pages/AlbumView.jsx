@@ -37,25 +37,13 @@ export default function AlbumView() {
     >
       <StatsSection stats={stats} type="album" title="Album Stats" />
 
-      {/* Tags Section */}
-      {album && (
-        <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
-          <TagManager
-            entityId={album.id}
-            entityType="album"
-            entityName={album.name}
-          />
-        </div>
-      )}
-
       <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={tracklistLoading}>
           <GroupedSection
             title="Album Tracklist"
             items={tracklist}
             mapper={track => ({
-              label: `${track.track_number || '–'}. ${track.name}`,
+              label: track.name,
               sub: `${formatValue(`${track.playcount ?? 0} plays`)}${track.artists ? ` • ${track.artists}` : ''}`,
               link: track.id ? `/track/${track.id}` : undefined
             })}
@@ -94,6 +82,18 @@ export default function AlbumView() {
           />
         </SectionLoader>
       </div>
+
+      {/* Tags Section */}
+      {album && (
+        <div className="bg-surface-900 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <TagManager
+            entityId={album.id}
+            entityType="album"
+            entityName={album.name}
+          />
+        </div>
+      )}
     </PageLayout>
     );
 }

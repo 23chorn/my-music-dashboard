@@ -33,18 +33,6 @@ export default function TrackView() {
       {/* Track Info Section */}
       <TrackInfoSection track={track} />
 
-      {/* Tags Section */}
-      {track && (
-        <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
-          <TagManager
-            entityId={track.id}
-            entityType="track"
-            entityName={track.track_name}
-          />
-        </div>
-      )}
-
       {/* Stats Section */}
       <SectionLoader loading={statsLoading}>
         <StatsSection stats={stats} type="track" title="Listening Stats" />
@@ -66,6 +54,18 @@ export default function TrackView() {
           emptyMessage="No recent plays found for this track"
         />
       </SectionLoader>
+
+      {/* Tags Section */}
+      {track && (
+        <div className="bg-surface-900 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <TagManager
+            entityId={track.id}
+            entityType="track"
+            entityName={track.track_name}
+          />
+        </div>
+      )}
     </PageLayout>
   );
 }

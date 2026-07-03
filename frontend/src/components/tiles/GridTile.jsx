@@ -25,51 +25,55 @@ export default function GridTile({ label, value, sub, album, image, link, toolti
       entityName={entityName}
     >
       <BaseTile link={link}>
+        {/* Full-bleed cover image or initial-letter placeholder */}
+        {image ? (
+          <img
+            src={image}
+            alt={label}
+            className="absolute inset-0 w-full h-full object-cover sepia-[.45] saturate-[.7] contrast-[1.05] scale-100 transition-[filter,transform] duration-300 group-hover:sepia-0 group-hover:saturate-100 group-hover:contrast-100 group-hover:scale-110"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-surface-900 flex items-center justify-center">
+            <span className="font-display text-5xl text-brand-400/30">
+              {(value || label || "?").charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+
+        {/* Scrim so overlaid text stays legible over any photo */}
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-950/95 via-surface-950/35 to-transparent" />
+
         {rank && (
           <span
-            className="absolute -top-2 -left-1 font-mono font-bold text-4xl sm:text-5xl leading-none text-brand-400/20 select-none pointer-events-none"
+            className="absolute -top-1 -left-1 font-mono font-bold text-4xl sm:text-5xl leading-none text-surface-100/30 select-none pointer-events-none [text-shadow:0_2px_6px_rgba(0,0,0,0.8)]"
             aria-hidden="true"
           >
             {String(rank).padStart(2, '0')}
           </span>
         )}
+
         <div
-          className="relative flex flex-col items-center justify-center w-full h-full text-center min-h-[100px]"
+          className="absolute bottom-0 left-0 right-0 p-3 flex flex-col items-center text-center space-y-0.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"
           title={tooltip}
         >
-          {image ? (
-            <img
-              src={image}
-              alt={label}
-              className="w-16 h-16 object-cover mb-2 rounded ring-1 ring-brand-400/30 shadow-[0_3px_10px_-2px_rgba(0,0,0,0.6)] sepia-[.45] saturate-[.7] contrast-[1.05] transition-[filter] duration-300 group-hover:sepia-0 group-hover:saturate-100 group-hover:contrast-100"
-            />
-          ) : (
-            <div className="w-16 h-16 mb-2 rounded ring-1 ring-surface-600 bg-surface-900 shadow-[0_3px_10px_-2px_rgba(0,0,0,0.6)] flex items-center justify-center">
-              <span className="font-display text-2xl text-brand-400/40">
-                {(value || label || "?").charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-          <div className="flex flex-col items-center justify-center flex-1 space-y-0.5 w-full">
-            {label && (
-              <span className="text-surface-400 text-xs leading-tight truncate w-full text-center">
-                {label}
-              </span>
-            )}
-            <span className="font-bold text-sm text-white leading-tight text-center truncate w-full">
-              {value}
+          {label && (
+            <span className="text-surface-300 text-xs leading-tight truncate w-full">
+              {label}
             </span>
-            {sub && (
-              <span className="text-surface-500 text-xs leading-tight truncate w-full text-center">
-                {sub}
-              </span>
-            )}
-            {album && (
-              <span className="text-surface-400 text-xs leading-tight truncate w-full text-center">
-                {album}
-              </span>
-            )}
-          </div>
+          )}
+          <span className="font-bold text-sm text-white leading-tight truncate w-full">
+            {value}
+          </span>
+          {sub && (
+            <span className="text-surface-300 text-xs leading-tight truncate w-full">
+              {sub}
+            </span>
+          )}
+          {album && (
+            <span className="text-surface-300 text-xs leading-tight truncate w-full">
+              {album}
+            </span>
+          )}
         </div>
       </BaseTile>
     </ContextMenu>

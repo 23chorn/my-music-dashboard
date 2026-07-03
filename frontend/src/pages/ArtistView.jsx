@@ -46,18 +46,6 @@ export default function ArtistView() {
     >
       <StatsSection stats={stats} type="artist" title="Artist Stats" />
 
-      {/* Tags Section */}
-      {artist && (
-        <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
-          <TagManager
-            entityId={artist.id}
-            entityType="artist"
-            entityName={artist.name}
-          />
-        </div>
-      )}
-
       {milestones && milestones.length > 0 && (
         <MilestoneSection milestones={milestones} />
       )}
@@ -121,9 +109,8 @@ export default function ArtistView() {
             showLimit={true}
             mapper={track => ({
               label: track.track,
-              album: track.album,
-              value: track.artist,
-              sub: formatDateTime(track.timestamp)
+              image: track.albumImage,
+              sub: `${formatDateTime(track.timestamp)}${track.album ? ` • ${track.album}` : ''}`
             })}
             collapsible={true}
           />
@@ -134,6 +121,18 @@ export default function ArtistView() {
       {artist && (
         <div className="bg-surface-900 rounded-lg p-6">
           <CustomHeatmap artistId={artist.id} days={HEATMAP_CONFIG.artist.days} />
+        </div>
+      )}
+
+      {/* Tags Section */}
+      {artist && (
+        <div className="bg-surface-900 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <TagManager
+            entityId={artist.id}
+            entityType="artist"
+            entityName={artist.name}
+          />
         </div>
       )}
     </PageLayout>

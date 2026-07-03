@@ -8,8 +8,13 @@ export function getTrackInfo(trackId, callback) {
   logger.info(`getTrackInfo called with trackId=${trackId}`);
   
   const query = `
-    WITH ranked_albums AS (
-      SELECT 
+    WITH album_track_counts AS (
+      SELECT album_id, COUNT(*) AS track_count
+      FROM track_albums
+      GROUP BY album_id
+    ),
+    ranked_albums AS (
+      SELECT
         t.id as track_id,
         tal.album_id as track_album_id,
         al.id as album_id,
@@ -17,14 +22,16 @@ export function getTrackInfo(trackId, callback) {
         al.image_url as album_image,
         al.release_date,
         ROW_NUMBER() OVER (
-          PARTITION BY t.id 
-          ORDER BY 
+          PARTITION BY t.id
+          ORDER BY
+            COALESCE(atc.track_count, 0) DESC,  -- prefer the album over a single/EP
             al.release_date DESC NULLS LAST,
             al.id DESC
         ) as album_rank
       FROM tracks t
       LEFT JOIN track_albums tal ON t.id = tal.track_id
       LEFT JOIN albums al ON tal.album_id = al.id
+      LEFT JOIN album_track_counts atc ON tal.album_id = atc.album_id
       WHERE t.id = $1
     )
     SELECT 
@@ -306,19 +313,26 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
       }
 
       query = `
-        WITH track_primary_album AS (
+        WITH album_track_counts AS (
+          SELECT album_id, COUNT(*) AS track_count
+          FROM track_albums
+          GROUP BY album_id
+        ),
+        track_primary_album AS (
           SELECT
             t.id as track_id,
             al.image_url as primary_album_image,
             ROW_NUMBER() OVER (
               PARTITION BY t.id
               ORDER BY
+                COALESCE(atc.track_count, 0) DESC,  -- prefer the album over a single/EP
                 al.release_date DESC NULLS LAST,
                 al.id DESC
             ) as album_rank
           FROM tracks t
           LEFT JOIN track_albums tal ON t.id = tal.track_id
           LEFT JOIN albums al ON tal.album_id = al.id
+          LEFT JOIN album_track_counts atc ON tal.album_id = atc.album_id
         )
         SELECT
           t.id,
@@ -353,19 +367,26 @@ export async function getAllTracksWithPlaycount(options = {}, callback) {
       }
 
       const baseQuery = `
-        WITH track_primary_album AS (
+        WITH album_track_counts AS (
+          SELECT album_id, COUNT(*) AS track_count
+          FROM track_albums
+          GROUP BY album_id
+        ),
+        track_primary_album AS (
           SELECT
             t.id as track_id,
             al.image_url as primary_album_image,
             ROW_NUMBER() OVER (
               PARTITION BY t.id
               ORDER BY
+                COALESCE(atc.track_count, 0) DESC,  -- prefer the album over a single/EP
                 al.release_date DESC NULLS LAST,
                 al.id DESC
             ) as album_rank
           FROM tracks t
           LEFT JOIN track_albums tal ON t.id = tal.track_id
           LEFT JOIN albums al ON tal.album_id = al.id
+          LEFT JOIN album_track_counts atc ON tal.album_id = atc.album_id
         )
         SELECT
           t.id,

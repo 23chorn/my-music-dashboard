@@ -6,24 +6,26 @@ export default function SectionHeader({ image, title, subheader, subheaderLink, 
     : "?";
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-8">
+    <div className="group flex flex-col sm:flex-row items-stretch rounded overflow-hidden mb-8 bg-surface-900">
+      {/* Editorial crop: a tight detail of the image, not the whole cover */}
       {image ? (
         <img
           src={image}
-          alt={typeof title === "string" ? title : ""}
-          className="w-20 h-20 sm:w-28 sm:h-28 rounded object-cover mb-4 sm:mb-0 ring-1 ring-brand-400/30 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.6)]"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-40 sm:h-auto sm:w-48 md:w-56 shrink-0 object-cover scale-125 border-b-2 sm:border-b-0 sm:border-r-2 border-brand-400/30 sepia-[.45] saturate-[.7] contrast-[1.05] transition-[filter] duration-300 group-hover:sepia-0 group-hover:saturate-100 group-hover:contrast-100"
         />
       ) : (
-        <div className="w-20 h-20 sm:w-28 sm:h-28 rounded mb-4 sm:mb-0 ring-1 ring-surface-600 bg-surface-900 shadow-[0_4px_16px_-2px_rgba(0,0,0,0.6)] flex items-center justify-center">
-          <span className="font-display text-3xl sm:text-4xl text-brand-400/40">
+        <div className="w-full h-40 sm:h-auto sm:w-48 md:w-56 shrink-0 flex items-center justify-center border-b-2 sm:border-b-0 sm:border-r-2 border-brand-400/30 bg-surface-950">
+          <span className="font-display text-4xl text-brand-400/40">
             {titleInitial}
           </span>
         </div>
       )}
-      <div className="text-center sm:text-left w-full">
+      <div className="text-center sm:text-left w-full p-6 sm:p-8">
         <h1 className="text-2xl sm:text-4xl font-bold mb-2">{title}</h1>
         {subheader && (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 justify-center sm:justify-start">
             {subheaderLink ? (
               <Link to={subheaderLink} className="text-base sm:text-lg text-surface-400 hover:underline">
                 {subheader}
