@@ -115,23 +115,23 @@ export default function ContextMenu({
       {showMenu && (
         <div
           ref={menuRef}
-          className="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 py-1 min-w-[180px]"
+          className="fixed bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-lg z-50 py-1 min-w-[180px]"
           style={{ left: menuPos.x, top: menuPos.y }}
         >
           {loading ? (
-            <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-2 text-sm text-surface-500 dark:text-surface-400">
               Checking Spotify...
             </div>
           ) : spotifyData && !spotifyData.error ? (
             <button
               onClick={handleOpenSpotify}
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-200"
             >
-              <FaSpotify className="text-green-500" size={14} />
+              <FaSpotify className="text-success-500" size={14} />
               Open in Spotify
             </button>
           ) : (
-            <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-2 text-sm text-surface-500 dark:text-surface-400">
               Not available on Spotify
             </div>
           )}
@@ -139,7 +139,7 @@ export default function ContextMenu({
           {entityName && (
             <button
               onClick={handleCopyName}
-              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border-t border-gray-200 dark:border-gray-600"
+              className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-200 border-t border-surface-200 dark:border-surface-600"
             >
               <FaExternalLinkAlt size={12} />
               Copy "{entityName.length > 20 ? entityName.substring(0, 20) + '...' : entityName}"

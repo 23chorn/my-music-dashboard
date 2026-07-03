@@ -25,11 +25,11 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
   }, {});
 
   const getColorClass = (count) => {
-    if (!count || count === 0) return "bg-gray-700";
-    if (count < 2) return "bg-red-200";
-    if (count < 5) return "bg-red-400";
-    if (count < 10) return "bg-red-600";
-    return "bg-red-800";
+    if (!count || count === 0) return "bg-surface-700";
+    if (count < 2) return "bg-brand-800";
+    if (count < 5) return "bg-brand-600";
+    if (count < 10) return "bg-brand-400";
+    return "bg-brand-300";
   };
 
   // Generate GitHub-style grid (columns = weeks, rows = days of week)
@@ -94,11 +94,11 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg sm:text-2xl font-semibold text-blue-400">
+        <h2 className="text-lg sm:text-2xl font-semibold text-brand-400">
           Heatmap of Plays
         </h2>
         <button
-          className="p-0.5 hover:bg-gray-800 hover:bg-opacity-50 rounded transition ml-2 text-gray-400 hover:text-gray-300"
+          className="p-0.5 hover:bg-surface-800 hover:bg-opacity-50 rounded transition ml-2 text-surface-400 hover:text-surface-300"
           onClick={() => setOpen(o => !o)}
           aria-label={open ? "Collapse section" : "Expand section"}
         >
@@ -106,10 +106,10 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
         </button>
       </div>
       {open && (
-        <div className="bg-gray-900 rounded-lg p-4 w-fit">
+        <div className="bg-surface-900 rounded-lg p-4 w-fit">
           <div className="space-y-3">
             {/* Explanation */}
-            <div className="text-sm text-gray-300">
+            <div className="text-sm text-surface-300">
               <p>Last 3 months of listening activity</p>
             </div>
             
@@ -118,7 +118,7 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
               {monthLabels.map((month, index) => (
                 <div
                   key={index}
-                  className="text-xs text-gray-400 absolute"
+                  className="text-xs text-surface-400 absolute"
                   style={{ left: `${month.week * 14}px` }}
                 >
                   {month.label}
@@ -128,7 +128,7 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
             
             {/* Day labels and heatmap */}
             <div className="flex">
-              <div className="flex flex-col text-xs text-gray-400 mr-2 gap-0.5">
+              <div className="flex flex-col text-xs text-surface-400 mr-2 gap-0.5">
                 <div className="h-3"></div>
                 <div className="h-3 flex items-center">Mon</div>
                 <div className="h-3"></div>
@@ -157,14 +157,14 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
             </div>
             
             {/* Color legend below */}
-            <div className="flex items-center gap-2 text-xs text-gray-400 pt-2">
+            <div className="flex items-center gap-2 text-xs text-surface-400 pt-2">
               <span>Less</span>
               <div className="flex gap-1">
-                <div className="w-2.5 h-2.5 rounded-sm bg-gray-700"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-red-200"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-red-400"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-red-600"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-red-800"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-surface-700"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-danger-200"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-danger-400"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-danger-600"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-danger-800"></div>
               </div>
               <span>More</span>
             </div>

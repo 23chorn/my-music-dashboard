@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { XMarkIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, ArrowDownTrayIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 
 /**
  * PWA Install Prompt Component
@@ -93,7 +93,7 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-900 to-blue-900 text-white shadow-lg md:bottom-4 md:left-4 md:right-auto md:max-w-md md:rounded-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-highlight-900 to-brand-900 text-white shadow-lg md:bottom-4 md:left-4 md:right-auto md:max-w-md md:rounded-lg">
       <div className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
@@ -103,11 +103,11 @@ export default function InstallPrompt() {
             <div className="flex-1">
               <h3 className="text-sm font-semibold">Install Music Dashboard</h3>
               {isIOS ? (
-                <p className="mt-1 text-xs text-gray-200">
-                  Tap the Share button <span className="inline-block">⬆️</span> then "Add to Home Screen"
+                <p className="mt-1 text-xs text-surface-200">
+                  Tap the Share button <ArrowUpTrayIcon className="inline-block w-3 h-3" /> then "Add to Home Screen"
                 </p>
               ) : (
-                <p className="mt-1 text-xs text-gray-200">
+                <p className="mt-1 text-xs text-surface-200">
                   Add to your home screen for quick access and offline support
                 </p>
               )}
@@ -115,7 +115,7 @@ export default function InstallPrompt() {
           </div>
           <button
             onClick={handleDismiss}
-            className="ml-3 flex-shrink-0 text-white hover:text-gray-300"
+            className="ml-3 flex-shrink-0 text-white hover:text-surface-300"
             aria-label="Dismiss"
           >
             <XMarkIcon className="h-5 w-5" />
@@ -125,13 +125,13 @@ export default function InstallPrompt() {
           <div className="mt-4 flex space-x-3">
             <button
               onClick={handleInstallClick}
-              className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-purple-900 hover:bg-gray-100 transition-colors"
+              className="flex-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-highlight-900 hover:bg-surface-100 transition-colors"
             >
               Install
             </button>
             <button
               onClick={handleDismiss}
-              className="px-4 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white hover:text-surface-300 transition-colors"
             >
               Not now
             </button>
@@ -141,7 +141,7 @@ export default function InstallPrompt() {
           <div className="mt-4">
             <button
               onClick={handleDismiss}
-              className="w-full px-4 py-2 text-sm font-medium text-white hover:text-gray-300 transition-colors text-center"
+              className="w-full px-4 py-2 text-sm font-medium text-white hover:text-surface-300 transition-colors text-center"
             >
               Got it
             </button>

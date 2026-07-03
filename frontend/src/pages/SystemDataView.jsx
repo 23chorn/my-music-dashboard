@@ -41,7 +41,7 @@ export default function SystemDataView() {
       title="System and Data"
       subheader="Database quality, system health, and data integrity tracking"
       loading={loading}
-      error={error ? `⚠️ Error Loading Data: ${error}` : null}
+      error={error ? `Error loading data: ${error}` : null}
     >
       <div className="space-y-8">
         {/* Data Quality Metrics */}

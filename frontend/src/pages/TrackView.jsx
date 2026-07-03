@@ -35,7 +35,7 @@ export default function TrackView() {
 
       {/* Tags Section */}
       {track && (
-        <div className="bg-gray-900 rounded-lg p-6">
+        <div className="bg-surface-900 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
           <TagManager
             entityId={track.id}

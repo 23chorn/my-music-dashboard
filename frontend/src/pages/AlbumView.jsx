@@ -12,20 +12,14 @@ export default function AlbumView() {
   const { id } = useParams();
   const {
     album,
-    topTracks,
     tracklist,
     recentPlays,
     stats,
     loading,
     recentLimit,
     setRecentLimit,
-    trackLimit,
-    setTrackLimit,
-    trackPeriod,
-    setTrackPeriod,
     tracklistSort,
     setTracklistSort,
-    tracksLoading,
     tracklistLoading,
     recentLoading
   } = useAlbumViewData(id);
@@ -45,7 +39,7 @@ export default function AlbumView() {
 
       {/* Tags Section */}
       {album && (
-        <div className="bg-gray-900 rounded-lg p-6">
+        <div className="bg-surface-900 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
           <TagManager
             entityId={album.id}
@@ -55,7 +49,7 @@ export default function AlbumView() {
         </div>
       )}
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={tracklistLoading}>
           <GroupedSection
             title="Album Tracklist"
@@ -69,11 +63,11 @@ export default function AlbumView() {
             collapsible={true}
             actionButton={
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">Sort by:</span>
+                <span className="text-sm text-surface-400">Sort by:</span>
                 <select
                   value={tracklistSort}
                   onChange={(e) => setTracklistSort(e.target.value)}
-                  className="bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-600 hover:border-gray-500 focus:border-blue-500 focus:outline-none"
+                  className="bg-surface-800 text-white text-sm px-2 py-1 rounded border border-surface-600 hover:border-surface-500 focus:border-brand-500 focus:outline-none"
                 >
                   <option value="trackNumber">Track Number</option>
                   <option value="playCount">Play Count</option>
@@ -84,7 +78,7 @@ export default function AlbumView() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={recentLoading}>
           <GroupedSection
             title="Recent Plays"

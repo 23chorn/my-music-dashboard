@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDownIcon, TrophyIcon, StarIcon, MusicalNoteIcon, CircleStackIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, TrophyIcon, MusicalNoteIcon, CircleStackIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 
 const MILESTONE_CATEGORIES = {
   tracks: {
@@ -94,22 +94,22 @@ export default function MilestoneAchievements() {
   const getColorClasses = (color) => {
     const colors = {
       blue: {
-        bg: 'bg-blue-500/10',
-        border: 'border-blue-500/20',
-        text: 'text-blue-400',
-        accent: 'bg-blue-500'
+        bg: 'bg-brand-500/10',
+        border: 'border-brand-500/20',
+        text: 'text-brand-400',
+        accent: 'bg-brand-500'
       },
       purple: {
-        bg: 'bg-purple-500/10',
-        border: 'border-purple-500/20',
-        text: 'text-purple-400',
-        accent: 'bg-purple-500'
+        bg: 'bg-highlight-500/10',
+        border: 'border-highlight-500/20',
+        text: 'text-highlight-400',
+        accent: 'bg-highlight-500'
       },
       green: {
-        bg: 'bg-green-500/10',
-        border: 'border-green-500/20',
-        text: 'text-green-400',
-        accent: 'bg-green-500'
+        bg: 'bg-success-500/10',
+        border: 'border-success-500/20',
+        text: 'text-success-400',
+        accent: 'bg-success-500'
       }
     };
     return colors[color] || colors.blue;
@@ -117,16 +117,16 @@ export default function MilestoneAchievements() {
 
   if (loading) {
     return (
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded p-6">
         <div className="flex items-center gap-3 mb-6">
-          <TrophyIcon className="w-6 h-6 text-yellow-400" />
-          <h2 className="text-xl font-semibold text-white">Milestone Achievements</h2>
+          <TrophyIcon className="w-5 h-5 text-warning-400" />
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400">Milestone Achievements</h2>
         </div>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-surface-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-800 rounded"></div>
+              <div key={i} className="h-20 bg-surface-800 rounded"></div>
             ))}
           </div>
         </div>
@@ -136,13 +136,13 @@ export default function MilestoneAchievements() {
 
   if (error) {
     return (
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded p-6">
         <div className="flex items-center gap-3 mb-4">
-          <TrophyIcon className="w-6 h-6 text-yellow-400" />
-          <h2 className="text-xl font-semibold text-white">Milestone Achievements</h2>
+          <TrophyIcon className="w-5 h-5 text-warning-400" />
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400">Milestone Achievements</h2>
         </div>
-        <div className="text-red-400 text-sm">
-          ⚠️ Failed to load milestones: {error}
+        <div className="text-danger-400 text-sm">
+          Failed to load milestones: {error}
         </div>
       </div>
     );
@@ -151,18 +151,18 @@ export default function MilestoneAchievements() {
   const colorClasses = getColorClasses(currentCategory.color);
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
+    <div className="bg-surface-900 rounded p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <TrophyIcon className="w-6 h-6 text-yellow-400" />
-          <h2 className="text-xl font-semibold text-white">Milestone Achievements</h2>
+          <TrophyIcon className="w-5 h-5 text-warning-400" />
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400">Milestone Achievements</h2>
         </div>
 
         {/* Category Dropdown */}
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg border border-gray-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-surface-800 hover:bg-surface-700 text-white rounded border border-surface-600 transition-colors"
           >
             <currentCategory.icon className="w-5 h-5" />
             <span className="text-sm font-medium">{currentCategory.name}</span>
@@ -170,20 +170,20 @@ export default function MilestoneAchievements() {
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg border border-gray-600 shadow-xl z-10">
+            <div className="absolute right-0 mt-2 w-64 bg-surface-800 rounded border border-surface-600 shadow-xl z-10">
               {Object.entries(MILESTONE_CATEGORIES).map(([key, category]) => (
                 <button
                   key={key}
                   onClick={() => handleCategorySelect(key)}
-                  className={`w-full px-4 py-3 text-left hover:bg-gray-700 first:rounded-t-lg last:rounded-b-lg transition-colors ${
-                    selectedCategory === key ? 'bg-gray-700' : ''
+                  className={`w-full px-4 py-3 text-left hover:bg-surface-700 first:rounded-t-lg last:rounded-b-lg transition-colors ${
+                    selectedCategory === key ? 'bg-surface-700' : ''
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <category.icon className="w-5 h-5" />
                     <div>
                       <div className="text-white font-medium">{category.name}</div>
-                      <div className="text-gray-400 text-xs">{category.description}</div>
+                      <div className="text-surface-400 text-xs">{category.description}</div>
                     </div>
                   </div>
                 </button>
@@ -193,80 +193,64 @@ export default function MilestoneAchievements() {
         </div>
       </div>
 
-      <div className="text-gray-400 text-sm mb-4">
-        {currentCategory.description} • {currentCategory.milestones.map(formatMilestone).join(', ')} plays
+      <div className="font-mono text-xs text-surface-500 mb-4">
+        {currentCategory.description} &middot; {currentCategory.milestones.map(formatMilestone).join(', ')} plays
       </div>
 
-      {/* Milestone Grid */}
+      {/* Milestone Grid, styled as certification plaques */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {currentCategory.milestones.map(milestone => {
           const achievementData = currentData[milestone];
+          const image = selectedCategory === 'tracks' ? achievementData?.primary_album_image
+            : selectedCategory === 'albums' ? achievementData?.album_image
+            : achievementData?.artist_image;
+          const name = achievementData && (achievementData.track_name || achievementData.album_name || achievementData.artist);
 
           return (
             <div
               key={milestone}
-              className={`${colorClasses.bg} ${colorClasses.border} border rounded-lg p-4 hover:bg-opacity-20 transition-all`}
+              className={`${colorClasses.bg} ${colorClasses.border} border rounded p-4 flex items-center gap-4`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className={`${colorClasses.accent} w-2 h-2 rounded-full`}></div>
-                  <span className={`${colorClasses.text} font-semibold`}>
-                    {formatMilestone(milestone)} Plays
-                  </span>
-                </div>
-                <StarIcon className={`w-4 h-4 ${colorClasses.text}`} />
+              <div className={`shrink-0 w-16 h-16 rounded-full border-2 ${colorClasses.border} flex flex-col items-center justify-center`}>
+                <span className={`font-mono font-bold text-sm ${colorClasses.text} leading-none`}>
+                  {formatMilestone(milestone)}
+                </span>
+                <span className="font-display text-[9px] uppercase tracking-wide text-surface-500 leading-none mt-1">
+                  plays
+                </span>
               </div>
 
               {achievementData ? (
-                <div className="space-y-2">
+                <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex items-center gap-3">
-                    {/* Show appropriate image based on category */}
-                    {(selectedCategory === 'tracks' && achievementData.primary_album_image) && (
+                    {image && (
                       <img
-                        src={achievementData.primary_album_image}
-                        alt={achievementData.primary_album_name}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    )}
-                    {(selectedCategory === 'albums' && achievementData.album_image) && (
-                      <img
-                        src={achievementData.album_image}
-                        alt={achievementData.album_name}
-                        className="w-10 h-10 rounded object-cover"
-                      />
-                    )}
-                    {(selectedCategory === 'artists' && achievementData.artist_image) && (
-                      <img
-                        src={achievementData.artist_image}
-                        alt={achievementData.artist}
-                        className="w-10 h-10 rounded-full object-cover"
+                        src={image}
+                        alt={name}
+                        className={`w-10 h-10 object-cover ring-1 ring-brand-400/30 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.6)] sepia-[.45] saturate-[.7] contrast-[1.05] transition-[filter] duration-300 hover:sepia-0 hover:saturate-100 hover:contrast-100 ${selectedCategory === 'artists' ? 'rounded-full' : 'rounded'}`}
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="text-white font-medium truncate">
-                        {achievementData.track_name || achievementData.album_name || achievementData.artist}
-                      </div>
-                      <div className="text-gray-400 text-sm truncate">
-                        {selectedCategory === 'tracks' && `${achievementData.primary_artist_name} • ${achievementData.primary_album_name}`}
+                      <div className="text-white font-medium truncate">{name}</div>
+                      <div className="text-surface-400 text-sm truncate">
+                        {selectedCategory === 'tracks' && `${achievementData.primary_artist_name} · ${achievementData.primary_album_name}`}
                         {selectedCategory === 'albums' && achievementData.primary_artist_name}
                         {selectedCategory === 'artists' && `${achievementData.total_plays} total plays`}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 space-y-1">
+                  <div className="font-mono text-xs text-surface-500 space-y-0.5">
                     {selectedCategory !== 'artists' && (
                       <div>{achievementData.total_plays} total plays</div>
                     )}
                     {achievementData.days_to_milestone && (
-                      <div className="text-xs text-gray-400">
-                        Reached in {formatDaysToMilestone(achievementData.days_to_milestone)}
-                      </div>
+                      <div>Reached in {formatDaysToMilestone(achievementData.days_to_milestone)}</div>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-500 text-sm italic">
-                  No data available
+                <div className="text-surface-500 text-sm italic">
+                  Not yet certified
                 </div>
               )}
             </div>

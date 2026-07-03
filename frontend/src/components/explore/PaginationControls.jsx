@@ -1,10 +1,9 @@
 import { useState } from 'react';
 
-export default function PaginationControls({ 
-  currentPage, 
-  onPageChange, 
-  hasNextPage, 
-  pageSize 
+export default function PaginationControls({
+  currentPage,
+  onPageChange,
+  hasNextPage
 }) {
   const [pageInput, setPageInput] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -46,12 +45,12 @@ export default function PaginationControls({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3 py-1 rounded bg-gray-700 text-white disabled:opacity-50"
+        className="px-3 py-1 rounded bg-surface-700 text-white disabled:opacity-50"
       >
         Prev
       </button>
       <div className="flex items-center gap-2">
-        <span className="font-medium text-blue-400">Page</span>
+        <span className="font-medium text-brand-400">Page</span>
         <input
           type="number"
           value={isEditing ? pageInput : currentPage}
@@ -64,14 +63,14 @@ export default function PaginationControls({
               handlePageInputSubmit();
             }
           }}
-          className="bg-gray-700 text-white p-1 rounded w-16 text-center text-sm"
+          className="bg-surface-700 text-white p-1 rounded w-16 text-center text-sm"
           min="1"
         />
       </div>
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={!hasNextPage}
-        className="px-3 py-1 rounded bg-gray-700 text-white disabled:opacity-50"
+        className="px-3 py-1 rounded bg-surface-700 text-white disabled:opacity-50"
       >
         Next
       </button>

@@ -10,7 +10,7 @@ export default function DataQuality({ statsData, behaviorData }) {
     Math.round((tracksWithDuration / uniqueTrackCount) * 100) : 100;
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
+    <div className="bg-surface-900 rounded-lg p-6">
       <div className="flex items-center gap-3 mb-6">
         <ChartBarSquareIcon className="w-6 h-6 text-emerald-400" />
         <h2 className="text-2xl font-bold text-white">Data Quality</h2>
@@ -19,10 +19,10 @@ export default function DataQuality({ statsData, behaviorData }) {
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Duration Coverage</h3>
           <div className="text-3xl font-bold text-emerald-400 mb-2">{coveragePercentage}%</div>
-          <p className="text-gray-400 text-sm mb-3">
+          <p className="text-surface-400 text-sm mb-3">
             {formatValue(tracksWithDuration)} of {formatValue(uniqueTrackCount)} tracks have duration data
           </p>
-          <div className="bg-gray-800 rounded-full h-3">
+          <div className="bg-surface-800 rounded-full h-3">
             <div 
               className="bg-emerald-400 rounded-full h-3" 
               style={{ width: `${coveragePercentage}%` }}
@@ -31,8 +31,8 @@ export default function DataQuality({ statsData, behaviorData }) {
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Missing Duration</h3>
-          <div className="text-3xl font-bold text-red-400 mb-2">{formatValue(tracksWithoutDuration)}</div>
-          <p className="text-gray-400 text-sm">
+          <div className="text-3xl font-bold text-danger-400 mb-2">{formatValue(tracksWithoutDuration)}</div>
+          <p className="text-surface-400 text-sm">
             Tracks without duration information
           </p>
         </div>

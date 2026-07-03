@@ -74,6 +74,10 @@ export default function useArtistViewData(id, {
       setLoading(false);
     }
     if (id) fetchAllData();
+    // Intentionally scoped to `id` only: this is the initial full-section
+    // load. Limit/period changes are each handled by their own dedicated
+    // effect below, so including them here would double-fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Refetch individual sections when their parameters change
@@ -91,7 +95,10 @@ export default function useArtistViewData(id, {
       }
     }
     if (id) fetchRecentPlays();
-  }, [recentLimit]); // Removed id dependency to avoid initial refetch
+    // `id` and `artist` intentionally excluded: this effect should only
+    // re-fetch when recentLimit changes, not on the initial load handled above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recentLimit]);
 
   useEffect(() => {
     async function fetchTopAlbums() {
@@ -107,7 +114,10 @@ export default function useArtistViewData(id, {
       }
     }
     if (id) fetchTopAlbums();
-  }, [albumLimit, albumPeriod]); // Removed id dependency to avoid initial refetch
+    // `id` and `artist` intentionally excluded: this effect should only
+    // re-fetch when albumLimit/albumPeriod change, not on the initial load handled above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [albumLimit, albumPeriod]);
 
   useEffect(() => {
     async function fetchTopTracks() {
@@ -123,7 +133,10 @@ export default function useArtistViewData(id, {
       }
     }
     if (id) fetchTopTracks();
-  }, [trackLimit, trackPeriod]); // Removed id dependency to avoid initial refetch
+    // `id` and `artist` intentionally excluded: this effect should only
+    // re-fetch when trackLimit/trackPeriod change, not on the initial load handled above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackLimit, trackPeriod]);
 
   return {
     artist,

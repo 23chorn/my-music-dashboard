@@ -30,12 +30,12 @@ export default function DiscoveryFreshness({ discoveryData }) {
 
   // Get color based on time since discovery
   const getColor = (hours) => {
-    if (hours === null || hours === undefined) return 'text-gray-400';
+    if (hours === null || hours === undefined) return 'text-surface-400';
     
     const days = hours / 24;
-    if (days < 5) return 'text-green-400';
+    if (days < 5) return 'text-success-400';
     if (days <= 14) return 'text-amber-400';
-    return 'text-red-400';
+    return 'text-danger-400';
   };
 
   const handleCardClick = async (type) => {
@@ -68,8 +68,8 @@ export default function DiscoveryFreshness({ discoveryData }) {
   };
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">🔍 Discovery Freshness</h2>
+    <div className="bg-surface-900 rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Discovery Freshness</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard 
           title="New Track" 
@@ -105,11 +105,11 @@ export default function DiscoveryFreshness({ discoveryData }) {
       >
         {loading ? (
           <div className="text-center py-4">
-            <div className="animate-pulse text-gray-400">Loading recent discoveries...</div>
+            <div className="animate-pulse text-surface-400">Loading recent discoveries...</div>
           </div>
         ) : popupData.length > 0 ? (
           popupData.map((item, index) => (
-            <div key={item.id || index} className="bg-gray-800 rounded p-3 border border-gray-700">
+            <div key={item.id || index} className="bg-surface-800 rounded p-3 border border-surface-700">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h4 className="font-medium text-white mb-1">
@@ -118,15 +118,15 @@ export default function DiscoveryFreshness({ discoveryData }) {
                      item.album_name}
                   </h4>
                   {popupType === 'tracks' && (
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-surface-400">
                       by {item.artist_name}
                       {item.album_name && ` • ${item.album_name}`}
                     </p>
                   )}
                   {popupType === 'albums' && item.artist_name && (
-                    <p className="text-sm text-gray-400">by {item.artist_name}</p>
+                    <p className="text-sm text-surface-400">by {item.artist_name}</p>
                   )}
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-surface-500 mt-1">
                     First played: {new Date(item.first_played_at).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -140,7 +140,7 @@ export default function DiscoveryFreshness({ discoveryData }) {
             </div>
           ))
         ) : (
-          <div className="text-center py-4 text-gray-400">
+          <div className="text-center py-4 text-surface-400">
             No recent discoveries found
           </div>
         )}

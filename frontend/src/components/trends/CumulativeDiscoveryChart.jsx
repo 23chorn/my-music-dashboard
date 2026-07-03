@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Brush } from 'recharts';
+import { ChartBarIcon, ArrowTrendingUpIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import useCumulativeDiscoveryData from '../../hooks/useCumulativeDiscoveryData';
 
 const CUMULATIVE_METRICS = [
@@ -163,10 +164,10 @@ export default function CumulativeDiscoveryChart() {
   
   if (loading) {
     return (
-      <div className="bg-gray-900 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">📈 Music Discovery Journey</h2>
+      <div className="bg-surface-900 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">Music Discovery Journey</h2>
         <div className="flex justify-center py-8">
-          <div className="animate-pulse text-gray-400">Loading discovery data...</div>
+          <div className="animate-pulse text-surface-400">Loading discovery data...</div>
         </div>
       </div>
     );
@@ -174,14 +175,14 @@ export default function CumulativeDiscoveryChart() {
 
   if (error) {
     return (
-      <div className="bg-gray-900 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">📈 Music Discovery Journey</h2>
+      <div className="bg-surface-900 rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">Music Discovery Journey</h2>
         <div className="text-center py-8">
-          <div className="text-red-400 mb-2">Failed to load discovery data</div>
-          <div className="text-gray-400 text-sm">{error}</div>
+          <div className="text-danger-400 mb-2">Failed to load discovery data</div>
+          <div className="text-surface-400 text-sm">{error}</div>
           <button 
             onClick={refresh}
-            className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition"
+            className="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded transition"
           >
             Retry
           </button>
@@ -191,36 +192,36 @@ export default function CumulativeDiscoveryChart() {
   }
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
+    <div className="bg-surface-900 rounded-lg p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-white">📈 Music Discovery Journey</h2>
+        <h2 className="text-2xl font-bold text-white">Music Discovery Journey</h2>
         
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Metric Selector */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 uppercase tracking-wide">
-              Discovery Metric • {selectedMetricInfo?.chartType === 'bar' ? '📊 Bar Chart' : '📈 Line Chart'}
+            <label className="text-xs text-surface-400 uppercase tracking-wide">
+              Discovery Metric &middot; {selectedMetricInfo?.chartType === 'bar' ? 'Bar Chart' : 'Line Chart'}
             </label>
             <select
               value={selectedMetric}
               onChange={(e) => setSelectedMetric(e.target.value)}
-              className="px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 bg-surface-800 border border-surface-600 rounded text-white text-sm focus:outline-none focus:border-brand-500"
             >
-              <optgroup label="📈 Cumulative Totals (Line Charts)">
+              <optgroup label="Cumulative Totals (Line Charts)">
                 {CUMULATIVE_METRICS.map(option => (
                   <option key={option.key} value={option.key}>
                     {option.label}
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="📊 Weekly Discovery Rate (Bar Charts)">
+              <optgroup label="Weekly Discovery Rate (Bar Charts)">
                 {WEEKLY_DISCOVERY_METRICS.map(option => (
                   <option key={option.key} value={option.key}>
                     {option.label}
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="📈 Discovery Velocity - Smoothed (Line Charts)">
+              <optgroup label="Discovery Velocity - Smoothed (Line Charts)">
                 {VELOCITY_METRICS.map(option => (
                   <option key={option.key} value={option.key}>
                     {option.label}
@@ -232,11 +233,11 @@ export default function CumulativeDiscoveryChart() {
           
           {/* Period Selector */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 uppercase tracking-wide">Period</label>
+            <label className="text-xs text-surface-400 uppercase tracking-wide">Period</label>
             <select
               value={selectedPeriod}
               onChange={(e) => handlePeriodChange(parseInt(e.target.value))}
-              className="px-3 py-2 bg-gray-800 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-blue-500"
+              className="px-3 py-2 bg-surface-800 border border-surface-600 rounded text-white text-sm focus:outline-none focus:border-brand-500"
             >
               {PERIOD_OPTIONS.map(option => (
                 <option key={option.key} value={option.key}>
@@ -249,16 +250,16 @@ export default function CumulativeDiscoveryChart() {
           {/* Zoom Toggle */}
           {formattedCumulativeData.length > 10 && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-400 uppercase tracking-wide">Zoom</label>
+              <label className="text-xs text-surface-400 uppercase tracking-wide">Zoom</label>
               <button
                 onClick={() => setShowZoom(!showZoom)}
                 className={`px-3 py-2 border rounded text-sm focus:outline-none transition ${
                   showZoom 
-                    ? 'bg-blue-600 border-blue-500 text-white hover:bg-blue-700' 
-                    : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                    ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
+                    : 'bg-surface-800 border-surface-600 text-surface-300 hover:bg-surface-700'
                 }`}
               >
-                {showZoom ? '🔍 Zoom On' : '🔍 Zoom Off'}
+                {showZoom ? 'Zoom On' : 'Zoom Off'}
               </button>
             </div>
           )}
@@ -381,7 +382,7 @@ export default function CumulativeDiscoveryChart() {
           </ResponsiveContainer>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-400">
+        <div className="text-center py-8 text-surface-400">
           No discovery data available for the selected period
         </div>
       )}
@@ -389,12 +390,14 @@ export default function CumulativeDiscoveryChart() {
       {formattedCumulativeData.length > 0 && (
         <div className="mt-4 space-y-3">
           {/* Current metric explanation */}
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+          <div className="bg-surface-800 rounded-lg p-4 border border-surface-700">
             <div className="flex items-start gap-3">
-              <div className="text-2xl">{selectedMetricInfo?.chartType === 'bar' ? '📊' : '📈'}</div>
+              <div className="text-brand-400">
+                {selectedMetricInfo?.chartType === 'bar' ? <ChartBarIcon className="w-6 h-6" /> : <ArrowTrendingUpIcon className="w-6 h-6" />}
+              </div>
               <div>
                 <h4 className="font-medium text-white mb-1">{selectedMetricInfo?.label}</h4>
-                <p className="text-sm text-gray-300 leading-relaxed">
+                <p className="text-sm text-surface-300 leading-relaxed">
                   {selectedMetricInfo?.description}
                 </p>
               </div>
@@ -402,10 +405,13 @@ export default function CumulativeDiscoveryChart() {
           </div>
           
           {/* Data info */}
-          <div className="flex items-center justify-between text-sm text-gray-400">
+          <div className="flex items-center justify-between text-sm text-surface-400">
             <span>Showing {formattedCumulativeData.length} weeks of discovery data • Updated weekly</span>
             {showZoom && (
-              <span className="text-blue-400">🔍 Drag on the zoom bar below the chart to focus on specific time periods</span>
+              <span className="text-brand-400 flex items-center gap-1">
+                <MagnifyingGlassIcon className="w-4 h-4 shrink-0" />
+                Drag on the zoom bar below the chart to focus on specific time periods
+              </span>
             )}
           </div>
         </div>

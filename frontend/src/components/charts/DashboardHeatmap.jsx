@@ -1,4 +1,4 @@
-import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
+import { useEffect, useState, useCallback, useImperativeHandle, forwardRef } from "react";
 import { getDailyPlaysFromServer } from "../../data/dashboardApi";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { HEATMAP_CONFIG } from "../../config/appConfig";
@@ -36,18 +36,18 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
 
   const days = getDaysForScreen();
 
-  const fetchPlays = async () => {
+  const fetchPlays = useCallback(async () => {
     try {
       const plays = await getDailyPlaysFromServer(days);
       setDailyPlays(plays);
     } catch {
       setDailyPlays([]);
     }
-  };
+  }, [days]);
 
   useEffect(() => {
     fetchPlays();
-  }, [days]);
+  }, [fetchPlays]);
 
   // Expose refresh function to parent component
   useImperativeHandle(ref, () => ({
@@ -61,11 +61,11 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
   }, {});
 
   const getColorClass = (count) => {
-    if (!count || count === 0) return "bg-gray-700";
-    if (count <= 20) return "bg-red-200";
-    if (count <= 40) return "bg-red-400";
-    if (count <= 75) return "bg-red-600";
-    return "bg-red-800";
+    if (!count || count === 0) return "bg-surface-700";
+    if (count <= 20) return "bg-brand-800";
+    if (count <= 40) return "bg-brand-600";
+    if (count <= 75) return "bg-brand-400";
+    return "bg-brand-300";
   };
 
   // Generate GitHub-style grid (columns = weeks, rows = days of week)
@@ -123,17 +123,17 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
   const { weeks, monthLabels } = generateGitHubStyleGrid();
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
+    <div className="bg-surface-900 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <h2 
-            className="text-lg sm:text-2xl font-semibold text-blue-400 cursor-pointer hover:text-blue-300 transition-colors"
+            className="text-lg sm:text-2xl font-semibold text-brand-400 cursor-pointer hover:text-brand-300 transition-colors"
             onClick={() => setOpen(o => !o)}
           >
             Daily play heatmap
           </h2>
           <button
-            className="p-0.5 hover:bg-gray-800 hover:bg-opacity-50 rounded transition ml-2 text-gray-400 hover:text-gray-300"
+            className="p-0.5 hover:bg-surface-800 hover:bg-opacity-50 rounded transition ml-2 text-surface-400 hover:text-surface-300"
             onClick={() => setOpen(o => !o)}
             aria-label={open ? "Collapse section" : "Expand section"}
           >
@@ -142,9 +142,9 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
         </div>
       </div>
       {open && (
-        <div className="bg-gray-800 rounded-lg p-4 w-fit">
+        <div className="bg-surface-800 rounded-lg p-4 w-fit">
           <div className="space-y-3">
-            <div className="text-sm text-gray-300">
+            <div className="text-sm text-surface-300">
               <p>
                 {screenSize === 'small' ? 'Last 3 months' : 
                  screenSize === 'medium' ? 'Last 6 months' : 
@@ -156,7 +156,7 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
               {monthLabels.map((month, index) => (
                 <div
                   key={index}
-                  className="text-xs text-gray-400 absolute"
+                  className="text-xs text-surface-400 absolute"
                   style={{ left: `${month.week * 14}px` }}
                 >
                   {month.label}
@@ -165,7 +165,7 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
             </div>
             
             <div className="flex">
-              <div className="flex flex-col text-xs text-gray-400 mr-2 gap-0.5">
+              <div className="flex flex-col text-xs text-surface-400 mr-2 gap-0.5">
                 <div className="h-3"></div>
                 <div className="h-3 flex items-center">Mon</div>
                 <div className="h-3"></div>
@@ -192,7 +192,7 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
               </div>
             </div>
             
-            <div className="flex items-center gap-2 text-xs text-gray-400 pt-2">
+            <div className="flex items-center gap-2 text-xs text-surface-400 pt-2">
               <span 
                 title="0 plays per day"
                 className="cursor-help"
@@ -201,23 +201,23 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
               </span>
               <div className="flex gap-1">
                 <div 
-                  className="w-2.5 h-2.5 rounded-sm bg-gray-700"
+                  className="w-2.5 h-2.5 rounded-sm bg-surface-700"
                   title="0 plays"
                 ></div>
                 <div 
-                  className="w-2.5 h-2.5 rounded-sm bg-red-200"
+                  className="w-2.5 h-2.5 rounded-sm bg-danger-200"
                   title="1-20 plays"
                 ></div>
                 <div 
-                  className="w-2.5 h-2.5 rounded-sm bg-red-400"
+                  className="w-2.5 h-2.5 rounded-sm bg-danger-400"
                   title="21-40 plays"
                 ></div>
                 <div 
-                  className="w-2.5 h-2.5 rounded-sm bg-red-600"
+                  className="w-2.5 h-2.5 rounded-sm bg-danger-600"
                   title="41-75 plays"
                 ></div>
                 <div 
-                  className="w-2.5 h-2.5 rounded-sm bg-red-800"
+                  className="w-2.5 h-2.5 rounded-sm bg-danger-800"
                   title="76+ plays"
                 ></div>
               </div>

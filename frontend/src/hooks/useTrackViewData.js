@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { trackService } from "../data/trackService";
-import { formatValue } from "../utils/numberFormat";
 import { DEFAULT_LIMITS } from "../config/appConfig";
 
 export default function useTrackViewData(trackId) {

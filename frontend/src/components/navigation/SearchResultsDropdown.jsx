@@ -10,16 +10,16 @@ export default function SearchResultsDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute left-0 right-0 mt-1 max-w-xl w-full z-50 bg-gray-900 border border-gray-700 shadow-lg rounded-lg p-2 sm:p-4 text-gray-100"
+      className="absolute left-0 right-0 mt-1 max-w-xl w-full z-50 bg-surface-900 border border-surface-700 shadow-lg rounded p-2 sm:p-4 text-surface-100"
     >
       <div>
-        <h3 className="font-bold mb-2 text-gray-200 text-base sm:text-lg">Artists</h3>
+        <h3 className="font-display text-xs uppercase tracking-widest text-brand-400 mb-2">Artists</h3>
         <ul>
-          {(!results.artists || results.artists.length === 0) && <li className="text-gray-400">No artists found.</li>}
+          {(!results.artists || results.artists.length === 0) && <li className="text-surface-400">No artists found.</li>}
           {results.artists && results.artists.map(artist => (
             <li
               key={artist.id}
-              className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
+              className="mb-1 px-2 py-2 hover:bg-surface-800 rounded cursor-pointer text-sm sm:text-base"
               onClick={() => {
                 if (onSelectArtist) onSelectArtist(artist.id);
                 if (onClose) onClose();
@@ -32,13 +32,13 @@ export default function SearchResultsDropdown({
         </ul>
       </div>
       <div className="mt-4">
-        <h3 className="font-bold mb-2 text-gray-200 text-base sm:text-lg">Tracks</h3>
+        <h3 className="font-display text-xs uppercase tracking-widest text-brand-400 mb-2">Tracks</h3>
         <ul>
-          {(!results.tracks || results.tracks.length === 0) && <li className="text-gray-400">No tracks found.</li>}
+          {(!results.tracks || results.tracks.length === 0) && <li className="text-surface-400">No tracks found.</li>}
           {results.tracks && results.tracks.map(track => (
             <li 
               key={track.id} 
-              className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
+              className="mb-1 px-2 py-2 hover:bg-surface-800 rounded cursor-pointer text-sm sm:text-base"
               onClick={() => {
                 if (onClose) onClose();
                 if (navigate) navigate(`/track/${track.id}`);
@@ -50,13 +50,13 @@ export default function SearchResultsDropdown({
         </ul>
       </div>
       <div className="mt-4">
-        <h3 className="font-bold mb-2 text-gray-200 text-base sm:text-lg">Albums</h3>
+        <h3 className="font-display text-xs uppercase tracking-widest text-brand-400 mb-2">Albums</h3>
         <ul>
-          {(!results.albums || results.albums.length === 0) && <li className="text-gray-400">No albums found.</li>}
+          {(!results.albums || results.albums.length === 0) && <li className="text-surface-400">No albums found.</li>}
           {results.albums && results.albums.map(album => (
             <li
               key={album.id}
-              className="mb-1 px-2 py-2 hover:bg-gray-800 rounded cursor-pointer text-sm sm:text-base"
+              className="mb-1 px-2 py-2 hover:bg-surface-800 rounded cursor-pointer text-sm sm:text-base"
               onClick={() => {
                 if (onClose) onClose();
                 if (navigate) navigate(`/album/${album.id}`);

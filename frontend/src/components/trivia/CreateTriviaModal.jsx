@@ -4,7 +4,13 @@ import {
   SparklesIcon,
   PuzzlePieceIcon,
   ClockIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  MusicalNoteIcon,
+  MicrophoneIcon,
+  RectangleStackIcon,
+  ChartBarIcon,
+  CalendarIcon,
+  LightBulbIcon
 } from '@heroicons/react/24/outline';
 import { createTriviaSession } from '../../data/triviaApi';
 
@@ -68,26 +74,26 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
   };
 
   const categoryOptions = [
-    { id: 'top_tracks', label: 'Top Tracks', icon: '🎵' },
-    { id: 'top_artists', label: 'Top Artists', icon: '🎤' },
-    { id: 'top_albums', label: 'Top Albums', icon: '💿' },
-    { id: 'listening_patterns', label: 'Listening Patterns', icon: '📊' },
-    { id: 'discovery_dates', label: 'Discovery Dates', icon: '📅' },
-    { id: 'music_knowledge', label: 'Music Knowledge', icon: '🧠' }
+    { id: 'top_tracks', label: 'Top Tracks', icon: MusicalNoteIcon },
+    { id: 'top_artists', label: 'Top Artists', icon: MicrophoneIcon },
+    { id: 'top_albums', label: 'Top Albums', icon: RectangleStackIcon },
+    { id: 'listening_patterns', label: 'Listening Patterns', icon: ChartBarIcon },
+    { id: 'discovery_dates', label: 'Discovery Dates', icon: CalendarIcon },
+    { id: 'music_knowledge', label: 'Music Knowledge', icon: LightBulbIcon }
   ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-800 rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+      <div className="bg-surface-800 rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-700">
+        <div className="flex justify-between items-center p-6 border-b border-surface-700">
           <div className="flex items-center">
-            <PuzzlePieceIcon className="h-6 w-6 text-blue-400 mr-2" />
+            <PuzzlePieceIcon className="h-6 w-6 text-brand-400 mr-2" />
             <h2 className="text-xl font-bold text-white">Create New Trivia</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-300"
+            className="text-surface-400 hover:text-surface-300"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -97,12 +103,12 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* AI Status Warning */}
           {!aiAvailable && (
-            <div className="bg-yellow-900/20 border border-yellow-700 rounded-lg p-4">
+            <div className="bg-warning-900/20 border border-warning-700 rounded-lg p-4">
               <div className="flex">
-                <SparklesIcon className="h-5 w-5 text-yellow-400 mr-2 mt-0.5" />
+                <SparklesIcon className="h-5 w-5 text-warning-400 mr-2 mt-0.5" />
                 <div>
-                  <h3 className="text-sm font-medium text-yellow-200">AI Service Unavailable</h3>
-                  <p className="text-sm text-yellow-300 mt-1">
+                  <h3 className="text-sm font-medium text-warning-200">AI Service Unavailable</h3>
+                  <p className="text-sm text-warning-300 mt-1">
                     OpenAI API is not configured. Questions cannot be generated at this time.
                   </p>
                 </div>
@@ -112,7 +118,7 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
 
           {/* Session Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-surface-300 mb-2">
               Session Name (Optional)
             </label>
             <input
@@ -120,20 +126,20 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
               value={formData.sessionName}
               onChange={(e) => setFormData(prev => ({ ...prev, sessionName: e.target.value }))}
               placeholder="My Music Trivia Session"
-              className="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 border border-surface-600 rounded-lg bg-surface-900 text-white placeholder-surface-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           {/* Theme Selection */}
           {themes.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-surface-300 mb-2">
                 Theme (Optional)
               </label>
               <select
                 value={formData.theme}
                 onChange={(e) => setFormData(prev => ({ ...prev, theme: e.target.value }))}
-                className="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-surface-600 rounded-lg bg-surface-900 text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               >
                 <option value="">Custom (Choose your own settings)</option>
                 {themes.map((theme) => (
@@ -148,13 +154,13 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
           {/* Question Count and Difficulty */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-surface-300 mb-2">
                 Number of Questions
               </label>
               <select
                 value={formData.questionCount}
                 onChange={(e) => setFormData(prev => ({ ...prev, questionCount: e.target.value }))}
-                className="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-surface-600 rounded-lg bg-surface-900 text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               >
                 <option value="5">5 Questions (Quick)</option>
                 <option value="10">10 Questions (Standard)</option>
@@ -164,13 +170,13 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-surface-300 mb-2">
                 Difficulty
               </label>
               <select
                 value={formData.difficulty}
                 onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
-                className="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-surface-600 rounded-lg bg-surface-900 text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               >
                 <option value="easy">Easy (Recent favorites)</option>
                 <option value="medium">Medium (Deeper knowledge)</option>
@@ -182,13 +188,13 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
 
           {/* Data Period */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-surface-300 mb-2">
               Data Period
             </label>
             <select
               value={formData.period}
               onChange={(e) => setFormData(prev => ({ ...prev, period: e.target.value }))}
-              className="w-full p-3 border border-gray-600 rounded-lg bg-gray-900 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 border border-surface-600 rounded-lg bg-surface-900 text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             >
               <option value="1month">Last Month</option>
               <option value="3month">Last 3 Months</option>
@@ -200,48 +206,48 @@ export default function CreateTriviaModal({ isOpen, onClose, onSessionCreated, t
 
           {/* Categories */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-surface-300 mb-3">
               Question Categories
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {categoryOptions.map((category) => (
-                <label key={category.id} className="flex items-center p-3 bg-gray-900 rounded-lg hover:bg-gray-700 cursor-pointer border border-gray-700">
+                <label key={category.id} className="flex items-center p-3 bg-surface-900 rounded-lg hover:bg-surface-700 cursor-pointer border border-surface-700">
                   <input
                     type="checkbox"
                     checked={formData.categories.includes(category.id)}
                     onChange={(e) => handleCategoryChange(category.id, e.target.checked)}
-                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded"
+                    className="mr-3 h-4 w-4 text-brand-600 focus:ring-brand-500 border-surface-600 rounded"
                   />
-                  <span className="mr-2">{category.icon}</span>
-                  <span className="text-sm font-medium text-gray-300">{category.label}</span>
+                  <category.icon className="w-4 h-4 mr-2 text-surface-400" />
+                  <span className="text-sm font-medium text-surface-300">{category.label}</span>
                 </label>
               ))}
             </div>
             {formData.categories.length === 0 && (
-              <p className="text-sm text-red-400 mt-2">Please select at least one category.</p>
+              <p className="text-sm text-danger-400 mt-2">Please select at least one category.</p>
             )}
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-900/20 border border-red-700 rounded-lg p-4">
-              <p className="text-red-300 text-sm">{error}</p>
+            <div className="bg-danger-900/20 border border-danger-700 rounded-lg p-4">
+              <p className="text-danger-300 text-sm">{error}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+          <div className="flex justify-end space-x-3 pt-4 border-t border-surface-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className="px-4 py-2 text-surface-300 bg-surface-700 hover:bg-surface-600 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !aiAvailable || formData.categories.length === 0}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
               {loading ? (
                 <>

@@ -18,7 +18,7 @@ export default function Dashboard() {
     topTracks, trackLimit, setTrackLimit, trackPeriod, setTrackPeriod,
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
-    playCount, uniqueArtists, uniqueAlbums, uniqueTracks, handleRefresh,
+    playCount, uniqueArtists, uniqueAlbums, uniqueTracks,
     loading, artistsLoading, tracksLoading, albumsLoading, recentLoading,
     syncing, syncNewTracks
   } = useDashboardData();
@@ -30,33 +30,9 @@ export default function Dashboard() {
     document.title = "Chorn's Music Dashboard";
   }, []);
 
-  // Format listening time from milliseconds to days
-  const formatListeningTime = (timeMs) => {
-    if (!timeMs) return "N/A";
-    
-    const totalDays = timeMs / (1000 * 60 * 60 * 24);
-    const days = Math.floor(totalDays);
-    const hours = Math.floor((totalDays - days) * 24);
-    
-    let formatted = "";
-    if (days > 0) {
-      formatted += `${days}d`;
-      if (hours > 0) formatted += ` ${hours}h`;
-    } else if (hours > 0) {
-      formatted = `${hours}h`;
-    } else {
-      const minutes = Math.floor((timeMs / (1000 * 60)) % 60);
-      formatted = `${minutes}m`;
-    }
-    
-    return formatted;
-  };
-
-
-  const imageUrl =
-    process.env.NODE_ENV === "production"
-      ? "https://jstjcx5dxzpncbjg.public.blob.vercel-storage.com/pfp.jpeg"
-      : "/pfp.jpeg";
+  const imageUrl = import.meta.env.PROD
+    ? "https://jstjcx5dxzpncbjg.public.blob.vercel-storage.com/pfp.jpeg"
+    : "/pfp.jpeg";
 
   return (
     <PageLayout
@@ -81,13 +57,13 @@ export default function Dashboard() {
                 }
                 
                 setTimeout(() => setSyncMessage(""), 3000);
-              } catch (error) {
+              } catch {
                 setSyncMessage("Sync failed. Please try again.");
                 setTimeout(() => setSyncMessage(""), 3000);
               }
             }}
             disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded font-medium transition"
+            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-surface-600 text-white rounded font-medium transition"
           >
             {syncing ? (
               <>
@@ -100,16 +76,16 @@ export default function Dashboard() {
           </button>
         </div>
         {syncMessage && (
-          <div className="text-green-400 text-sm font-medium">
+          <div className="text-success-400 text-sm font-medium">
             {syncMessage}
           </div>
         )}
-        <div className="bg-gray-900 rounded-lg p-6">
+        <div className="bg-surface-900 rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg sm:text-2xl font-semibold text-blue-400">My Stats</h2>
+            <h2 className="text-lg sm:text-2xl font-semibold text-brand-400">My Stats</h2>
             <button
               onClick={() => navigate('/stats')}
-              className="text-sm px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white rounded transition"
+              className="text-sm px-3 py-1 bg-surface-700 hover:bg-surface-600 text-surface-300 hover:text-white rounded transition"
             >
               View Details →
             </button>
@@ -119,19 +95,19 @@ export default function Dashboard() {
               title="Total Plays"
               value={formatValue(playCount) ?? "N/A"}
               subtitle="all time"
-              color="text-blue-400"
+              color="text-brand-400"
             />
             <StatCard
               title="Unique Artists"
               value={formatValue(uniqueArtists) ?? "N/A"}
               subtitle="discovered"
-              color="text-green-400"
+              color="text-success-400"
             />
             <StatCard
               title="Unique Albums"
               value={formatValue(uniqueAlbums) ?? "N/A"}
               subtitle="collected"
-              color="text-purple-400"
+              color="text-highlight-400"
             />
             <StatCard
               title="Unique Tracks"
@@ -143,7 +119,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={artistsLoading}>
           <GroupedSection
             title="Top Artists"
@@ -168,7 +144,7 @@ export default function Dashboard() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={albumsLoading}>
           <GroupedSection
             title="Top Albums"
@@ -194,7 +170,7 @@ export default function Dashboard() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={tracksLoading}>
           <GroupedSection
             title="Top Tracks"
@@ -228,7 +204,7 @@ export default function Dashboard() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={recentLoading}>
           <GroupedSection
             title="Recent Plays"

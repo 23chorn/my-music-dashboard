@@ -48,7 +48,7 @@ export default function ArtistView() {
 
       {/* Tags Section */}
       {artist && (
-        <div className="bg-gray-900 rounded-lg p-6">
+        <div className="bg-surface-900 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
           <TagManager
             entityId={artist.id}
@@ -62,7 +62,7 @@ export default function ArtistView() {
         <MilestoneSection milestones={milestones} />
       )}
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={albumsLoading}>
           <GroupedSection
             title="Top Albums"
@@ -86,7 +86,7 @@ export default function ArtistView() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
         <SectionLoader loading={tracksLoading}>
           <GroupedSection
             title="Top Tracks"
@@ -111,7 +111,7 @@ export default function ArtistView() {
         </SectionLoader>
       </div>
 
-      <div className="bg-gray-900 rounded-lg p-6">
+      <div className="bg-surface-900 rounded-lg p-6">
           <SectionLoader loading={recentLoading}>
             <GroupedSection
               title="Recent Plays"
@@ -132,7 +132,7 @@ export default function ArtistView() {
 
       {/* Era Explorer Section */}
       {artist && (
-        <div className="bg-gray-900 rounded-lg p-6">
+        <div className="bg-surface-900 rounded-lg p-6">
           <CustomHeatmap artistId={artist.id} days={HEATMAP_CONFIG.artist.days} />
         </div>
       )}

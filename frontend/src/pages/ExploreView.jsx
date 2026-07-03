@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { getAllArtistsWithPlaycount } from "../data/artistApi";
 import { getAllAlbumsWithPlaycount } from "../data/albumApi";
 import { getAllTracksWithPlaycount } from "../data/trackApi";
@@ -55,8 +54,6 @@ export default function ExploreView() {
     const saved = localStorage.getItem('exploreView_releaseYearEnd');
     return saved && saved !== '' && saved !== 'NaN' ? parseInt(saved) : '';
   });
-  const navigate = useNavigate();
-
   // Save state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('exploreView_dataType', dataType);

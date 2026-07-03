@@ -2,10 +2,9 @@ import StatCard from "./StatCard";
 import { formatValue } from "../../utils/numberFormat";
 import { ClockIcon } from '@heroicons/react/24/outline';
 
-export default function ListeningTimeStats({ behaviorData, statsData }) {
+export default function ListeningTimeStats({ behaviorData }) {
   const {
     totalListeningTimeMs = 0,
-    tracksWithoutDuration = 0,
     averageTrackDurationMs = 0,
     averageSessionDurationMs = 0,
     longestSessionDurationMs = 0,
@@ -32,9 +31,9 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
   };
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
+    <div className="bg-surface-900 rounded-lg p-6">
       <div className="flex items-center gap-3 mb-6">
-        <ClockIcon className="w-6 h-6 text-green-400" />
+        <ClockIcon className="w-6 h-6 text-success-400" />
         <h2 className="text-2xl font-bold text-white">Listening Time</h2>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -66,19 +65,19 @@ export default function ListeningTimeStats({ behaviorData, statsData }) {
           title="Average Session" 
           value={formatDuration(averageSessionDurationMs)}
           subtitle="per session"
-          color="text-green-400"
+          color="text-success-400"
         />
         <StatCard 
           title="Longest Session" 
           value={formatDuration(longestSessionDurationMs)}
           subtitle="single session"
-          color="text-green-400"
+          color="text-success-400"
         />
         <StatCard 
           title="Sessions Per Day" 
           value={averageSessionsPerDay}
           subtitle="average daily"
-          color="text-green-400"
+          color="text-success-400"
         />
         <StatCard 
           title="Most Active Day" 

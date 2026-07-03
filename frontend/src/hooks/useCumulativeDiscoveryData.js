@@ -33,7 +33,7 @@ export default function useCumulativeDiscoveryData(days = 365) {
     fetchCumulativeDiscoveryData();
   }, [fetchCumulativeDiscoveryData]);
 
-  const updatePeriod = useCallback((newDays) => {
+  const updatePeriod = useCallback(() => {
     // This will be handled by the parent component changing the days prop
     // which will trigger a re-fetch via the useEffect dependency
   }, []);

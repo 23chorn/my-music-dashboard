@@ -4,6 +4,8 @@ import {
   CheckCircleIcon,
   ClockIcon,
   TrophyIcon,
+  StarIcon,
+  BookOpenIcon,
   PlayIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
@@ -72,25 +74,25 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
   };
 
   const getScoreColor = (percentage) => {
-    if (percentage >= 80) return 'text-green-400';
-    if (percentage >= 60) return 'text-yellow-400';
-    return 'text-red-400';
+    if (percentage >= 80) return 'text-success-400';
+    if (percentage >= 60) return 'text-warning-400';
+    return 'text-danger-400';
   };
 
   const getScoreBadge = (percentage) => {
-    if (percentage >= 90) return '🏆';
-    if (percentage >= 80) return '🥇';
-    if (percentage >= 70) return '🥈';
-    if (percentage >= 60) return '🥉';
-    return '📖';
+    if (percentage >= 90) return { Icon: TrophyIcon, color: 'text-warning-400' };
+    if (percentage >= 80) return { Icon: StarIcon, color: 'text-surface-300' };
+    if (percentage >= 70) return { Icon: StarIcon, color: 'text-brand-500' };
+    if (percentage >= 60) return { Icon: StarIcon, color: 'text-danger-700' };
+    return { Icon: BookOpenIcon, color: 'text-surface-500' };
   };
 
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading trivia history...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
+          <p className="mt-4 text-surface-400">Loading trivia history...</p>
         </div>
       </div>
     );
@@ -102,31 +104,31 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center text-gray-400 hover:text-white mb-4"
+          className="flex items-center text-surface-400 hover:text-white mb-4"
         >
           <ChevronLeftIcon className="h-5 w-5 mr-1" />
           Back to Trivia
         </button>
         <h1 className="text-3xl font-bold text-white">Trivia History</h1>
-        <p className="text-gray-400 mt-2">Your past trivia sessions and performance</p>
+        <p className="text-surface-400 mt-2">Your past trivia sessions and performance</p>
       </div>
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6">
-          <p className="text-red-300">{error}</p>
+        <div className="bg-danger-900/20 border border-danger-700 rounded-lg p-4 mb-6">
+          <p className="text-danger-300">{error}</p>
         </div>
       )}
 
       {/* Sessions List */}
       {sessions.length === 0 ? (
         <div className="text-center py-12">
-          <TrophyIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+          <TrophyIcon className="h-16 w-16 text-surface-600 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-white mb-2">No Trivia Sessions Yet</h3>
-          <p className="text-gray-400 mb-6">Start your first trivia session to see your history here</p>
+          <p className="text-surface-400 mb-6">Start your first trivia session to see your history here</p>
           <button
             onClick={onBack}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-brand-600 text-white px-6 py-3 rounded-lg hover:bg-brand-700 transition-colors"
           >
             Create Your First Quiz
           </button>
@@ -136,7 +138,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
           {sessions.map((session) => (
             <div
               key={session.id}
-              className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-blue-500 transition-colors"
+              className="bg-surface-800 border border-surface-700 rounded-lg p-6 hover:border-brand-500 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -144,14 +146,13 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                     <h3 className="text-lg font-semibold text-white mr-3">
                       {session.session_name}
                     </h3>
-                    {session.completed_at && session.percentage && (
-                      <span className="text-2xl mr-2">
-                        {getScoreBadge(session.percentage)}
-                      </span>
-                    )}
+                    {session.completed_at && session.percentage && (() => {
+                      const { Icon: BadgeIcon, color } = getScoreBadge(session.percentage);
+                      return <BadgeIcon className={`w-6 h-6 mr-2 ${color}`} />;
+                    })()}
                   </div>
 
-                  <div className="flex items-center space-x-4 text-sm text-gray-400 mb-3">
+                  <div className="flex items-center space-x-4 text-sm text-surface-400 mb-3">
                     <span className="capitalize">{session.difficulty_level}</span>
                     <span>•</span>
                     <span>{session.question_count} questions</span>
@@ -162,7 +163,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                   {session.completed_at ? (
                     <div className="flex items-center space-x-6">
                       <div className="flex items-center">
-                        <CheckCircleIcon className="h-5 w-5 text-green-400 mr-2" />
+                        <CheckCircleIcon className="h-5 w-5 text-success-400 mr-2" />
                         <span className="text-sm font-medium text-white">
                           {session.score}/{session.total_questions} correct
                         </span>
@@ -171,7 +172,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                         {session.percentage}%
                       </div>
                       {session.completion_time_seconds && (
-                        <div className="flex items-center text-gray-400">
+                        <div className="flex items-center text-surface-400">
                           <ClockIcon className="h-4 w-4 mr-1" />
                           <span className="text-sm">
                             {Math.floor(session.completion_time_seconds / 60)}:{(session.completion_time_seconds % 60).toString().padStart(2, '0')}
@@ -180,7 +181,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center text-yellow-400">
+                    <div className="flex items-center text-warning-400">
                       <ClockIcon className="h-5 w-5 mr-2" />
                       <span className="text-sm font-medium">In Progress</span>
                     </div>
@@ -192,7 +193,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                     <button
                       onClick={() => handleContinueSession(session)}
                       disabled={loadingSessionId === session.id}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loadingSessionId === session.id ? (
                         <>
@@ -213,7 +214,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                       <button
                         onClick={() => handleReplay(session.id)}
                         disabled={replayingId === session.id}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {replayingId === session.id ? (
                           <>
@@ -229,7 +230,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                       </button>
                       <button
                         onClick={() => onSessionSelect(session)}
-                        className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
+                        className="bg-surface-700 text-white px-4 py-2 rounded-lg hover:bg-surface-600 transition-colors text-sm"
                       >
                         View Details
                       </button>
@@ -241,9 +242,9 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
               {/* Progress Bar for Incomplete Sessions */}
               {!session.completed_at && (
                 <div className="mt-4">
-                  <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-surface-700 rounded-full h-2">
                     <div
-                      className="bg-yellow-500 h-2 rounded-full"
+                      className="bg-warning-500 h-2 rounded-full"
                       style={{
                         width: `${session.question_count > 0
                           ? Math.round((session.answered_questions || 0) / session.question_count * 100)
@@ -251,7 +252,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                       }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-surface-500 mt-1">
                     {session.answered_questions || 0}/{session.question_count} questions answered
                   </p>
                 </div>
@@ -263,32 +264,32 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
 
       {/* Summary Stats */}
       {sessions.length > 0 && (
-        <div className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div className="mt-8 bg-surface-800 border border-surface-700 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Summary Stats</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-2xl font-bold text-brand-400">
                 {sessions.length}
               </div>
-              <div className="text-sm text-gray-400">Total Sessions</div>
+              <div className="text-sm text-surface-400">Total Sessions</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-bold text-success-400">
                 {sessions.filter(s => s.completed_at).length}
               </div>
-              <div className="text-sm text-gray-400">Completed</div>
+              <div className="text-sm text-surface-400">Completed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">
+              <div className="text-2xl font-bold text-highlight-400">
                 {sessions.filter(s => s.percentage >= 80).length}
               </div>
-              <div className="text-sm text-gray-400">High Scores (80%+)</div>
+              <div className="text-sm text-surface-400">High Scores (80%+)</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-400">
                 {sessions.reduce((max, s) => Math.max(max, s.percentage || 0), 0)}%
               </div>
-              <div className="text-sm text-gray-400">Best Score</div>
+              <div className="text-sm text-surface-400">Best Score</div>
             </div>
           </div>
         </div>

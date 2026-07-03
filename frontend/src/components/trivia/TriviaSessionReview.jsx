@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ChevronLeftIcon,
   CheckCircleIcon,
@@ -13,11 +13,7 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadSessionDetails();
-  }, [initialSession.id]);
-
-  const loadSessionDetails = async () => {
+  const loadSessionDetails = useCallback(async () => {
     try {
       setLoading(true);
       // Fetch full session with questions
@@ -37,7 +33,11 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
     } finally {
       setLoading(false);
     }
-  };
+  }, [initialSession.id]);
+
+  useEffect(() => {
+    loadSessionDetails();
+  }, [loadSessionDetails]);
 
   const formatTime = (seconds) => {
     if (!seconds) return 'N/A';
@@ -48,8 +48,8 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading session details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto"></div>
+          <p className="mt-4 text-surface-400">Loading session details...</p>
         </div>
       </div>
     );
@@ -59,8 +59,8 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
     return (
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="text-center">
-          <p className="text-gray-400">No questions found for this session</p>
-          <button onClick={onBack} className="mt-4 text-blue-400 hover:text-blue-300">
+          <p className="text-surface-400">No questions found for this session</p>
+          <button onClick={onBack} className="mt-4 text-brand-400 hover:text-brand-300">
             Back to History
           </button>
         </div>
@@ -78,37 +78,37 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="flex items-center text-gray-400 hover:text-white mb-4"
+          className="flex items-center text-surface-400 hover:text-white mb-4"
         >
           <ChevronLeftIcon className="h-5 w-5 mr-1" />
           Back to History
         </button>
 
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <div className="bg-surface-800 border border-surface-700 rounded-lg p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2">{session.session_name}</h1>
-              <p className="text-gray-400">{session.difficulty_level} • {session.question_count} questions</p>
+              <p className="text-surface-400">{session.difficulty_level} • {session.question_count} questions</p>
             </div>
-            <TrophyIcon className="h-12 w-12 text-yellow-500" />
+            <TrophyIcon className="h-12 w-12 text-warning-500" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-blue-400 mb-1">{score}/{totalQuestions}</div>
-              <div className="text-sm text-gray-400">Correct Answers</div>
+            <div className="bg-surface-900 border border-surface-700 rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-brand-400 mb-1">{score}/{totalQuestions}</div>
+              <div className="text-sm text-surface-400">Correct Answers</div>
             </div>
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
-              <div className={`text-3xl font-bold mb-1 ${percentage >= 80 ? 'text-green-400' : percentage >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>
+            <div className="bg-surface-900 border border-surface-700 rounded-lg p-4 text-center">
+              <div className={`text-3xl font-bold mb-1 ${percentage >= 80 ? 'text-success-400' : percentage >= 60 ? 'text-warning-400' : 'text-danger-400'}`}>
                 {percentage}%
               </div>
-              <div className="text-sm text-gray-400">Accuracy</div>
+              <div className="text-sm text-surface-400">Accuracy</div>
             </div>
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 text-center">
-              <div className="text-3xl font-bold text-purple-400 mb-1">
+            <div className="bg-surface-900 border border-surface-700 rounded-lg p-4 text-center">
+              <div className="text-3xl font-bold text-highlight-400 mb-1">
                 {formatTime(initialSession.completion_time_seconds)}
               </div>
-              <div className="text-sm text-gray-400">Completion Time</div>
+              <div className="text-sm text-surface-400">Completion Time</div>
             </div>
           </div>
         </div>
@@ -122,20 +122,20 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
           const isCorrect = response?.is_correct;
 
           return (
-            <div key={question.id} className={`bg-gray-800 border rounded-lg p-6 ${isCorrect ? 'border-green-700' : 'border-red-700'}`}>
+            <div key={question.id} className={`bg-surface-800 border rounded-lg p-6 ${isCorrect ? 'border-success-700' : 'border-danger-700'}`}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
-                    <span className="text-sm font-medium text-blue-400 mr-2">Question {index + 1}</span>
-                    <span className="text-xs text-gray-500 capitalize">{question.category?.replace('_', ' ')} • {question.difficulty_level}</span>
+                    <span className="text-sm font-medium text-brand-400 mr-2">Question {index + 1}</span>
+                    <span className="text-xs text-surface-500 capitalize">{question.category?.replace('_', ' ')} • {question.difficulty_level}</span>
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-3">{question.question_text}</h3>
                 </div>
                 <div className="ml-4">
                   {isCorrect ? (
-                    <CheckCircleIcon className="h-8 w-8 text-green-400" />
+                    <CheckCircleIcon className="h-8 w-8 text-success-400" />
                   ) : (
-                    <XCircleIcon className="h-8 w-8 text-red-400" />
+                    <XCircleIcon className="h-8 w-8 text-danger-400" />
                   )}
                 </div>
               </div>
@@ -144,23 +144,23 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
                 {response && (
                   <>
                     <div className="flex items-start">
-                      <span className="text-sm font-medium text-gray-400 min-w-[120px]">Your answer:</span>
-                      <span className={`text-sm font-medium ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                      <span className="text-sm font-medium text-surface-400 min-w-[120px]">Your answer:</span>
+                      <span className={`text-sm font-medium ${isCorrect ? 'text-success-400' : 'text-danger-400'}`}>
                         {response.user_answer}
                       </span>
                     </div>
                     {!isCorrect && (
                       <div className="flex items-start">
-                        <span className="text-sm font-medium text-gray-400 min-w-[120px]">Correct answer:</span>
-                        <span className="text-sm font-medium text-green-400">
+                        <span className="text-sm font-medium text-surface-400 min-w-[120px]">Correct answer:</span>
+                        <span className="text-sm font-medium text-success-400">
                           {question.correct_answer}
                         </span>
                       </div>
                     )}
                     {response.response_time_seconds && (
                       <div className="flex items-start">
-                        <span className="text-sm font-medium text-gray-400 min-w-[120px]">Response time:</span>
-                        <span className="text-sm text-gray-400">
+                        <span className="text-sm font-medium text-surface-400 min-w-[120px]">Response time:</span>
+                        <span className="text-sm text-surface-400">
                           {response.response_time_seconds}s
                         </span>
                       </div>
@@ -170,8 +170,8 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
               </div>
 
               {question.explanation && (
-                <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4">
-                  <p className="text-sm text-blue-300">{question.explanation}</p>
+                <div className="bg-brand-900/20 border border-brand-700 rounded-lg p-4">
+                  <p className="text-sm text-brand-300">{question.explanation}</p>
                 </div>
               )}
             </div>

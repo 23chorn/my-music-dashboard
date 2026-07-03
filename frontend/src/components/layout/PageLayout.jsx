@@ -17,14 +17,14 @@ export default function PageLayout({
 
   if (error) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-950 px-4">
-        <div className="text-lg text-red-400 text-center">{error}</div>
+      <div className="min-h-screen w-full flex items-center justify-center bg-surface-950 px-4">
+        <div className="text-lg text-danger-400 text-center">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-950">
+    <div className="min-h-screen w-full bg-surface-950">
       <div className="w-full px-4 py-6">
         <div className="max-w-7xl mx-auto space-y-10">
           {(title || image) && (

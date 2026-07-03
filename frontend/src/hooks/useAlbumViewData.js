@@ -54,6 +54,10 @@ export default function useAlbumViewData(albumId, {
       setLoading(false);
     }
     if (albumId) fetchAllData();
+    // Intentionally scoped to `albumId` only: this is the initial full-section
+    // load. Limit/period/sort changes are each handled by their own dedicated
+    // effect below, so including them here would double-fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [albumId]);
 
   // Refetch individual sections when their parameters change
@@ -71,6 +75,9 @@ export default function useAlbumViewData(albumId, {
       }
     }
     if (albumId) fetchTopTracks();
+    // `albumId` and `album` intentionally excluded: this effect should only
+    // re-fetch when trackLimit/trackPeriod change, not on the initial load handled above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackLimit, trackPeriod]);
 
   useEffect(() => {
@@ -87,6 +94,9 @@ export default function useAlbumViewData(albumId, {
       }
     }
     if (albumId) fetchRecentPlays();
+    // `albumId` and `album` intentionally excluded: this effect should only
+    // re-fetch when recentLimit changes, not on the initial load handled above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recentLimit]);
 
   useEffect(() => {
@@ -103,6 +113,9 @@ export default function useAlbumViewData(albumId, {
       }
     }
     if (albumId) fetchTracklist();
+    // `albumId` and `album` intentionally excluded: this effect should only
+    // re-fetch when tracklistSort changes, not on the initial load handled above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracklistSort]);
 
   return {

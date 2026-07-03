@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -28,14 +28,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
-  useEffect(() => {
-    if (entityId && entityType) {
-      fetchEntityTags();
-      fetchAllTags();
-    }
-  }, [entityId, entityType]);
-
-  const fetchEntityTags = async () => {
+  const fetchEntityTags = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/tags/entity/${entityType}/${entityId}`);
       if (response.ok) {
@@ -50,9 +43,9 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL, entityType, entityId, onTagsChange]);
 
-  const fetchAllTags = async () => {
+  const fetchAllTags = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/tags`);
       if (response.ok) {
@@ -62,7 +55,14 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
     } catch (error) {
       console.error('Error fetching all tags:', error);
     }
-  };
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    if (entityId && entityType) {
+      fetchEntityTags();
+      fetchAllTags();
+    }
+  }, [entityId, entityType, fetchEntityTags, fetchAllTags]);
 
   const addTag = async () => {
     if (!newTagName.trim()) return;
@@ -178,10 +178,10 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-4 bg-gray-700 rounded w-1/4 mb-2"></div>
+        <div className="h-4 bg-surface-700 rounded w-1/4 mb-2"></div>
         <div className="flex gap-2">
-          <div className="h-6 bg-gray-700 rounded w-16"></div>
-          <div className="h-6 bg-gray-700 rounded w-20"></div>
+          <div className="h-6 bg-surface-700 rounded w-16"></div>
+          <div className="h-6 bg-surface-700 rounded w-20"></div>
         </div>
       </div>
     );
@@ -191,7 +191,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
     <div className="space-y-3">
       {/* Current Tags */}
       <div>
-        <h4 className="text-sm font-medium text-gray-300 mb-2">
+        <h4 className="text-sm font-medium text-surface-300 mb-2">
           Tags {entityName && `for "${entityName}"`}
         </h4>
         <div className="flex flex-wrap gap-2">
@@ -221,7 +221,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
               </div>
             ))
           ) : (
-            <span className="text-sm text-gray-500 italic">No tags</span>
+            <span className="text-sm text-surface-500 italic">No tags</span>
           )}
         </div>
       </div>
@@ -229,7 +229,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
       {/* Quick Add Existing Tags */}
       {availableTags.length > 0 && (
         <div>
-          <h5 className="text-xs font-medium text-gray-400 mb-1">Quick Add:</h5>
+          <h5 className="text-xs font-medium text-surface-400 mb-1">Quick Add:</h5>
           <div className="flex flex-wrap gap-1">
             {availableTags.slice(0, 5).map((tag) => (
               <button
@@ -253,19 +253,19 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
         {!showAddForm ? (
           <button
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-full transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 rounded-full transition-colors"
           >
             <PlusIcon className="w-3 h-3" />
             Add Tag
           </button>
         ) : (
-          <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-800 rounded-lg">
+          <div className="flex flex-wrap items-center gap-2 p-3 bg-surface-800 rounded-lg">
             <input
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               placeholder="Tag name"
-              className="flex-1 min-w-0 px-2 py-1 text-sm bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-0 px-2 py-1 text-sm bg-surface-700 border border-surface-600 rounded text-white placeholder-surface-400 focus:outline-none focus:border-brand-500"
               onKeyDown={(e) => e.key === 'Enter' && addTag()}
             />
 
@@ -276,7 +276,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
                   key={color}
                   onClick={() => setSelectedColor(color)}
                   className={`w-5 h-5 rounded-full border-2 ${
-                    selectedColor === color ? 'border-white' : 'border-gray-600'
+                    selectedColor === color ? 'border-white' : 'border-surface-600'
                   }`}
                   style={{ backgroundColor: color }}
                   title={`Select ${color}`}
@@ -288,7 +288,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
               <button
                 onClick={addTag}
                 disabled={adding || !newTagName.trim()}
-                className="px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-2 py-1 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {adding ? 'Adding...' : 'Add'}
               </button>
@@ -298,7 +298,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
                   setNewTagName('');
                   setSelectedColor(TAG_COLORS[0]);
                 }}
-                className="px-2 py-1 text-xs font-medium text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                className="px-2 py-1 text-xs font-medium text-surface-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded transition-colors"
               >
                 Cancel
               </button>

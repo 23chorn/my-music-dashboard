@@ -39,7 +39,7 @@ export default function AppHeader({
           {showBackButton && (
             <button
               onClick={handleBack}
-              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
+              className="p-2 rounded-lg bg-surface-800 hover:bg-surface-700 transition-colors text-surface-300 hover:text-white"
               aria-label="Go back"
             >
               <ArrowLeftIcon className="h-5 w-5" />

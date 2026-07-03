@@ -48,7 +48,7 @@ export default function MenuButton() {
     <div>
       <button
         ref={buttonRef}
-        className="p-2 rounded bg-gray-900 hover:bg-gray-800 shadow text-white"
+        className="p-2 rounded bg-surface-900 hover:bg-surface-800 shadow text-white"
         onClick={() => setMenuOpen(open => !open)}
         aria-label="Open menu"
       >
@@ -57,12 +57,12 @@ export default function MenuButton() {
       {menuOpen && (
         <div
           ref={dropdownRef}
-          className="menu-dropdown mt-2 bg-gray-900 border border-gray-700 rounded shadow-lg py-2 w-56 absolute top-10 left-0 z-50"
+          className="menu-dropdown mt-2 bg-surface-900 border border-surface-700 rounded shadow-lg py-2 w-56 absolute top-10 left-0 z-50"
         >
           {/* Browse Section */}
-          <div className="border-b border-gray-700">
+          <div className="border-b border-surface-700">
             <button
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-800"
+              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-surface-400 hover:bg-surface-800"
               onClick={() => toggleSection('browse')}
             >
               <span>Browse</span>
@@ -75,19 +75,19 @@ export default function MenuButton() {
             {expandedSections.browse && (
               <div className="pb-1">
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/")}
                 >
                   Dashboard
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/explore")}
                 >
                   Explore
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/stats")}
                 >
                   Stats
@@ -97,9 +97,9 @@ export default function MenuButton() {
           </div>
 
           {/* AI & Analysis Section */}
-          <div className="border-b border-gray-700">
+          <div className="border-b border-surface-700">
             <button
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-800"
+              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-surface-400 hover:bg-surface-800"
               onClick={() => toggleSection('aiAnalysis')}
             >
               <span>AI & Analysis</span>
@@ -112,19 +112,19 @@ export default function MenuButton() {
             {expandedSections.aiAnalysis && (
               <div className="pb-1">
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/ai-insights")}
                 >
                   AI Insights
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/chat")}
                 >
                   AI Chat
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/insights")}
                 >
                   System Insights
@@ -136,7 +136,7 @@ export default function MenuButton() {
           {/* Tools Section */}
           <div>
             <button
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-400 hover:bg-gray-800"
+              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-surface-400 hover:bg-surface-800"
               onClick={() => toggleSection('tools')}
             >
               <span>Tools</span>
@@ -149,13 +149,13 @@ export default function MenuButton() {
             {expandedSections.tools && (
               <div className="pb-1">
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/tags")}
                 >
                   Tags
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-blue-900 text-blue-300 text-sm"
+                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
                   onClick={() => handleNavigate("/trivia")}
                 >
                   Trivia

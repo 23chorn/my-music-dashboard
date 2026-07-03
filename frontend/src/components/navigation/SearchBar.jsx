@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 const SearchBar = forwardRef(function SearchBar(
   { onSearch, placeholder = "Search artists, albums, tracks...", value, setValue },
@@ -12,21 +13,22 @@ const SearchBar = forwardRef(function SearchBar(
   return (
     <form
       ref={ref}
-      className="flex flex-col sm:flex-row items-stretch gap-2 mb-6 w-full"
+      className="flex items-end gap-2 mb-6 w-full border-b-2 border-surface-600 focus-within:border-brand-400 transition-colors"
       onSubmit={handleSubmit}
     >
       <input
         type="text"
-        className="px-4 py-2 rounded bg-gray-800 text-white focus:outline-none focus:ring focus:ring-blue-400 w-full"
+        className="flex-1 bg-transparent font-mono text-white placeholder:text-surface-500 py-2 focus:outline-none"
         placeholder={placeholder}
         value={value}
         onChange={e => setValue(e.target.value)}
       />
       <button
         type="submit"
-        className="px-4 py-2 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 transition w-full sm:w-auto"
+        aria-label="Search"
+        className="p-2 text-surface-500 hover:text-brand-400 transition-colors"
       >
-        Search
+        <MagnifyingGlassIcon className="w-5 h-5" />
       </button>
     </form>
   );

@@ -1,13 +1,93 @@
 @import "tailwindcss";
 
+/* Fraunces / IBM Plex Sans / IBM Plex Mono are loaded via <link> tags in
+   index.html (a build-time @import of a remote stylesheet here isn't
+   reliable across all build environments). */
+
+/*
+ * Semantic color tokens for the dashboard theme.
+ * A record-collector's ledger, not a SaaS dashboard: warm dark "ink"
+ * surfaces, an ember (VU-needle amber) accent, and status colors pulled
+ * from analog gear rather than stock red/green/yellow. To re-theme the
+ * whole app, change the hex values below — no component files need to
+ * change.
+ */
+@theme {
+  /* surface: page background, panels, borders, body text (was "gray") */
+  --color-surface-100: #f2ecdf;
+  --color-surface-200: #e4dcc8;
+  --color-surface-300: #c7bca4;
+  --color-surface-400: #a69884;
+  --color-surface-500: #8a8378;
+  --color-surface-600: #6b655a;
+  --color-surface-700: #4a453c;
+  /* was an invalid "gray-750" utility (no such Tailwind shade) that silently
+     did nothing; now a real custom shade between surface-700 and surface-800 */
+  --color-surface-750: #363228;
+  --color-surface-800: #2b2822;
+  --color-surface-900: #1e1b17;
+  --color-surface-950: #14110d;
+
+  /* brand: primary accent - links, buttons, active states (was "blue") */
+  --color-brand-300: #f3b489;
+  --color-brand-400: #e8823c;
+  --color-brand-500: #d66e28;
+  --color-brand-600: #bd5a1a;
+  --color-brand-700: #964912;
+  --color-brand-800: #6f370d;
+  --color-brand-900: #4a2509;
+
+  /* success: positive/good states (was "green") */
+  --color-success-300: #b8cba8;
+  --color-success-400: #8fab7c;
+  --color-success-500: #6b8f71;
+  --color-success-600: #55765c;
+  --color-success-700: #405c47;
+  --color-success-900: #24362a;
+
+  /* danger: errors/destructive states (was "red") */
+  --color-danger-200: #e8c3b8;
+  --color-danger-300: #dda394;
+  --color-danger-400: #c97a63;
+  --color-danger-500: #b54b3e;
+  --color-danger-600: #9a3b2f;
+  --color-danger-700: #7a2e24;
+  --color-danger-800: #5c221a;
+  --color-danger-900: #421811;
+
+  /* warning: caution states (was "yellow") - brass/dial gold, not stock yellow */
+  --color-warning-200: #eedca8;
+  --color-warning-300: #e4c878;
+  --color-warning-400: #d4af37;
+  --color-warning-500: #b8952c;
+  --color-warning-600: #967623;
+  --color-warning-700: #715a1b;
+  --color-warning-900: #443611;
+
+  /* highlight: AI insights and special callouts (was "purple") - vinyl-label plum */
+  --color-highlight-300: #c9a8b8;
+  --color-highlight-400: #a8748c;
+  --color-highlight-500: #8c5670;
+  --color-highlight-600: #714259;
+  --color-highlight-700: #573345;
+  --color-highlight-900: #331e28;
+
+  /* type: display serif used sparingly for titles/big stat numbers, a
+     humanist sans for everything else, and a mono for all numeric data
+     (play counts, durations, dates) so they read like a tracklist */
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color-scheme: dark;
+  color: var(--color-surface-100);
+  background-color: var(--color-surface-900);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -17,17 +97,21 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-brand-400);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-brand-300);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
 }
 
 h1 {
@@ -42,27 +126,14 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-surface-800);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--color-brand-400);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+  outline: 4px auto var(--color-brand-400);
 }

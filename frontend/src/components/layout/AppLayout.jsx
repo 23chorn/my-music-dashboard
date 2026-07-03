@@ -15,9 +15,9 @@ import AppHeader from "./AppHeader";
 
 export default function AppLayout({ searchProps }) {
   return (
-    <div className="flex min-h-screen bg-gray-950 w-full flex-col">
+    <div className="flex min-h-screen bg-surface-950 w-full flex-col">
       <AppHeader {...searchProps} />
-      <main className="flex-1 w-full bg-gray-950">
+      <main className="flex-1 w-full bg-surface-950">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/artist/:id" element={<ArtistView />} />

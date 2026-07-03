@@ -17,7 +17,7 @@ export default function StatsView() {
       title="Statistics"
       subheader="Your music listening patterns, trends, and discovery insights"
       loading={loading}
-      error={error ? `⚠️ Error Loading Stats: ${error}` : null}
+      error={error ? `Error loading stats: ${error}` : null}
     >
       <div className="space-y-8">
         <OverviewStats statsData={statsData} />

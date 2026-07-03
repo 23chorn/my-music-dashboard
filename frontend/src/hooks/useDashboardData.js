@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getTopArtistsFromServer,
   getTopTracksFromServer,
@@ -6,7 +6,7 @@ import {
   getTopAlbumsFromServer,
   syncTracksFromServer,
 } from "../data/dashboardApi";
-import { getUniqueCountsFromServer, getBehaviorAnalysisFromServer, getCalculatedMetricsFromServer } from "../data/statsApi";
+import { getUniqueCountsFromServer } from "../data/statsApi";
 import { DEFAULT_LIMITS, DEFAULT_PERIODS } from "../config/appConfig";
 
 export default function useDashboardData() {
@@ -33,7 +33,7 @@ export default function useDashboardData() {
   const [recentLimit, setRecentLimit] = useState(DEFAULT_LIMITS.dashboard.recent);
 
 
-  async function fetchAllData() {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
       const [artists, tracks, albums, recent, uniqueCounts] = await Promise.all([
@@ -66,7 +66,7 @@ export default function useDashboardData() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [artistLimit, artistPeriod, trackLimit, trackPeriod, albumLimit, albumPeriod, recentLimit]);
 
   async function syncNewTracks() {
     setSyncing(true);
@@ -94,7 +94,7 @@ export default function useDashboardData() {
   }
 
   // Individual section fetch functions
-  async function fetchArtists() {
+  const fetchArtists = useCallback(async () => {
     setArtistsLoading(true);
     try {
       const artists = await getTopArtistsFromServer(artistLimit, artistPeriod);
@@ -105,9 +105,9 @@ export default function useDashboardData() {
     } finally {
       setArtistsLoading(false);
     }
-  }
+  }, [artistLimit, artistPeriod]);
 
-  async function fetchTracks() {
+  const fetchTracks = useCallback(async () => {
     setTracksLoading(true);
     try {
       const tracks = await getTopTracksFromServer(trackLimit, trackPeriod);
@@ -118,9 +118,9 @@ export default function useDashboardData() {
     } finally {
       setTracksLoading(false);
     }
-  }
+  }, [trackLimit, trackPeriod]);
 
-  async function fetchAlbums() {
+  const fetchAlbums = useCallback(async () => {
     setAlbumsLoading(true);
     try {
       const albums = await getTopAlbumsFromServer(albumLimit, albumPeriod);
@@ -131,9 +131,9 @@ export default function useDashboardData() {
     } finally {
       setAlbumsLoading(false);
     }
-  }
+  }, [albumLimit, albumPeriod]);
 
-  async function fetchRecent() {
+  const fetchRecent = useCallback(async () => {
     setRecentLoading(true);
     try {
       const recent = await getRecentTracksFromServer(recentLimit);
@@ -144,30 +144,34 @@ export default function useDashboardData() {
     } finally {
       setRecentLoading(false);
     }
-  }
+  }, [recentLimit]);
 
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   useEffect(() => {
+    // Intentionally run once on mount only - fetchAllData is refreshed here
+    // regardless of later limit/period changes, which are each handled by
+    // their own dedicated effect below instead.
     fetchAllData().finally(() => setInitialLoadComplete(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Individual section updates when filters change
   useEffect(() => {
     if (initialLoadComplete) fetchArtists(); // Don't refetch during initial load
-  }, [artistPeriod, artistLimit]);
+  }, [initialLoadComplete, fetchArtists]);
 
   useEffect(() => {
     if (initialLoadComplete) fetchTracks();
-  }, [trackPeriod, trackLimit]);
+  }, [initialLoadComplete, fetchTracks]);
 
   useEffect(() => {
     if (initialLoadComplete) fetchAlbums();
-  }, [albumPeriod, albumLimit]);
+  }, [initialLoadComplete, fetchAlbums]);
 
   useEffect(() => {
     if (initialLoadComplete) fetchRecent();
-  }, [recentLimit]);
+  }, [initialLoadComplete, fetchRecent]);
 
   return {
     topArtists, setTopArtists, artistLimit, setArtistLimit, artistPeriod, setArtistPeriod,

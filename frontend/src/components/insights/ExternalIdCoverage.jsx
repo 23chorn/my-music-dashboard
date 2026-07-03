@@ -31,8 +31,8 @@ export default function ExternalIdCoverage({ data = {} }) {
       withId: albumsWithSpotifyId,
       total: totalAlbums,
       colorClasses: {
-        text: "text-blue-400",
-        bg: "bg-blue-400"
+        text: "text-brand-400",
+        bg: "bg-brand-400"
       }
     },
     {
@@ -41,16 +41,16 @@ export default function ExternalIdCoverage({ data = {} }) {
       withId: tracksWithSpotifyId,
       total: totalTracks,
       colorClasses: {
-        text: "text-purple-400",
-        bg: "bg-purple-400"
+        text: "text-highlight-400",
+        bg: "bg-highlight-400"
       }
     }
   ];
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">🔗 External ID Coverage</h2>
-      <p className="text-gray-400 text-sm mb-6">
+    <div className="bg-surface-900 rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">External ID Coverage</h2>
+      <p className="text-surface-400 text-sm mb-6">
         Percentage of content linked to external services (Spotify/Last.fm)
       </p>
 
@@ -63,10 +63,10 @@ export default function ExternalIdCoverage({ data = {} }) {
                 {item.coverage}%
               </span>
             </div>
-            <p className="text-gray-400 text-sm mb-3">
+            <p className="text-surface-400 text-sm mb-3">
               {formatValue(item.withId)} of {formatValue(item.total)} {item.label.toLowerCase()} have external IDs
             </p>
-            <div className="bg-gray-800 rounded-full h-3">
+            <div className="bg-surface-800 rounded-full h-3">
               <div
                 className={`${item.colorClasses.bg} rounded-full h-3`}
                 style={{ width: `${item.coverage}%` }}

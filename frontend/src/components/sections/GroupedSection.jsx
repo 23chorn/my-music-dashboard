@@ -31,7 +31,7 @@ export default function GroupedSection({
   // Separate collapse button so it stays next to the title
   const collapseButton = collapsible && (
     <button
-      className="p-0.5 hover:bg-gray-800 hover:bg-opacity-50 rounded transition ml-2 text-gray-400 hover:text-gray-300"
+      className="p-0.5 hover:bg-surface-800 hover:bg-opacity-50 rounded transition ml-2 text-surface-400 hover:text-surface-300"
       onClick={() => setOpen(o => !o)}
       aria-label={open ? "Collapse section" : "Expand section"}
     >
@@ -57,15 +57,19 @@ export default function GroupedSection({
 
   const content = (
     <>
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-2 gap-2">
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
-          <h2 
-            className={`text-lg sm:text-2xl font-semibold text-blue-400 text-center ${collapsible ? 'cursor-pointer hover:text-blue-300 transition-colors' : ''}`}
+      <div className="flex flex-col sm:flex-row items-center justify-between mb-3 gap-2">
+        <div className="flex items-center gap-3 w-full sm:flex-1 justify-center sm:justify-start min-w-0">
+          <h2
+            className={`font-display text-base sm:text-lg uppercase tracking-widest text-brand-400 whitespace-nowrap ${collapsible ? 'cursor-pointer hover:text-brand-300 transition-colors' : ''}`}
             onClick={collapsible ? () => setOpen(o => !o) : undefined}
           >
             {title}
           </h2>
           {collapseButton}
+          <span className="hidden sm:block flex-1 h-px bg-surface-700 min-w-8" />
+          <span className="hidden sm:inline font-mono text-xs text-surface-500 whitespace-nowrap">
+            {mappedItems.length}
+          </span>
         </div>
         {controls}
       </div>
@@ -73,13 +77,13 @@ export default function GroupedSection({
         layout === "grid" ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {mappedItems.map((item, idx) => (
-              <GridTile key={idx} {...item} />
+              <GridTile key={idx} rank={idx + 1} {...item} />
             ))}
           </div>
         ) : (
           <ul className="space-y-2 sm:space-y-3">
             {mappedItems.map((item, idx) => (
-              <ListTile key={idx} {...item} />
+              <ListTile key={idx} rank={idx + 1} {...item} />
             ))}
           </ul>
         )

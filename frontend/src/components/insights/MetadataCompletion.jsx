@@ -28,8 +28,8 @@ export default function MetadataCompletion({ data = {} }) {
       completed: albumsWithImages,
       total: totalAlbums,
       colorClasses: {
-        text: "text-blue-400",
-        bg: "bg-blue-400"
+        text: "text-brand-400",
+        bg: "bg-brand-400"
       }
     },
     {
@@ -37,8 +37,8 @@ export default function MetadataCompletion({ data = {} }) {
       completed: tracksWithDuration,
       total: totalTracks,
       colorClasses: {
-        text: "text-purple-400",
-        bg: "bg-purple-400"
+        text: "text-highlight-400",
+        bg: "bg-highlight-400"
       }
     },
     {
@@ -62,9 +62,9 @@ export default function MetadataCompletion({ data = {} }) {
   ];
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-white mb-6">📋 Metadata Completion</h2>
-      <p className="text-gray-400 text-sm mb-6">
+    <div className="bg-surface-900 rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Metadata Completion</h2>
+      <p className="text-surface-400 text-sm mb-6">
         Completeness of metadata fields across your music library
       </p>
 
@@ -80,10 +80,10 @@ export default function MetadataCompletion({ data = {} }) {
                   {percentage}%
                 </span>
               </div>
-              <p className="text-gray-400 text-xs mb-2">
+              <p className="text-surface-400 text-xs mb-2">
                 {formatValue(item.completed)} of {formatValue(item.total)} items
               </p>
-              <div className="bg-gray-800 rounded-full h-2">
+              <div className="bg-surface-800 rounded-full h-2">
                 <div
                   className={`${item.colorClasses.bg} rounded-full h-2`}
                   style={{ width: `${percentage}%` }}
@@ -94,8 +94,8 @@ export default function MetadataCompletion({ data = {} }) {
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-gray-800 rounded-lg">
-        <h3 className="text-white font-medium mb-2">📊 Overall Completion</h3>
+      <div className="mt-6 p-4 bg-surface-800 rounded-lg">
+        <h3 className="text-white font-medium mb-2">Overall Completion</h3>
         <div className="text-center">
           <div className="text-2xl font-bold text-white mb-1">
             {Math.round(
@@ -105,7 +105,7 @@ export default function MetadataCompletion({ data = {} }) {
               }, 0) / completionItems.length
             )}%
           </div>
-          <div className="text-gray-400 text-sm">Average metadata completeness</div>
+          <div className="text-surface-400 text-sm">Average metadata completeness</div>
         </div>
       </div>
     </div>
