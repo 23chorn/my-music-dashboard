@@ -31,12 +31,16 @@ export default function WheelPicker({ options, value, onChange }) {
     const idx = clampIndex(Math.round(el.scrollTop / ROW_HEIGHT));
     setCenterIndex(idx);
 
+    // Report the value as soon as it's known, not after the settle delay below —
+    // otherwise a "Done" tap right after the finger lifts can land before this
+    // fires and commit the previous value instead of the one just scrolled to.
+    const opt = options[idx];
+    if (opt && opt.value !== value) onChange(opt.value);
+
     clearTimeout(settleTimeout.current);
     settleTimeout.current = setTimeout(() => {
       const settled = clampIndex(Math.round(el.scrollTop / ROW_HEIGHT));
       el.scrollTo({ top: settled * ROW_HEIGHT, behavior: "smooth" });
-      const opt = options[settled];
-      if (opt && opt.value !== value) onChange(opt.value);
     }, SETTLE_DELAY);
   };
 

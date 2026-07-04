@@ -139,15 +139,18 @@ export class LegacySpotifyDatabaseService {
   }
 
   // Find or create album by name, return internal ID
-  async findOrCreateAlbum(albumData) {
+  // artistIds (internal ids of the album's artists) disambiguates albums that
+  // share a title but belong to different artists (e.g. two albums both called
+  // "Radio") so they don't get merged onto the same row by the name fallback below.
+  async findOrCreateAlbum(albumData, artistIds = []) {
     try {
       // Normalize Spotify ID to base form for consistent lookup
       const baseSpotifyId = albumData.spotifyId.replace('spotify:album:', '');
-      
+
       // First try to find by Spotify ID (check both URI and base formats)
       const externalId = await getSharedPool().query(
-        `SELECT entity_id FROM external_ids 
-         WHERE entity_type = 'album' AND source = 'spotify' 
+        `SELECT entity_id FROM external_ids
+         WHERE entity_type = 'album' AND source = 'spotify'
          AND (external_id = $1 OR external_id = $2)`,
         [baseSpotifyId, `spotify:album:${baseSpotifyId}`]
       );
@@ -159,15 +162,19 @@ export class LegacySpotifyDatabaseService {
       // Normalize the album name for better matching (trim, case insensitive, remove extra spaces)
       const normalizedName = albumData.name.trim().replace(/\s+/g, ' ');
 
-      // Try to find by normalized name (case insensitive)
+      // Try to find by normalized name (case insensitive), but only reuse a row
+      // belonging to one of the same artists when we know who the artists are
       const existing = await getSharedPool().query(
-        `SELECT id, name FROM albums 
-         WHERE LOWER(TRIM(REGEXP_REPLACE(name, '\\s+', ' ', 'g'))) = LOWER($1)
-         ORDER BY 
-           CASE WHEN name = $2 THEN 1 ELSE 2 END, -- Prefer exact match
-           LENGTH(name) -- Then prefer shorter names
+        `SELECT id, name FROM albums al
+         WHERE LOWER(TRIM(REGEXP_REPLACE(al.name, '\\s+', ' ', 'g'))) = LOWER($1)
+         AND ($3::int[] IS NULL OR EXISTS (
+           SELECT 1 FROM album_artists aa WHERE aa.album_id = al.id AND aa.artist_id = ANY($3::int[])
+         ))
+         ORDER BY
+           CASE WHEN al.name = $2 THEN 1 ELSE 2 END, -- Prefer exact match
+           LENGTH(al.name) -- Then prefer shorter names
          LIMIT 1`,
-        [normalizedName, albumData.name]
+        [normalizedName, albumData.name, artistIds.length > 0 ? artistIds : null]
       );
 
       let albumId;
@@ -222,15 +229,17 @@ export class LegacySpotifyDatabaseService {
   }
 
   // Find or create track by name, return internal ID
-  async findOrCreateTrack(trackData) {
+  // artistIds disambiguates tracks that share a title but belong to different
+  // artists, the same way findOrCreateAlbum does for albums.
+  async findOrCreateTrack(trackData, artistIds = []) {
     try {
       // Normalize Spotify ID to base form for consistent lookup
       const baseSpotifyId = trackData.spotifyId.replace('spotify:track:', '');
-      
+
       // First try to find by Spotify ID (check both URI and base formats)
       const externalId = await getSharedPool().query(
-        `SELECT entity_id FROM external_ids 
-         WHERE entity_type = 'track' AND source = 'spotify' 
+        `SELECT entity_id FROM external_ids
+         WHERE entity_type = 'track' AND source = 'spotify'
          AND (external_id = $1 OR external_id = $2)`,
         [baseSpotifyId, `spotify:track:${baseSpotifyId}`]
       );
@@ -242,13 +251,16 @@ export class LegacySpotifyDatabaseService {
       // Normalize track name for better matching
       const normalizedName = trackData.name.trim().replace(/\s+/g, ' ');
 
-      // For duplicate prevention, try to find by normalized name only
-      // (We can't use primaryArtistId here as it's not available at this stage)
+      // For duplicate prevention, try to find by normalized name, but only reuse
+      // a row belonging to one of the same artists when we know who they are
       const existing = await getSharedPool().query(
-        `SELECT id FROM tracks 
-         WHERE LOWER(TRIM(REGEXP_REPLACE(name, '\\s+', ' ', 'g'))) = LOWER($1) 
+        `SELECT id FROM tracks t
+         WHERE LOWER(TRIM(REGEXP_REPLACE(t.name, '\\s+', ' ', 'g'))) = LOWER($1)
+         AND ($2::int[] IS NULL OR EXISTS (
+           SELECT 1 FROM track_artists ta WHERE ta.track_id = t.id AND ta.artist_id = ANY($2::int[])
+         ))
          LIMIT 1`,
-        [normalizedName]
+        [normalizedName, artistIds.length > 0 ? artistIds : null]
       );
 
       let trackId;

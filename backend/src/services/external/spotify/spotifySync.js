@@ -140,17 +140,37 @@ class SpotifyMusicSync {
           artistIdMap.set(artist.spotifyId, artistId);
         }
 
+        // Look up the internal artist ids for a given album/track so the name-based
+        // fallback matching below can require an artist match, not just a title match
+        // (otherwise same-titled works by different artists collide onto one row)
+        const albumArtistSpotifyIds = new Map();
+        for (const { albumSpotifyId, artistSpotifyId } of processedData.albumArtists) {
+          if (!albumArtistSpotifyIds.has(albumSpotifyId)) albumArtistSpotifyIds.set(albumSpotifyId, []);
+          albumArtistSpotifyIds.get(albumSpotifyId).push(artistSpotifyId);
+        }
+        const trackArtistSpotifyIds = new Map();
+        for (const { trackSpotifyId, artistSpotifyId } of processedData.trackArtists) {
+          if (!trackArtistSpotifyIds.has(trackSpotifyId)) trackArtistSpotifyIds.set(trackSpotifyId, []);
+          trackArtistSpotifyIds.get(trackSpotifyId).push(artistSpotifyId);
+        }
+
         // 3. Process albums and get internal IDs
         const albumIdMap = new Map();
         for (const album of processedData.albums) {
-          const albumId = await this.dbService.findOrCreateAlbum(album);
+          const artistIds = (albumArtistSpotifyIds.get(album.spotifyId) || [])
+            .map(spotifyId => artistIdMap.get(spotifyId))
+            .filter(Boolean);
+          const albumId = await this.dbService.findOrCreateAlbum(album, artistIds);
           albumIdMap.set(album.spotifyId, albumId);
         }
 
         // 4. Process tracks and get internal IDs
         const trackIdMap = new Map();
         for (const track of processedData.tracks) {
-          const trackId = await this.dbService.findOrCreateTrack(track);
+          const artistIds = (trackArtistSpotifyIds.get(track.spotifyId) || [])
+            .map(spotifyId => artistIdMap.get(spotifyId))
+            .filter(Boolean);
+          const trackId = await this.dbService.findOrCreateTrack(track, artistIds);
           trackIdMap.set(track.spotifyId, trackId);
           processedTracks++;
         }

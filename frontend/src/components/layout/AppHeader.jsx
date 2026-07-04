@@ -3,6 +3,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import SearchBar from "../navigation/SearchBar";
 import SearchResultsDropdown from "../navigation/SearchResultsDropdown";
 import MenuButton from "../navigation/MenuButton";
+import NavTabs from "../navigation/NavTabs";
 
 export default function AppHeader({
   onSearch,
@@ -34,8 +35,8 @@ export default function AppHeader({
 
   return (
     <div className="w-full flex flex-col items-center justify-center pt-4 gap-4 px-4">
-      <div className="w-full flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-center">
-        <div className="sm:absolute sm:left-4 flex items-center gap-2">
+      <div className="w-full lg:max-w-7xl lg:mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-center lg:justify-between">
+        <div className="sm:absolute sm:left-4 lg:static flex items-center gap-2">
           {showBackButton && (
             <button
               onClick={handleBack}
@@ -45,9 +46,12 @@ export default function AppHeader({
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
           )}
-          <MenuButton />
+          <div className="lg:hidden">
+            <MenuButton />
+          </div>
+          <NavTabs />
         </div>
-        <div className="w-full sm:max-w-xl">
+        <div className="w-full sm:max-w-xl lg:w-auto lg:max-w-xs">
           <div className="relative w-full">
             <SearchBar
               onSearch={onSearch}
