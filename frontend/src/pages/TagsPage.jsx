@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
-import { TagIcon, PlusIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { TagIcon, PlusIcon, PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 
 const TAG_COLORS = [
   '#64748B', // Slate
@@ -162,24 +162,24 @@ export default function TagsPage() {
       <div className="space-y-6">
         {/* Create New Tag */}
         <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Create New Tag</h2>
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400 mb-4">Create New Tag</h2>
 
           {!showCreateForm ? (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 border border-surface-700 rounded transition-colors"
             >
               <PlusIcon className="w-4 h-4" />
               Create Tag
             </button>
           ) : (
-            <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-800 rounded-lg">
+            <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-800 border border-surface-700 rounded">
               <input
                 type="text"
                 value={newTagName}
                 onChange={(e) => setNewTagName(e.target.value)}
                 placeholder="Tag name"
-                className="flex-1 min-w-48 px-3 py-2 text-sm bg-surface-700 border border-surface-600 rounded text-white placeholder-surface-400 focus:outline-none focus:border-brand-500"
+                className="flex-1 min-w-48 px-3 py-2 text-sm bg-surface-700 border border-surface-600 rounded text-surface-100 placeholder-surface-500 focus:outline-none focus:border-brand-400"
                 onKeyDown={(e) => e.key === 'Enter' && createTag()}
               />
 
@@ -189,8 +189,8 @@ export default function TagsPage() {
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`w-6 h-6 rounded-full border-2 ${
-                      selectedColor === color ? 'border-white' : 'border-surface-600'
+                    className={`w-6 h-6 rounded-full transition-shadow ${
+                      selectedColor === color ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-surface-800' : ''
                     }`}
                     style={{ backgroundColor: color }}
                     title={`Select ${color}`}
@@ -223,14 +223,14 @@ export default function TagsPage() {
 
         {/* Existing Tags */}
         <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">All Tags</h2>
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400 mb-4">All Tags</h2>
 
           {tags.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {tags.map((tag) => (
                 <div
                   key={tag.id}
-                  className="bg-surface-800 rounded-lg p-4 hover:bg-surface-750 transition-colors"
+                  className="bg-surface-800 border border-surface-700 rounded-lg p-4 hover:border-surface-600 transition-colors"
                 >
                   {editingTag === tag.id ? (
                     // Edit mode
@@ -240,7 +240,7 @@ export default function TagsPage() {
                           className="w-4 h-4 rounded-full"
                           style={{ backgroundColor: editingColor }}
                         />
-                        <span className="text-white font-medium">{tag.name}</span>
+                        <span className="text-surface-100 font-medium">{tag.name}</span>
                       </div>
 
                       {/* Color Picker */}
@@ -249,8 +249,8 @@ export default function TagsPage() {
                           <button
                             key={color}
                             onClick={() => setEditingColor(color)}
-                            className={`w-6 h-6 rounded-full border-2 ${
-                              editingColor === color ? 'border-white' : 'border-surface-600'
+                            className={`w-6 h-6 rounded-full transition-shadow ${
+                              editingColor === color ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-surface-800' : ''
                             }`}
                             style={{ backgroundColor: color }}
                             title={`Select ${color}`}
@@ -289,7 +289,7 @@ export default function TagsPage() {
                             className="w-4 h-4 rounded-full"
                             style={{ backgroundColor: tag.color }}
                           />
-                          <span className="text-white font-medium">{tag.name}</span>
+                          <span className="text-surface-100 font-medium">{tag.name}</span>
                         </Link>
                         <div className="flex gap-1">
                           <button
@@ -304,22 +304,21 @@ export default function TagsPage() {
                             className="text-surface-400 hover:text-danger-400 transition-colors"
                             title="Delete tag"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            <TrashIcon className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
 
-                      <div className="text-sm text-surface-400">
-                        Created: {new Date(tag.created_at).toLocaleDateString()}
+                      <div className="font-mono text-xs text-surface-500">
+                        Created {new Date(tag.created_at).toLocaleDateString()}
                       </div>
 
                       <Link
                         to={`/tags/${tag.id}?name=${encodeURIComponent(tag.name)}`}
-                        className="inline-block mt-2 text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                        className="inline-flex items-center gap-1 mt-2 text-xs text-brand-400 hover:text-brand-300 transition-colors"
                       >
-                        View tagged items →
+                        View tagged items
+                        <ArrowRightIcon className="w-3 h-3" />
                       </Link>
                     </>
                   )}
@@ -328,8 +327,8 @@ export default function TagsPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <TagIcon className="w-12 h-12 text-surface-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-surface-400 mb-2">No tags yet</h3>
+              <TagIcon className="w-12 h-12 text-surface-700 mx-auto mb-4" />
+              <h3 className="font-display text-lg text-surface-300 mb-2">No tags yet</h3>
               <p className="text-surface-500">Create your first tag to get started</p>
             </div>
           )}

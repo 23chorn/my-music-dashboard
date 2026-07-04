@@ -191,7 +191,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
     <div className="space-y-3">
       {/* Current Tags */}
       <div>
-        <h4 className="text-sm font-medium text-surface-300 mb-2">
+        <h4 className="font-display text-[10px] uppercase tracking-widest text-surface-500 mb-2">
           Tags {entityName && `for "${entityName}"`}
         </h4>
         <div className="flex flex-wrap gap-2">
@@ -229,7 +229,7 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
       {/* Quick Add Existing Tags */}
       {availableTags.length > 0 && (
         <div>
-          <h5 className="text-xs font-medium text-surface-400 mb-1">Quick Add:</h5>
+          <h5 className="font-display text-[10px] uppercase tracking-widest text-surface-500 mb-1.5">Quick Add</h5>
           <div className="flex flex-wrap gap-1">
             {availableTags.slice(0, 5).map((tag) => (
               <button
@@ -253,19 +253,19 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
         {!showAddForm ? (
           <button
             onClick={() => setShowAddForm(true)}
-            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 rounded-full transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-surface-300 hover:text-white bg-surface-800 hover:bg-surface-700 border border-surface-700 rounded-full transition-colors"
           >
             <PlusIcon className="w-3 h-3" />
             Add Tag
           </button>
         ) : (
-          <div className="flex flex-wrap items-center gap-2 p-3 bg-surface-800 rounded-lg">
+          <div className="flex flex-wrap items-center gap-2 p-3 bg-surface-800 border border-surface-700 rounded">
             <input
               type="text"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               placeholder="Tag name"
-              className="flex-1 min-w-0 px-2 py-1 text-sm bg-surface-700 border border-surface-600 rounded text-white placeholder-surface-400 focus:outline-none focus:border-brand-500"
+              className="flex-1 min-w-0 px-2 py-1 text-sm bg-surface-700 border border-surface-600 rounded text-surface-100 placeholder-surface-500 focus:outline-none focus:border-brand-400"
               onKeyDown={(e) => e.key === 'Enter' && addTag()}
             />
 
@@ -275,8 +275,8 @@ export default function TagManager({ entityId, entityType, entityName, onTagsCha
                 <button
                   key={color}
                   onClick={() => setSelectedColor(color)}
-                  className={`w-5 h-5 rounded-full border-2 ${
-                    selectedColor === color ? 'border-white' : 'border-surface-600'
+                  className={`w-5 h-5 rounded-full transition-shadow ${
+                    selectedColor === color ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-surface-800' : ''
                   }`}
                   style={{ backgroundColor: color }}
                   title={`Select ${color}`}

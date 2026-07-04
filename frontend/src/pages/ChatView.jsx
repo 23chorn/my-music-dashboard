@@ -5,7 +5,8 @@ import {
   PaperAirplaneIcon,
   PlusIcon,
   TrashIcon,
-  PencilIcon
+  PencilIcon,
+  CheckIcon
 } from '@heroicons/react/24/outline';
 import {
   getConversations,
@@ -173,8 +174,8 @@ export default function ChatView() {
           <div className="p-4 border-b border-surface-700">
             <button
               onClick={handleNewConversation}
-              className="w-full flex items-center justify-center space-x-2 bg-brand-600 hover:bg-brand-700
-                       text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700
+                       text-white px-4 py-2 rounded text-sm font-medium transition-colors"
             >
               <PlusIcon className="h-4 w-4" />
               <span>New Chat</span>
@@ -183,7 +184,7 @@ export default function ChatView() {
 
           <div className="flex-1 overflow-y-auto">
             {conversations.length === 0 ? (
-              <div className="p-4 text-center text-surface-500 text-sm">
+              <div className="p-4 text-center text-surface-600 italic text-sm">
                 No conversations yet
               </div>
             ) : (
@@ -191,7 +192,7 @@ export default function ChatView() {
                 {conversations.map((conv) => (
                   <div
                     key={conv.id}
-                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                    className={`flex items-center justify-between p-3 rounded cursor-pointer transition-colors ${
                       currentConversation?.id === conv.id
                         ? 'bg-surface-700'
                         : 'hover:bg-surface-700/50'
@@ -201,10 +202,10 @@ export default function ChatView() {
                       className="flex-1 min-w-0"
                       onClick={() => selectConversation(conv.id)}
                     >
-                      <p className="text-sm text-white truncate">
+                      <p className="text-sm text-surface-100 truncate">
                         {conv.title || conv.first_message || 'New Conversation'}
                       </p>
-                      <p className="text-xs text-surface-400">
+                      <p className="font-mono text-xs text-surface-500">
                         {conv.message_count} messages
                       </p>
                     </div>
@@ -230,8 +231,8 @@ export default function ChatView() {
           {!currentConversation ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <ChatBubbleLeftRightIcon className="h-16 w-16 text-surface-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-surface-300 mb-2">
+                <ChatBubbleLeftRightIcon className="h-16 w-16 text-surface-700 mx-auto mb-4" />
+                <h3 className="font-display text-lg text-surface-300 mb-2">
                   No conversation selected
                 </h3>
                 <p className="text-sm text-surface-500 mb-4">
@@ -239,7 +240,7 @@ export default function ChatView() {
                 </p>
                 <button
                   onClick={handleNewConversation}
-                  className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm"
+                  className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded text-sm transition-colors"
                 >
                   Start Chatting
                 </button>
@@ -263,25 +264,23 @@ export default function ChatView() {
                           handleCancelRename();
                         }
                       }}
-                      className="flex-1 bg-surface-800 border border-brand-500 rounded-lg px-3 py-2 text-white
-                               focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="flex-1 bg-surface-800 border border-brand-500 rounded px-3 py-2 text-surface-100
+                               focus:outline-none focus:ring-1 focus:ring-brand-400"
                       placeholder="Conversation title..."
                       autoFocus
                     />
                     <button
                       onClick={() => handleSaveRename(currentConversation.id)}
-                      className="px-3 py-2 bg-success-600 hover:bg-success-700 text-white rounded-lg text-sm
+                      className="px-3 py-2 bg-success-600 hover:bg-success-700 text-white rounded text-sm
                                transition-colors flex items-center gap-1"
                       title="Save"
                     >
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                      <CheckIcon className="h-4 w-4" />
                       Save
                     </button>
                     <button
                       onClick={handleCancelRename}
-                      className="px-3 py-2 bg-surface-700 hover:bg-surface-600 text-white rounded-lg text-sm
+                      className="px-3 py-2 bg-surface-700 hover:bg-surface-600 text-white rounded text-sm
                                transition-colors"
                       title="Cancel"
                     >
@@ -291,7 +290,7 @@ export default function ChatView() {
                 ) : (
                   // Normal mode
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white truncate">
+                    <h2 className="text-lg font-semibold text-surface-100 truncate">
                       {currentConversation?.title || currentConversation?.first_message || 'New Conversation'}
                     </h2>
                     <button
@@ -300,7 +299,7 @@ export default function ChatView() {
                         currentConversation.title || currentConversation.first_message || 'New Conversation'
                       )}
                       className="flex items-center gap-2 px-3 py-1.5 text-sm text-surface-300 hover:text-white
-                               hover:bg-surface-700 rounded-lg transition-colors"
+                               hover:bg-surface-700 rounded transition-colors"
                       title="Rename conversation"
                     >
                       <PencilIcon className="h-4 w-4" />
@@ -315,11 +314,11 @@ export default function ChatView() {
                 {messages.length === 0 ? (
                   <div className="text-center text-surface-500 mt-8">
                     <p className="mb-4">Ask me anything about your listening history!</p>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-brand-400">Try asking:</p>
-                      <p>&quot;What are my top artists this month?&quot;</p>
-                      <p>&quot;How many times have I listened to Kendrick Lamar?&quot;</p>
-                      <p>&quot;What were my listening stats last week?&quot;</p>
+                    <div className="space-y-1.5">
+                      <p className="font-display text-xs uppercase tracking-widest text-brand-400 mb-2">Try Asking</p>
+                      <p className="font-mono text-sm text-surface-400">&quot;What are my top artists this month?&quot;</p>
+                      <p className="font-mono text-sm text-surface-400">&quot;How many times have I listened to Kendrick Lamar?&quot;</p>
+                      <p className="font-mono text-sm text-surface-400">&quot;What were my listening stats last week?&quot;</p>
                     </div>
                   </div>
                 ) : (
@@ -329,7 +328,7 @@ export default function ChatView() {
                       className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-lg px-4 py-2 ${
+                        className={`max-w-[70%] rounded px-4 py-2 ${
                           msg.role === 'user'
                             ? 'bg-brand-600 text-white'
                             : 'bg-surface-700 text-surface-100'
@@ -358,7 +357,7 @@ export default function ChatView() {
                         ) : (
                           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         )}
-                        <p className="text-xs mt-1 opacity-70">
+                        <p className="font-mono text-xs mt-1 opacity-70">
                           {new Date(msg.created_at).toLocaleTimeString()}
                         </p>
                       </div>
@@ -368,11 +367,11 @@ export default function ChatView() {
 
                 {sending && (
                   <div className="flex justify-start">
-                    <div className="bg-surface-700 rounded-lg px-4 py-2">
+                    <div className="bg-surface-700 rounded px-4 py-2">
                       <div className="flex space-x-2">
-                        <div className="w-2 h-2 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                        <div className="w-2 h-2 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                        <div className="w-2 h-2 bg-surface-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        <div className="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-brand-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                       </div>
                     </div>
                   </div>
@@ -397,15 +396,15 @@ export default function ChatView() {
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Ask me about your listening data..."
                     disabled={sending}
-                    className="flex-1 bg-surface-800 border border-surface-600 rounded-lg px-4 py-2 text-white
-                             placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500
+                    className="flex-1 bg-surface-800 border border-surface-700 rounded px-4 py-2 text-surface-100
+                             placeholder-surface-500 focus:outline-none focus:ring-1 focus:ring-brand-400
                              disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     type="submit"
                     disabled={!inputMessage.trim() || sending}
-                    className="bg-brand-600 hover:bg-brand-700 disabled:bg-brand-800 disabled:cursor-not-allowed
-                             text-white p-2 rounded-lg transition-colors"
+                    className="bg-brand-600 hover:bg-brand-700 disabled:bg-surface-600 disabled:cursor-not-allowed
+                             text-white p-2 rounded transition-colors"
                   >
                     <PaperAirplaneIcon className="h-5 w-5" />
                   </button>

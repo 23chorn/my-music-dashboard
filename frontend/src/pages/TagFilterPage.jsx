@@ -137,28 +137,28 @@ export default function TagFilterPage() {
         {/* Tag Statistics */}
         {tagStats && (
           <div className="bg-surface-900 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Tag Statistics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h2 className="font-display text-sm uppercase tracking-widest text-brand-400 mb-6">Tag Statistics</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {ENTITY_TYPES.map((type) => {
                 const stat = tagStats.stats.find(s => s.entity_type === type.value);
                 const count = stat ? parseInt(stat.count) : 0;
                 return (
                   <div
                     key={type.value}
-                    className={`p-5 rounded-lg border transition-all cursor-pointer hover:scale-105 ${
+                    className={`p-5 rounded border transition-colors cursor-pointer ${
                       selectedType === type.value
-                        ? 'bg-brand-600/20 border-brand-400/50 ring-2 ring-brand-400/30'
-                        : 'bg-surface-800 border-surface-600 hover:border-surface-500'
+                        ? 'bg-brand-600/10 border-brand-400/50'
+                        : 'bg-surface-800 border-surface-700 hover:border-surface-600'
                     }`}
                     onClick={() => setSelectedType(type.value)}
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <type.icon className="w-5 h-5 text-surface-400" />
-                      <span className={`font-medium ${
-                        selectedType === type.value ? 'text-brand-300' : 'text-white'
+                      <type.icon className="w-5 h-5 text-surface-500" />
+                      <span className={`font-display text-xs uppercase tracking-widest ${
+                        selectedType === type.value ? 'text-brand-300' : 'text-surface-400'
                       }`}>{type.label}</span>
                     </div>
-                    <div className={`text-3xl font-bold ${
+                    <div className={`font-mono text-3xl font-bold tabular-nums ${
                       selectedType === type.value ? 'text-brand-400' : 'text-surface-300'
                     }`}>{count}</div>
                   </div>
@@ -171,24 +171,22 @@ export default function TagFilterPage() {
         {/* Entity Type Selector */}
         <div className="bg-surface-900 rounded-lg p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
-            <h2 className="text-xl font-semibold text-white">View Tagged Items</h2>
-            <div className="flex flex-wrap gap-3">
+            <h2 className="font-display text-sm uppercase tracking-widest text-brand-400">View Tagged Items</h2>
+            <div className="flex flex-wrap gap-2">
               {ENTITY_TYPES.map((type) => (
                 <button
                   key={type.value}
                   onClick={() => setSelectedType(type.value)}
-                  className={`px-4 sm:px-6 py-3 text-sm font-medium transition-all whitespace-nowrap rounded-xl shadow-lg ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 font-mono text-xs whitespace-nowrap rounded-sm border transition-colors ${
                     selectedType === type.value
-                      ? 'bg-brand-500 text-white shadow-brand-500/25 transform scale-105'
-                      : 'bg-surface-700 text-surface-300 hover:text-white hover:bg-surface-600 hover:shadow-xl'
+                      ? 'bg-brand-600 border-brand-600 text-white'
+                      : 'bg-surface-800 border-surface-700 text-surface-300 hover:bg-surface-700 hover:text-surface-100'
                   }`}
                 >
-                  <type.icon className="inline-block w-4 h-4 mr-2 -mt-0.5" />
+                  <type.icon className="w-3.5 h-3.5" />
                   {type.label}
                   {tagStats && (
-                    <span className={`ml-2 text-xs ${
-                      selectedType === type.value ? 'opacity-90' : 'opacity-75'
-                    }`}>
+                    <span className="opacity-75">
                       ({tagStats.stats.find(s => s.entity_type === type.value)?.count || 0})
                     </span>
                   )}
@@ -215,13 +213,13 @@ export default function TagFilterPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-surface-500 mb-2 flex justify-center">
+              <div className="text-surface-700 mb-2 flex justify-center">
                 {(() => {
                   const EmptyIcon = ENTITY_TYPES.find(t => t.value === selectedType)?.icon;
                   return EmptyIcon ? <EmptyIcon className="w-10 h-10" /> : null;
                 })()}
               </div>
-              <h3 className="text-lg font-medium text-surface-400 mb-2">
+              <h3 className="font-display text-lg text-surface-300 mb-2">
                 No {selectedType}s found
               </h3>
               <p className="text-surface-500">

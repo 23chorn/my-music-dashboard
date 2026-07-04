@@ -5,7 +5,7 @@
  */
 
 import { getPool } from '../connection.js';
-import { getPeriodTimestamp, parsePeriodOrDateRange } from '../../utils/period.js';
+import { parsePeriodOrDateRange } from '../../utils/period.js';
 import logger from '../../utils/logger.js';
 
 const pool = () => getPool();
@@ -329,12 +329,12 @@ export async function getTopAlbums({
 /**
  * Get top tracks for playlist creation (simplified version without album info)
  * @param {number} limit - Maximum number of tracks to return
- * @param {string} period - Time period (7d, 1m, 3m, 6m, 1y, all)
+ * @param {string|Object} periodOrOptions - Period code OR options object { period, startDate, endDate }
  * @returns {Promise<Array>} Array of top tracks
  */
-export async function getTopTracksForPlaylist(limit, period = "overall") {
-  logger.info(`getTopTracksForPlaylist called with limit=${limit}, period=${period}`);
-  const fromTimestamp = getPeriodTimestamp(period);
+export async function getTopTracksForPlaylist(limit, periodOrOptions = "overall") {
+  const { period, startDate, endDate, fromTimestamp, toTimestamp } = parsePeriodOrDateRange(periodOrOptions);
+  logger.info(`getTopTracksForPlaylist called with limit=${limit}, period=${period}, dates=${startDate} to ${endDate}`);
 
   let query = `
     SELECT t.id, t.name as track, a.name as artist, COUNT(DISTINCT p.id) as playcount
@@ -345,10 +345,20 @@ export async function getTopTracksForPlaylist(limit, period = "overall") {
   `;
 
   const params = [limit];
+  const conditions = [];
 
   if (fromTimestamp !== null) {
-    query += ` WHERE p.played_at >= to_timestamp($2)`;
     params.push(fromTimestamp);
+    conditions.push(`p.played_at >= to_timestamp($${params.length})`);
+  }
+
+  if (toTimestamp !== null) {
+    params.push(toTimestamp);
+    conditions.push(`p.played_at <= to_timestamp($${params.length})`);
+  }
+
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
   query += `

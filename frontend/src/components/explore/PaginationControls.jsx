@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 export default function PaginationControls({
   currentPage,
@@ -45,12 +46,13 @@ export default function PaginationControls({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="px-3 py-1 rounded bg-surface-700 text-white disabled:opacity-50"
+        className="flex items-center gap-1 pl-2 pr-3 py-2 rounded-lg bg-surface-800 hover:bg-surface-700 disabled:opacity-40 disabled:hover:bg-surface-800 text-surface-300 hover:text-white transition-colors font-mono text-xs"
       >
-        Prev
+        <ChevronLeftIcon className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline">Prev</span>
       </button>
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-brand-400">Page</span>
+      <div className="flex items-center gap-1.5 bg-surface-800 border border-surface-700 rounded-sm px-2.5 py-1.5">
+        <span className="font-display text-[10px] uppercase tracking-wide text-surface-500">Page</span>
         <input
           type="number"
           value={isEditing ? pageInput : currentPage}
@@ -63,16 +65,17 @@ export default function PaginationControls({
               handlePageInputSubmit();
             }
           }}
-          className="bg-surface-700 text-white p-1 rounded w-16 text-center text-sm"
+          className="bg-transparent text-surface-100 font-mono text-xs w-10 text-center focus:outline-none"
           min="1"
         />
       </div>
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={!hasNextPage}
-        className="px-3 py-1 rounded bg-surface-700 text-white disabled:opacity-50"
+        className="flex items-center gap-1 pl-3 pr-2 py-2 rounded-lg bg-surface-800 hover:bg-surface-700 disabled:opacity-40 disabled:hover:bg-surface-800 text-surface-300 hover:text-white transition-colors font-mono text-xs"
       >
-        Next
+        <span className="hidden sm:inline">Next</span>
+        <ChevronRightIcon className="h-3.5 w-3.5" />
       </button>
     </div>
   );

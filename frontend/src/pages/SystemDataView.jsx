@@ -15,21 +15,21 @@ export default function SystemDataView() {
   const [insightsLoading, setInsightsLoading] = useState(true);
   const [insightsError, setInsightsError] = useState(null);
 
-  useEffect(() => {
-    async function fetchSystemData() {
-      try {
-        setInsightsLoading(true);
-        const data = await getSystemData();
-        setInsightsData(data);
-        setInsightsError(null);
-      } catch (err) {
-        console.error("Failed to fetch system data:", err);
-        setInsightsError(err.message);
-      } finally {
-        setInsightsLoading(false);
-      }
+  async function fetchSystemData() {
+    try {
+      setInsightsLoading(true);
+      const data = await getSystemData();
+      setInsightsData(data);
+      setInsightsError(null);
+    } catch (err) {
+      console.error("Failed to fetch system data:", err);
+      setInsightsError(err.message);
+    } finally {
+      setInsightsLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchSystemData();
   }, []);
 
@@ -53,7 +53,7 @@ export default function SystemDataView() {
         {/* Database Health & System Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <DatabaseHealth data={insightsData.databaseHealth} />
-          <SyncStatus data={insightsData.syncStatus} />
+          <SyncStatus data={insightsData.syncStatus} onSyncComplete={fetchSystemData} />
         </div>
 
         {/* Data Management */}

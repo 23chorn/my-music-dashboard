@@ -1,11 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import useDashboardData from "../hooks/useDashboardData";
 import GroupedSection from "../components/sections/GroupedSection";
 import DashboardHeatmap from "../components/charts/DashboardHeatmap";
 import PageLayout from "../components/layout/PageLayout";
 import SectionLoader from "../components/ui/SectionLoader";
-import LoadingSpinner from "../components/ui/LoadingSpinner";
 import StatCard from "../components/stats/StatCard";
 import PlaylistButton from "../components/ui/PlaylistButton";
 import { formatValue } from "../utils/numberFormat";
@@ -19,12 +19,8 @@ export default function Dashboard() {
     topAlbums, albumLimit, setAlbumLimit, albumPeriod, setAlbumPeriod,
     recentTracks, recentLimit, setRecentLimit,
     playCount, uniqueArtists, uniqueAlbums, uniqueTracks,
-    loading, artistsLoading, tracksLoading, albumsLoading, recentLoading,
-    syncing, syncNewTracks
+    loading, artistsLoading, tracksLoading, albumsLoading, recentLoading
   } = useDashboardData();
-
-  const [syncMessage, setSyncMessage] = useState("");
-  const heatmapRef = useRef();
 
   useEffect(() => {
     document.title = "Chorn's Music Dashboard";
@@ -43,51 +39,15 @@ export default function Dashboard() {
     >
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div></div>
-          <button
-            onClick={async () => {
-              try {
-                const result = await syncNewTracks();
-                setSyncMessage(`Synced ${result.addedPlays} new plays!`);
-                
-                // Refresh the heatmap data if new plays were added
-                if (result.addedPlays > 0 && heatmapRef.current) {
-                  heatmapRef.current.refresh();
-                }
-                
-                setTimeout(() => setSyncMessage(""), 3000);
-              } catch {
-                setSyncMessage("Sync failed. Please try again.");
-                setTimeout(() => setSyncMessage(""), 3000);
-              }
-            }}
-            disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-surface-600 text-white rounded font-medium transition"
-          >
-            {syncing ? (
-              <>
-                <LoadingSpinner size="sm" />
-                Syncing...
-              </>
-            ) : (
-              "Sync New Tracks"
-            )}
-          </button>
-        </div>
-        {syncMessage && (
-          <div className="text-success-400 text-sm font-medium">
-            {syncMessage}
-          </div>
-        )}
         <div className="bg-surface-900 rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg sm:text-2xl font-semibold text-brand-400">My Stats</h2>
             <button
               onClick={() => navigate('/stats')}
-              className="text-sm px-3 py-1 bg-surface-700 hover:bg-surface-600 text-surface-300 hover:text-white rounded transition"
+              className="flex items-center gap-1.5 font-display text-xs uppercase tracking-widest text-brand-400 hover:text-brand-300 transition-colors"
             >
-              View Details →
+              Full Breakdown
+              <ArrowRightIcon className="h-3.5 w-3.5" />
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -195,9 +155,7 @@ export default function Dashboard() {
             collapsible={true}
             actionButton={
               <PlaylistButton
-                period={trackPeriod}
                 limit={trackLimit}
-                className="text-sm"
               />
             }
           />
@@ -225,7 +183,7 @@ export default function Dashboard() {
         </SectionLoader>
       </div>
 
-      <DashboardHeatmap ref={heatmapRef} />
+      <DashboardHeatmap />
     </PageLayout>
   );
 }

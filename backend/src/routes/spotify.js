@@ -111,16 +111,16 @@ router.get('/status', async (req, res) => {
 // POST /api/spotify/create-playlist - Create playlist from top tracks
 router.post('/create-playlist', async (req, res) => {
   try {
-    const { period, limit } = req.body;
+    const { period, limit, startDate, endDate, label } = req.body;
 
-    if (!period || !limit) {
+    if (!limit || (!period && !(startDate && endDate))) {
       return res.status(400).json({
         error: 'Missing required parameters',
-        message: 'period and limit are required'
+        message: 'limit and either period or startDate/endDate are required'
       });
     }
 
-    logger.info(`Creating playlist for period: ${period}, limit: ${limit}`);
+    logger.info(`Creating playlist for period: ${period}, dates: ${startDate} to ${endDate}, limit: ${limit}`);
 
     // Create Spotify service instance and set tokens from environment
     const spotifyService = new SpotifyService();
@@ -134,12 +134,18 @@ router.post('/create-playlist', async (req, res) => {
     logger.info(`Creating playlist for user: ${user.display_name} (${user.id})`);
 
     // Get top tracks from database using the database layer
-    const topTracks = await getTopTracksForPlaylist(limit, period);
+    const dateRangeGiven = Boolean(startDate && endDate);
+    const topTracks = await getTopTracksForPlaylist(
+      limit,
+      dateRangeGiven ? { startDate, endDate } : period
+    );
 
     if (topTracks.length === 0) {
       return res.status(400).json({
         error: 'No tracks found',
-        message: `No tracks found for period ${period}`
+        message: dateRangeGiven
+          ? `No tracks found between ${startDate} and ${endDate}`
+          : `No tracks found for period ${period}`
       });
     }
 
@@ -153,14 +159,22 @@ router.post('/create-playlist', async (req, res) => {
       'overall': 'All Time'
     };
 
-    const periodName = periodDisplayMap[period] || period;
+    const formatShortDate = (isoDate) => {
+      const [y, m, d] = isoDate.split('-');
+      return `${d}/${m}/${y.slice(-2)}`;
+    };
+
+    const periodName = label
+      || (dateRangeGiven ? `${formatShortDate(startDate)} - ${formatShortDate(endDate)}` : (periodDisplayMap[period] || period));
 
     // Add short form date to playlist name (e.g., "28/12/24")
     const now = new Date();
     const shortDate = `${now.getDate()}/${now.getMonth() + 1}/${String(now.getFullYear()).slice(-2)}`;
 
     const playlistName = `Chorn's Top ${limit} - ${periodName} (${shortDate})`;
-    const description = `Top ${limit} tracks from my listening history over the past ${periodName.toLowerCase()}. Generated from my Music Dashboard on ${shortDate}.`;
+    const description = dateRangeGiven
+      ? `Top ${limit} tracks from my listening history between ${startDate} and ${endDate}. Generated from my Music Dashboard on ${shortDate}.`
+      : `Top ${limit} tracks from my listening history over the past ${periodName.toLowerCase()}. Generated from my Music Dashboard on ${shortDate}.`;
 
     // Create the playlist
     const playlist = await spotifyService.createPlaylist(

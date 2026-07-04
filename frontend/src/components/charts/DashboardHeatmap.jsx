@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useImperativeHandle, forwardRef } from "react";
 import { getDailyPlaysFromServer } from "../../data/dashboardApi";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 import { HEATMAP_CONFIG } from "../../config/appConfig";
 
 const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = true }, ref) {
@@ -133,11 +133,11 @@ const DashboardHeatmap = forwardRef(function DashboardHeatmap({ defaultOpen = tr
             Daily play heatmap
           </h2>
           <button
-            className="p-0.5 hover:bg-surface-800 hover:bg-opacity-50 rounded transition ml-2 text-surface-400 hover:text-surface-300"
+            className="p-1 ml-1 text-surface-500 hover:text-surface-300 transition-colors"
             onClick={() => setOpen(o => !o)}
             aria-label={open ? "Collapse section" : "Expand section"}
           >
-            {open ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+            <FaChevronDown size={9} className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
           </button>
         </div>
       </div>

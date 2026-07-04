@@ -6,7 +6,7 @@ import SectionLoader from "../components/ui/SectionLoader";
 import GroupedSection from "../components/sections/GroupedSection";
 import TrackInfoSection from "../components/track/TrackInfoSection";
 import TagManager from "../components/ui/TagManager";
-import { formatDateTime } from "../utils/dateFormatter";
+import { formatWeekdayDate, formatTime, formatRelativeTime } from "../utils/dateFormatter";
 
 export default function TrackView() {
   const { id } = useParams();
@@ -25,10 +25,11 @@ export default function TrackView() {
     <PageLayout
       loading={loading}
       error={!track ? "Track not found." : null}
-      image={null}
+      image={track?.primary_album_image || track?.primary_artist_image}
       title={track?.track_name}
-      subheader={null}
-      subheaderLink={undefined}
+      subheader={track?.primary_artist_name}
+      subheaderLink={track?.primary_artist_id ? `/artist/${track.primary_artist_id}` : undefined}
+      metadata={track?.primary_album_name}
     >
       {/* Track Info Section */}
       <TrackInfoSection track={track} />
@@ -47,9 +48,9 @@ export default function TrackView() {
           limit={recentLimit}
           setLimit={setRecentLimit}
           mapper={play => ({
-            label: play.track,
-            value: play.artist,
-            sub: formatDateTime(play.timestamp)
+            label: formatWeekdayDate(play.timestamp),
+            value: formatTime(play.timestamp),
+            sub: formatRelativeTime(play.timestamp)
           })}
           emptyMessage="No recent plays found for this track"
         />
@@ -58,7 +59,7 @@ export default function TrackView() {
       {/* Tags Section */}
       {track && (
         <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400 mb-4">Tags</h2>
           <TagManager
             entityId={track.id}
             entityType="track"

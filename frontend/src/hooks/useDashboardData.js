@@ -4,7 +4,6 @@ import {
   getTopTracksFromServer,
   getRecentTracksFromServer,
   getTopAlbumsFromServer,
-  syncTracksFromServer,
 } from "../data/dashboardApi";
 import { getUniqueCountsFromServer } from "../data/statsApi";
 import { DEFAULT_LIMITS, DEFAULT_PERIODS } from "../config/appConfig";
@@ -26,7 +25,6 @@ export default function useDashboardData() {
   const [tracksLoading, setTracksLoading] = useState(false);
   const [albumsLoading, setAlbumsLoading] = useState(false);
   const [recentLoading, setRecentLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [artistLimit, setArtistLimit] = useState(DEFAULT_LIMITS.dashboard.artists);
   const [trackLimit, setTrackLimit] = useState(DEFAULT_LIMITS.dashboard.tracks);
   const [albumLimit, setAlbumLimit] = useState(DEFAULT_LIMITS.dashboard.albums);
@@ -67,31 +65,6 @@ export default function useDashboardData() {
       setLoading(false);
     }
   }, [artistLimit, artistPeriod, trackLimit, trackPeriod, albumLimit, albumPeriod, recentLimit]);
-
-  async function syncNewTracks() {
-    setSyncing(true);
-    try {
-      const result = await syncTracksFromServer();
-      // Refresh data after sync
-      if (result.addedPlays > 0) {
-        // Refresh unique counts since new data was added
-        const uniqueCounts = await getUniqueCountsFromServer();
-        setUniqueArtists(uniqueCounts.uniqueArtistCount);
-        setUniqueTracks(uniqueCounts.uniqueTrackCount);
-        setUniqueAlbums(uniqueCounts.uniqueAlbumCount);
-        setPlayCount(uniqueCounts.playCount);
-
-        // Refresh recent plays to show the latest tracks
-        await fetchRecent();
-      }
-      return result;
-    } catch (error) {
-      console.error('Error syncing tracks:', error);
-      throw error;
-    } finally {
-      setSyncing(false);
-    }
-  }
 
   // Individual section fetch functions
   const fetchArtists = useCallback(async () => {
@@ -180,7 +153,6 @@ export default function useDashboardData() {
     recentTracks, setRecentTracks, recentLimit, setRecentLimit,
     playCount, uniqueArtists, uniqueAlbums, uniqueTracks,
     loading, handleRefresh: fetchAllData,
-    artistsLoading, tracksLoading, albumsLoading, recentLoading,
-    syncing, syncNewTracks
+    artistsLoading, tracksLoading, albumsLoading, recentLoading
   };
 }

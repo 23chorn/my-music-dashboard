@@ -149,7 +149,7 @@ export default function ExploreView() {
       subheader="Browse all artists by playcount or alphabetically."
       loading={loading}
     >
-      <div className="mb-4 flex flex-wrap gap-4 items-center">
+      <div className="mb-4 flex flex-wrap gap-3 items-center bg-surface-900 border border-surface-800 rounded-lg p-3">
         <DataTypeSelector
           dataTypes={DATA_TYPES}
           selectedType={dataType}

@@ -127,7 +127,7 @@ export default function ArtistView() {
       {/* Tags Section */}
       {artist && (
         <div className="bg-surface-900 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
+          <h2 className="font-display text-sm uppercase tracking-widest text-brand-400 mb-4">Tags</h2>
           <TagManager
             entityId={artist.id}
             entityType="artist"

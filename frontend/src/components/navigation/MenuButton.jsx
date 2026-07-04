@@ -48,46 +48,46 @@ export default function MenuButton() {
     <div>
       <button
         ref={buttonRef}
-        className="p-2 rounded bg-surface-900 hover:bg-surface-800 shadow text-white"
+        className="p-2 rounded-lg bg-surface-800 hover:bg-surface-700 transition-colors text-surface-300 hover:text-white"
         onClick={() => setMenuOpen(open => !open)}
         aria-label="Open menu"
       >
-        <FaBars size={24} />
+        <FaBars size={20} />
       </button>
       {menuOpen && (
         <div
           ref={dropdownRef}
-          className="menu-dropdown mt-2 bg-surface-900 border border-surface-700 rounded shadow-lg py-2 w-56 absolute top-10 left-0 z-50"
+          className="menu-dropdown mt-2 bg-surface-800 border border-surface-700 rounded-lg shadow-xl py-2 w-56 absolute top-10 left-0 z-50"
         >
           {/* Browse Section */}
           <div className="border-b border-surface-700">
             <button
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-surface-400 hover:bg-surface-800"
+              className="flex items-center justify-between w-full px-4 py-2 font-display text-xs uppercase tracking-widest text-surface-500 hover:text-surface-300 transition-colors"
               onClick={() => toggleSection('browse')}
             >
               <span>Browse</span>
               {expandedSections.browse ? (
-                <ChevronDownIcon className="h-4 w-4" />
+                <ChevronDownIcon className="h-3.5 w-3.5" />
               ) : (
-                <ChevronRightIcon className="h-4 w-4" />
+                <ChevronRightIcon className="h-3.5 w-3.5" />
               )}
             </button>
             {expandedSections.browse && (
               <div className="pb-1">
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/")}
                 >
                   Dashboard
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/explore")}
                 >
                   Explore
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/stats")}
                 >
                   Stats
@@ -99,32 +99,32 @@ export default function MenuButton() {
           {/* AI & Analysis Section */}
           <div className="border-b border-surface-700">
             <button
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-surface-400 hover:bg-surface-800"
+              className="flex items-center justify-between w-full px-4 py-2 font-display text-xs uppercase tracking-widest text-surface-500 hover:text-surface-300 transition-colors"
               onClick={() => toggleSection('aiAnalysis')}
             >
               <span>AI & Analysis</span>
               {expandedSections.aiAnalysis ? (
-                <ChevronDownIcon className="h-4 w-4" />
+                <ChevronDownIcon className="h-3.5 w-3.5" />
               ) : (
-                <ChevronRightIcon className="h-4 w-4" />
+                <ChevronRightIcon className="h-3.5 w-3.5" />
               )}
             </button>
             {expandedSections.aiAnalysis && (
               <div className="pb-1">
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/ai-insights")}
                 >
                   AI Insights
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/chat")}
                 >
                   AI Chat
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/insights")}
                 >
                   System Insights
@@ -136,26 +136,26 @@ export default function MenuButton() {
           {/* Tools Section */}
           <div>
             <button
-              className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-surface-400 hover:bg-surface-800"
+              className="flex items-center justify-between w-full px-4 py-2 font-display text-xs uppercase tracking-widest text-surface-500 hover:text-surface-300 transition-colors"
               onClick={() => toggleSection('tools')}
             >
               <span>Tools</span>
               {expandedSections.tools ? (
-                <ChevronDownIcon className="h-4 w-4" />
+                <ChevronDownIcon className="h-3.5 w-3.5" />
               ) : (
-                <ChevronRightIcon className="h-4 w-4" />
+                <ChevronRightIcon className="h-3.5 w-3.5" />
               )}
             </button>
             {expandedSections.tools && (
               <div className="pb-1">
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/tags")}
                 >
                   Tags
                 </button>
                 <button
-                  className="block w-full text-left px-6 py-2 hover:bg-brand-900 text-brand-300 text-sm"
+                  className="block w-full text-left px-6 py-2 text-sm text-surface-200 hover:bg-surface-700/50 hover:text-brand-300 transition-colors"
                   onClick={() => handleNavigate("/trivia")}
                 >
                   Trivia

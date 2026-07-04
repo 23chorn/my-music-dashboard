@@ -1,23 +1,23 @@
 export default function AlphaCategorySelector({ categories, selectedCategory, onCategoryChange, categoryLabel }) {
   return (
     <div className="mb-4">
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-1.5 mb-2">
         {categories.map(letter => (
           <button
             key={letter}
             onClick={() => onCategoryChange(letter)}
-            className={`px-3 py-1 rounded font-semibold border transition
+            className={`px-2.5 py-1 rounded-sm font-mono text-xs border transition-colors
               ${selectedCategory === letter
                 ? "bg-brand-600 text-white border-brand-600"
-                : "bg-surface-700 text-brand-300 border-surface-700 hover:bg-surface-800"}
+                : "bg-surface-800 text-surface-300 border-surface-700 hover:bg-surface-700 hover:text-surface-100"}
             `}
           >
             {letter}
           </button>
         ))}
       </div>
-      <div className="text-brand-400 font-semibold text-lg">
-        Category: {categoryLabel}
+      <div className="font-display text-[10px] uppercase tracking-widest text-surface-500">
+        Category — {categoryLabel}
       </div>
     </div>
   );

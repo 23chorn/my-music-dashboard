@@ -1,5 +1,6 @@
 import LimitDropdown from "../controls/LimitDropdown";
 import PeriodDropdown from "../controls/PeriodDropdown";
+import ControlStrip from "../controls/ControlStrip";
 
 export default function FilterControls({
   // Period props
@@ -7,20 +8,23 @@ export default function FilterControls({
   period,
   setPeriod,
   periodOptions,
-  
+
   // Limit props
   showLimit = false,
   limit,
   setLimit,
   limitOptions,
-  
+
+  // Optional trailing action (e.g. "Create Playlist"), rendered as a strip segment
+  actionButton = null,
+
   // Layout
   className = ""
 }) {
-  if (!showPeriod && !showLimit) return null;
+  if (!showPeriod && !showLimit && !actionButton) return null;
 
   return (
-    <div className={`flex gap-3 items-start justify-end ${className}`}>
+    <ControlStrip className={className}>
       {showPeriod && (
         <PeriodDropdown
           value={period ?? "overall"}
@@ -35,6 +39,7 @@ export default function FilterControls({
           options={limitOptions}
         />
       )}
-    </div>
+      {actionButton}
+    </ControlStrip>
   );
 }

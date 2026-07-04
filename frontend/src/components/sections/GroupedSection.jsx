@@ -2,7 +2,7 @@ import FilterControls from "../forms/FilterControls";
 import ListTile from "../tiles/ListTile";
 import GridTile from "../tiles/GridTile";
 import { useState } from "react";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { FaChevronDown } from "react-icons/fa";
 import { LIMIT_OPTIONS, PERIOD_OPTIONS } from "../../config/appConfig";
 
 export default function GroupedSection({
@@ -31,28 +31,26 @@ export default function GroupedSection({
   // Separate collapse button so it stays next to the title
   const collapseButton = collapsible && (
     <button
-      className="p-0.5 hover:bg-surface-800 hover:bg-opacity-50 rounded transition ml-2 text-surface-400 hover:text-surface-300"
+      className="p-1 ml-1 text-surface-500 hover:text-surface-300 transition-colors"
       onClick={() => setOpen(o => !o)}
       aria-label={open ? "Collapse section" : "Expand section"}
     >
-      {open ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+      <FaChevronDown size={9} className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
     </button>
   );
 
   const controls = (
-    <div className="flex items-center gap-2">
-      <FilterControls
-        showPeriod={showPeriod}
-        period={period}
-        setPeriod={setPeriod}
-        periodOptions={periodOptions}
-        showLimit={showLimit}
-        limit={limit}
-        setLimit={setLimit}
-        limitOptions={limitOptions}
-      />
-      {actionButton}
-    </div>
+    <FilterControls
+      showPeriod={showPeriod}
+      period={period}
+      setPeriod={setPeriod}
+      periodOptions={periodOptions}
+      showLimit={showLimit}
+      limit={limit}
+      setLimit={setLimit}
+      limitOptions={limitOptions}
+      actionButton={actionButton}
+    />
   );
 
   const content = (
