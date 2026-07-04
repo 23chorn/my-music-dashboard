@@ -149,12 +149,7 @@ export default function TagsPage() {
 
   return (
     <PageLayout
-      title={
-        <div className="flex items-center gap-3">
-          <TagIcon className="w-8 h-8 text-highlight-400" />
-          <span>Tags Management</span>
-        </div>
-      }
+      title="Tags Management"
       subheader={`${tags.length} tags total`}
       loading={loading}
       error={error}

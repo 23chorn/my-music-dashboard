@@ -51,7 +51,7 @@ export default function AppHeader({
           </div>
           <NavTabs />
         </div>
-        <div className="w-full sm:max-w-xl lg:w-auto lg:max-w-xs">
+        <div className="w-full sm:max-w-xl lg:flex-1 lg:max-w-2xl">
           <div className="relative w-full">
             <SearchBar
               onSearch={onSearch}

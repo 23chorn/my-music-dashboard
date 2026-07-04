@@ -2,28 +2,31 @@ import { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Brush } from 'recharts';
 import { ChartBarIcon, ArrowTrendingUpIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import useCumulativeDiscoveryData from '../../hooks/useCumulativeDiscoveryData';
+import { CHART_THEME, CHART_ACCENT_ROTATION as ACCENT } from '../../config/appConfig';
+import Dropdown from '../controls/Dropdown';
+import ControlStrip from '../controls/ControlStrip';
 
 const CUMULATIVE_METRICS = [
-  { 
-    key: 'cumulativeTracks', 
-    label: 'Total Unique Tracks', 
-    color: '#10b981', 
+  {
+    key: 'cumulativeTracks',
+    label: 'Total Unique Tracks',
+    color: ACCENT[2],
     chartType: 'line',
     category: 'cumulative',
     description: 'Total number of unique tracks discovered over time. Shows your complete musical exploration journey.'
   },
-  { 
-    key: 'cumulativeArtists', 
-    label: 'Total Unique Artists', 
-    color: '#f97316', 
+  {
+    key: 'cumulativeArtists',
+    label: 'Total Unique Artists',
+    color: ACCENT[0],
     chartType: 'line',
     category: 'cumulative',
     description: 'Total number of unique artists discovered over time. Shows how your musical taste has expanded across different musicians.'
   },
-  { 
-    key: 'cumulativeAlbums', 
-    label: 'Total Unique Albums', 
-    color: '#8b5cf6', 
+  {
+    key: 'cumulativeAlbums',
+    label: 'Total Unique Albums',
+    color: ACCENT[1],
     chartType: 'line',
     category: 'cumulative',
     description: 'Total number of unique albums discovered over time. Shows depth of exploration into complete musical works.'
@@ -31,26 +34,26 @@ const CUMULATIVE_METRICS = [
 ];
 
 const WEEKLY_DISCOVERY_METRICS = [
-  { 
-    key: 'newTracksThisWeek', 
-    label: 'New Tracks Per Week', 
-    color: '#10b981', 
+  {
+    key: 'newTracksThisWeek',
+    label: 'New Tracks Per Week',
+    color: ACCENT[2],
     chartType: 'bar',
     category: 'weekly',
     description: 'Number of new tracks discovered each week. Peaks show periods of active music exploration.'
   },
-  { 
-    key: 'newArtistsThisWeek', 
-    label: 'New Artists Per Week', 
-    color: '#f97316', 
+  {
+    key: 'newArtistsThisWeek',
+    label: 'New Artists Per Week',
+    color: ACCENT[0],
     chartType: 'bar',
     category: 'weekly',
     description: 'Number of new artists discovered each week. Shows when you were branching out to new musicians.'
   },
-  { 
-    key: 'newAlbumsThisWeek', 
-    label: 'New Albums Per Week', 
-    color: '#8b5cf6', 
+  {
+    key: 'newAlbumsThisWeek',
+    label: 'New Albums Per Week',
+    color: ACCENT[1],
     chartType: 'bar',
     category: 'weekly',
     description: 'Number of new albums discovered each week. Shows periods of deep-dive album listening vs. singles.'
@@ -58,26 +61,26 @@ const WEEKLY_DISCOVERY_METRICS = [
 ];
 
 const VELOCITY_METRICS = [
-  { 
-    key: 'trackDiscoveryVelocity', 
-    label: 'Track Discovery Velocity (4-week avg)', 
-    color: '#10b981', 
+  {
+    key: 'trackDiscoveryVelocity',
+    label: 'Track Discovery Velocity (4-week avg)',
+    color: ACCENT[2],
     chartType: 'line',
     category: 'velocity',
     description: 'Smoothed average of new tracks discovered per week. Shows trends in exploration activity over time.'
   },
-  { 
-    key: 'artistDiscoveryVelocity', 
-    label: 'Artist Discovery Velocity (4-week avg)', 
-    color: '#f97316', 
+  {
+    key: 'artistDiscoveryVelocity',
+    label: 'Artist Discovery Velocity (4-week avg)',
+    color: ACCENT[0],
     chartType: 'line',
     category: 'velocity',
     description: 'Smoothed average of new artists discovered per week. Shows trends in musical taste expansion.'
   },
-  { 
-    key: 'albumDiscoveryVelocity', 
-    label: 'Album Discovery Velocity (4-week avg)', 
-    color: '#8b5cf6', 
+  {
+    key: 'albumDiscoveryVelocity',
+    label: 'Album Discovery Velocity (4-week avg)',
+    color: ACCENT[1],
     chartType: 'line',
     category: 'velocity',
     description: 'Smoothed average of new albums discovered per week. Shows trends in album-focused listening.'
@@ -102,6 +105,13 @@ export default function CumulativeDiscoveryChart() {
   // Find all metric options by combining all arrays
   const allMetrics = [...CUMULATIVE_METRICS, ...WEEKLY_DISCOVERY_METRICS, ...VELOCITY_METRICS];
   const selectedMetricInfo = allMetrics.find(metric => metric.key === selectedMetric);
+
+  const metricDropdownOptions = [
+    ...CUMULATIVE_METRICS.map(opt => ({ value: opt.key, label: opt.label, group: 'Cumulative Totals (Line Charts)' })),
+    ...WEEKLY_DISCOVERY_METRICS.map(opt => ({ value: opt.key, label: opt.label, group: 'Weekly Discovery Rate (Bar Charts)' })),
+    ...VELOCITY_METRICS.map(opt => ({ value: opt.key, label: opt.label, group: 'Discovery Velocity - Smoothed (Line Charts)' })),
+  ];
+  const periodDropdownOptions = PERIOD_OPTIONS.map(opt => ({ value: opt.key, label: opt.label }));
 
   // Determine if data spans more than one year and format accordingly
   const formatDataWithYears = (data) => {
@@ -196,74 +206,34 @@ export default function CumulativeDiscoveryChart() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <h2 className="text-2xl font-bold text-white">Music Discovery Journey</h2>
         
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Metric Selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-surface-400 uppercase tracking-wide">
-              Discovery Metric &middot; {selectedMetricInfo?.chartType === 'bar' ? 'Bar Chart' : 'Line Chart'}
-            </label>
-            <select
-              value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value)}
-              className="px-3 py-2 bg-surface-800 border border-surface-600 rounded text-white text-sm focus:outline-none focus:border-brand-500"
-            >
-              <optgroup label="Cumulative Totals (Line Charts)">
-                {CUMULATIVE_METRICS.map(option => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Weekly Discovery Rate (Bar Charts)">
-                {WEEKLY_DISCOVERY_METRICS.map(option => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Discovery Velocity - Smoothed (Line Charts)">
-                {VELOCITY_METRICS.map(option => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-          
-          {/* Period Selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-surface-400 uppercase tracking-wide">Period</label>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => handlePeriodChange(parseInt(e.target.value))}
-              className="px-3 py-2 bg-surface-800 border border-surface-600 rounded text-white text-sm focus:outline-none focus:border-brand-500"
-            >
-              {PERIOD_OPTIONS.map(option => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Zoom Toggle */}
+        <ControlStrip>
+          <Dropdown
+            value={selectedMetric}
+            onChange={setSelectedMetric}
+            options={metricDropdownOptions}
+            label={`Discovery Metric · ${selectedMetricInfo?.chartType === 'bar' ? 'Bar' : 'Line'}`}
+            align="left"
+          />
+          <Dropdown
+            value={selectedPeriod}
+            onChange={handlePeriodChange}
+            options={periodDropdownOptions}
+            label="Period"
+            align="left"
+          />
           {formattedCumulativeData.length > 10 && (
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-surface-400 uppercase tracking-wide">Zoom</label>
-              <button
-                onClick={() => setShowZoom(!showZoom)}
-                className={`px-3 py-2 border rounded text-sm focus:outline-none transition ${
-                  showZoom 
-                    ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
-                    : 'bg-surface-800 border-surface-600 text-surface-300 hover:bg-surface-700'
-                }`}
-              >
-                {showZoom ? 'Zoom On' : 'Zoom Off'}
-              </button>
-            </div>
+            <button
+              onClick={() => setShowZoom(!showZoom)}
+              className={`h-full px-2.5 py-1.5 font-mono text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-400/60 ${
+                showZoom
+                  ? 'bg-brand-600 text-white hover:bg-brand-700'
+                  : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/50'
+              }`}
+            >
+              {showZoom ? 'Zoom On' : 'Zoom Off'}
+            </button>
           )}
-        </div>
+        </ControlStrip>
       </div>
 
       {formattedCumulativeData.length > 0 ? (
@@ -271,20 +241,20 @@ export default function CumulativeDiscoveryChart() {
           <ResponsiveContainer width="100%" height="100%">
             {selectedMetricInfo?.chartType === 'bar' ? (
               <BarChart data={formattedCumulativeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="formattedDate" 
-                  stroke="#9ca3af"
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
+                <XAxis
+                  dataKey="formattedDate"
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   angle={-45}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis 
-                  stroke="#9ca3af"
+                <YAxis
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   domain={yAxisDomain}
                   tickFormatter={(value) => {
                     if (selectedMetric.includes('cumulative')) {
@@ -293,14 +263,16 @@ export default function CumulativeDiscoveryChart() {
                     return Math.round(value).toString();
                   }}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
+                    backgroundColor: CHART_THEME.tooltipBg,
+                    border: `1px solid ${CHART_THEME.tooltipBorder}`,
                     borderRadius: '6px',
-                    color: '#f9fafb'
+                    color: CHART_THEME.tooltipText,
+                    fontFamily: CHART_THEME.fontFamily,
+                    fontSize: '12px'
                   }}
-                  labelStyle={{ color: '#d1d5db' }}
+                  labelStyle={{ color: CHART_THEME.tooltipLabel }}
                   formatter={(value, name) => [
                     selectedMetric.includes('cumulative') ? value.toLocaleString() : value,
                     selectedMetricInfo?.label || name
@@ -308,37 +280,37 @@ export default function CumulativeDiscoveryChart() {
                 />
                 <Bar
                   dataKey={selectedMetric}
-                  fill={selectedMetricInfo?.color || '#3b82f6'}
-                  stroke={selectedMetricInfo?.color || '#3b82f6'}
+                  fill={selectedMetricInfo?.color || CHART_THEME.grid}
+                  stroke={selectedMetricInfo?.color || CHART_THEME.grid}
                   strokeWidth={1}
                   name={selectedMetricInfo?.label || 'Value'}
                   radius={[2, 2, 0, 0]}
                 />
                 {showZoom && formattedCumulativeData.length > 10 && (
-                  <Brush 
-                    dataKey="formattedDate" 
-                    height={30} 
-                    stroke={selectedMetricInfo?.color || '#3b82f6'}
-                    fill="#374151"
+                  <Brush
+                    dataKey="formattedDate"
+                    height={30}
+                    stroke={selectedMetricInfo?.color || CHART_THEME.grid}
+                    fill={CHART_THEME.brushFill}
                   />
                 )}
               </BarChart>
             ) : (
               <LineChart data={formattedCumulativeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="formattedDate" 
-                  stroke="#9ca3af"
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
+                <XAxis
+                  dataKey="formattedDate"
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   angle={-45}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis 
-                  stroke="#9ca3af"
+                <YAxis
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   domain={yAxisDomain}
                   tickFormatter={(value) => {
                     if (selectedMetric.includes('cumulative')) {
@@ -347,14 +319,16 @@ export default function CumulativeDiscoveryChart() {
                     return Math.round(value).toString();
                   }}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
+                    backgroundColor: CHART_THEME.tooltipBg,
+                    border: `1px solid ${CHART_THEME.tooltipBorder}`,
                     borderRadius: '6px',
-                    color: '#f9fafb'
+                    color: CHART_THEME.tooltipText,
+                    fontFamily: CHART_THEME.fontFamily,
+                    fontSize: '12px'
                   }}
-                  labelStyle={{ color: '#d1d5db' }}
+                  labelStyle={{ color: CHART_THEME.tooltipLabel }}
                   formatter={(value, name) => [
                     selectedMetric.includes('cumulative') ? value.toLocaleString() : value,
                     selectedMetricInfo?.label || name
@@ -363,18 +337,18 @@ export default function CumulativeDiscoveryChart() {
                 <Line
                   type="monotone"
                   dataKey={selectedMetric}
-                  stroke={selectedMetricInfo?.color || '#3b82f6'}
+                  stroke={selectedMetricInfo?.color || CHART_THEME.grid}
                   strokeWidth={2}
-                  dot={{ fill: selectedMetricInfo?.color || '#3b82f6', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: selectedMetricInfo?.color || '#3b82f6', strokeWidth: 2, fill: '#1f2937' }}
+                  dot={{ fill: selectedMetricInfo?.color || CHART_THEME.grid, strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: selectedMetricInfo?.color || CHART_THEME.grid, strokeWidth: 2, fill: CHART_THEME.tooltipBg }}
                   name={selectedMetricInfo?.label || 'Value'}
                 />
                 {showZoom && formattedCumulativeData.length > 10 && (
-                  <Brush 
-                    dataKey="formattedDate" 
-                    height={30} 
-                    stroke={selectedMetricInfo?.color || '#3b82f6'}
-                    fill="#374151"
+                  <Brush
+                    dataKey="formattedDate"
+                    height={30}
+                    stroke={selectedMetricInfo?.color || CHART_THEME.grid}
+                    fill={CHART_THEME.brushFill}
                   />
                 )}
               </LineChart>

@@ -94,20 +94,20 @@ export default function MilestoneAchievements() {
   const getColorClasses = (color) => {
     const colors = {
       blue: {
-        bg: 'bg-brand-500/10',
-        border: 'border-brand-500/20',
+        bg: 'bg-brand-500/15',
+        border: 'border-brand-500/40',
         text: 'text-brand-400',
         accent: 'bg-brand-500'
       },
       purple: {
-        bg: 'bg-highlight-500/10',
-        border: 'border-highlight-500/20',
+        bg: 'bg-highlight-500/15',
+        border: 'border-highlight-500/40',
         text: 'text-highlight-400',
         accent: 'bg-highlight-500'
       },
       green: {
-        bg: 'bg-success-500/10',
-        border: 'border-success-500/20',
+        bg: 'bg-success-500/15',
+        border: 'border-success-500/40',
         text: 'text-success-400',
         accent: 'bg-success-500'
       }
@@ -209,9 +209,12 @@ export default function MilestoneAchievements() {
           return (
             <div
               key={milestone}
-              className={`${colorClasses.bg} ${colorClasses.border} border rounded p-4 flex items-center gap-4`}
+              className="bg-surface-800 border border-surface-700 rounded p-4 flex items-center gap-4"
             >
-              <div className={`shrink-0 w-16 h-16 rounded-full border-2 ${colorClasses.border} flex flex-col items-center justify-center`}>
+              {/* The badge medallion carries the category color as a certification
+                  plaque accent — the card itself stays neutral like every other
+                  stat panel, rather than washing the whole tile in a category tint. */}
+              <div className={`shrink-0 w-16 h-16 rounded-full ${colorClasses.bg} border-2 ${colorClasses.border} flex flex-col items-center justify-center`}>
                 <span className={`font-mono font-bold text-sm ${colorClasses.text} leading-none`}>
                   {formatMilestone(milestone)}
                 </span>
@@ -227,7 +230,7 @@ export default function MilestoneAchievements() {
                       <img
                         src={image}
                         alt={name}
-                        className={`w-10 h-10 object-cover ring-1 ring-brand-400/30 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.6)] sepia-[.45] saturate-[.7] contrast-[1.05] transition-[filter] duration-300 hover:sepia-0 hover:saturate-100 hover:contrast-100 ${selectedCategory === 'artists' ? 'rounded-full' : 'rounded'}`}
+                        className="w-10 h-10 object-cover rounded ring-1 ring-brand-400/30 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.6)] sepia-[.45] saturate-[.7] contrast-[1.05] transition-[filter] duration-300 hover:sepia-0 hover:saturate-100 hover:contrast-100"
                       />
                     )}
                     <div className="flex-1 min-w-0">

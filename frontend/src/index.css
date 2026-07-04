@@ -80,60 +80,71 @@
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-:root {
-  font-family: var(--font-sans);
-  line-height: 1.5;
-  font-weight: 400;
+/*
+ * These element-level defaults must live in Tailwind's "base" layer, not as
+ * plain unlayered rules. Cascade layers take priority over specificity, so
+ * an unlayered `button { padding: 0.6em 1.2em; font-size: 1em }` here would
+ * beat every Tailwind utility (px-2.5, text-xs, ...) applied to a <button>
+ * anywhere in the app, regardless of class specificity — utilities live in
+ * Tailwind's "utilities" layer, which only outranks unlayered CSS if these
+ * defaults are themselves layered too.
+ */
+@layer base {
+  :root {
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    font-weight: 400;
 
-  color-scheme: dark;
-  color: var(--color-surface-100);
-  background-color: var(--color-surface-900);
+    color-scheme: dark;
+    color: var(--color-surface-100);
+    background-color: var(--color-surface-900);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-a {
-  font-weight: 500;
-  color: var(--color-brand-400);
-  text-decoration: inherit;
-}
-a:hover {
-  color: var(--color-brand-300);
-}
+  a {
+    font-weight: 500;
+    color: var(--color-brand-400);
+    text-decoration: inherit;
+  }
+  a:hover {
+    color: var(--color-brand-300);
+  }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+  }
 
-h1, h2, h3 {
-  font-family: var(--font-display);
-}
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+  h1 {
+    font-size: 3.2em;
+    line-height: 1.1;
+  }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: var(--color-surface-800);
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: var(--color-brand-400);
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto var(--color-brand-400);
+  button {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: var(--color-surface-800);
+    cursor: pointer;
+    transition: border-color 0.25s;
+  }
+  button:hover {
+    border-color: var(--color-brand-400);
+  }
+  button:focus,
+  button:focus-visible {
+    outline: 4px auto var(--color-brand-400);
+  }
 }

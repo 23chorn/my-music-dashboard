@@ -4,8 +4,8 @@
   "description": "Personal Spotify and Last.fm listening history analytics with AI-powered insights",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#14110d",
+  "theme_color": "#14110d",
   "orientation": "portrait-primary",
   "icons": [
     {

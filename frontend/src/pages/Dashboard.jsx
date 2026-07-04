@@ -173,7 +173,8 @@ export default function Dashboard() {
             mapper={track => ({
               label: track.track,
               image: track.albumImage,
-              sub: `${formatDateTime(track.timestamp)}${track.artist ? ` • ${track.artist}` : ''}`,
+              album: track.artist,
+              sub: formatDateTime(track.timestamp),
               link: track.id ? `/track/${track.id}` : undefined,
               entityId: track.id,
               entityType: 'track'

@@ -2,96 +2,99 @@ import { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 import { ChartBarIcon, ArrowTrendingUpIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import useTrendsData from '../../hooks/useTrendsData';
+import { CHART_THEME, CHART_ACCENT_ROTATION as ACCENT } from '../../config/appConfig';
+import Dropdown from '../controls/Dropdown';
+import ControlStrip from '../controls/ControlStrip';
 
 const METRIC_OPTIONS = [
   // Ratio/Rate metrics (better as line charts for trend analysis)
-  { 
-    key: 'tracksPerArtist', 
-    label: 'Tracks per Artist', 
-    color: '#ec4899', 
-    chartType: 'line', 
+  {
+    key: 'tracksPerArtist',
+    label: 'Tracks per Artist',
+    color: ACCENT[0],
+    chartType: 'line',
     category: 'ratios',
     description: 'Average number of different tracks per artist. Higher values indicate exploring more songs from each artist rather than sticking to hits.'
   },
-  { 
-    key: 'playsPerArtist', 
-    label: 'Plays per Artist', 
-    color: '#ec4899', 
-    chartType: 'line', 
+  {
+    key: 'playsPerArtist',
+    label: 'Plays per Artist',
+    color: ACCENT[1],
+    chartType: 'line',
     category: 'ratios',
     description: 'Average plays per artist. Higher values mean you repeatedly listen to the same artists, lower values indicate more artist variety.'
   },
-  { 
-    key: 'tracksPerAlbum', 
-    label: 'Tracks per Album', 
-    color: '#14b8a6', 
-    chartType: 'line', 
+  {
+    key: 'tracksPerAlbum',
+    label: 'Tracks per Album',
+    color: ACCENT[2],
+    chartType: 'line',
     category: 'ratios',
     description: 'Average tracks listened per album. Higher values mean you explore full albums, lower values suggest singles/playlist listening.'
   },
-  { 
-    key: 'hoursPerDay', 
-    label: 'Hours per Day', 
-    color: '#f59e0b', 
-    chartType: 'line', 
+  {
+    key: 'hoursPerDay',
+    label: 'Hours per Day',
+    color: ACCENT[3],
+    chartType: 'line',
     category: 'ratios',
     description: 'Average listening hours per active day. Shows your daily listening intensity when you do listen to music.'
   },
-  { 
-    key: 'discoveryFrequency', 
-    label: 'Discovery Rate', 
-    color: '#84cc16', 
-    chartType: 'line', 
+  {
+    key: 'discoveryFrequency',
+    label: 'Discovery Rate',
+    color: ACCENT[4],
+    chartType: 'line',
     category: 'ratios',
     description: 'New tracks discovered per active day. Higher values indicate actively seeking new music vs. replaying familiar songs.'
   },
-  { 
-    key: 'replayRate', 
-    label: 'Replay Rate (%)', 
-    color: '#8b5cf6', 
-    chartType: 'line', 
+  {
+    key: 'replayRate',
+    label: 'Replay Rate (%)',
+    color: ACCENT[0],
+    chartType: 'line',
     category: 'ratios',
     description: 'Percentage of plays that are repeats (not first-time listens). Higher values indicate preference for familiar music.'
   },
-  { 
-    key: 'repeatFactor', 
-    label: 'Repeat Factor', 
-    color: '#06b6d4', 
-    chartType: 'line', 
+  {
+    key: 'repeatFactor',
+    label: 'Repeat Factor',
+    color: ACCENT[1],
+    chartType: 'line',
     category: 'ratios',
     description: 'Average plays per unique track. Higher values mean more repetitive listening, lower values indicate exploring new music.'
   },
-  { 
-    key: 'diversityScore', 
-    label: 'Diversity Score (%)', 
-    color: '#ef4444', 
-    chartType: 'line', 
+  {
+    key: 'diversityScore',
+    label: 'Diversity Score (%)',
+    color: ACCENT[2],
+    chartType: 'line',
     category: 'ratios',
     description: 'Listening diversity based on how evenly plays are spread across tracks. 100% = perfectly diverse, 0% = only one track.'
   },
-  
+
   // Volume/Count metrics (better as bar charts for comparison)
-  { 
-    key: 'playsThisWeek', 
-    label: 'Weekly Plays', 
-    color: '#3b82f6', 
-    chartType: 'bar', 
+  {
+    key: 'playsThisWeek',
+    label: 'Weekly Plays',
+    color: ACCENT[3],
+    chartType: 'bar',
     category: 'volume',
     description: 'Total number of tracks played per week. Shows your overall listening activity and engagement with music.'
   },
-  { 
-    key: 'activeDaysThisWeek', 
-    label: 'Active Days per Week', 
-    color: '#06b6d4', 
-    chartType: 'bar', 
+  {
+    key: 'activeDaysThisWeek',
+    label: 'Active Days per Week',
+    color: ACCENT[4],
+    chartType: 'bar',
     category: 'volume',
     description: 'Number of days with music listening activity. Shows consistency of your music engagement throughout the week.'
   },
-  { 
-    key: 'listeningTimeThisWeek', 
-    label: 'Weekly Listening Time (hrs)', 
-    color: '#f59e0b', 
-    chartType: 'bar', 
+  {
+    key: 'listeningTimeThisWeek',
+    label: 'Weekly Listening Time (hrs)',
+    color: ACCENT[0],
+    chartType: 'bar',
     category: 'volume',
     description: 'Total hours of music listened per week. Direct measure of your music consumption and time investment.'
   }
@@ -151,6 +154,12 @@ export default function TrendsChart() {
   };
 
   const selectedMetricInfo = METRIC_OPTIONS.find(option => option.key === selectedMetric);
+
+  const metricDropdownOptions = [
+    ...METRIC_OPTIONS.filter(opt => opt.category === 'ratios').map(opt => ({ value: opt.key, label: opt.label, group: 'Ratios & Rates (Line Charts)' })),
+    ...METRIC_OPTIONS.filter(opt => opt.category === 'volume').map(opt => ({ value: opt.key, label: opt.label, group: 'Volume & Counts (Bar Charts)' })),
+  ];
+  const periodDropdownOptions = PERIOD_OPTIONS.map(opt => ({ value: opt.key, label: opt.label }));
   
   // Calculate Y-axis domain for better visualization
   const getYAxisDomain = (data, metricKey) => {
@@ -210,67 +219,34 @@ export default function TrendsChart() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <h2 className="text-2xl font-bold text-white">Listening Trends</h2>
         
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Metric Selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-surface-400 uppercase tracking-wide">
-              Metric &middot; {selectedMetricInfo?.chartType === 'bar' ? 'Bar Chart' : 'Line Chart'}
-            </label>
-            <select
-              value={selectedMetric}
-              onChange={(e) => setSelectedMetric(e.target.value)}
-              className="px-3 py-2 bg-surface-800 border border-surface-600 rounded text-white text-sm focus:outline-none focus:border-brand-500"
-            >
-              <optgroup label="Ratios & Rates (Line Charts)">
-                {METRIC_OPTIONS.filter(opt => opt.category === 'ratios').map(option => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Volume & Counts (Bar Charts)">
-                {METRIC_OPTIONS.filter(opt => opt.category === 'volume').map(option => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-          
-          {/* Period Selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-surface-400 uppercase tracking-wide">Period</label>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => handlePeriodChange(parseInt(e.target.value))}
-              className="px-3 py-2 bg-surface-800 border border-surface-600 rounded text-white text-sm focus:outline-none focus:border-brand-500"
-            >
-              {PERIOD_OPTIONS.map(option => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Zoom Toggle */}
+        <ControlStrip>
+          <Dropdown
+            value={selectedMetric}
+            onChange={setSelectedMetric}
+            options={metricDropdownOptions}
+            label={`Metric · ${selectedMetricInfo?.chartType === 'bar' ? 'Bar' : 'Line'}`}
+            align="left"
+          />
+          <Dropdown
+            value={selectedPeriod}
+            onChange={handlePeriodChange}
+            options={periodDropdownOptions}
+            label="Period"
+            align="left"
+          />
           {formattedTrendsData.length > 10 && (
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-surface-400 uppercase tracking-wide">Zoom</label>
-              <button
-                onClick={() => setShowZoom(!showZoom)}
-                className={`px-3 py-2 border rounded text-sm focus:outline-none transition ${
-                  showZoom 
-                    ? 'bg-brand-600 border-brand-500 text-white hover:bg-brand-700' 
-                    : 'bg-surface-800 border-surface-600 text-surface-300 hover:bg-surface-700'
-                }`}
-              >
-                {showZoom ? 'Zoom On' : 'Zoom Off'}
-              </button>
-            </div>
+            <button
+              onClick={() => setShowZoom(!showZoom)}
+              className={`h-full px-2.5 py-1.5 font-mono text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-400/60 ${
+                showZoom
+                  ? 'bg-brand-600 text-white hover:bg-brand-700'
+                  : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/50'
+              }`}
+            >
+              {showZoom ? 'Zoom On' : 'Zoom Off'}
+            </button>
           )}
-        </div>
+        </ControlStrip>
       </div>
 
       {formattedTrendsData.length > 0 ? (
@@ -278,20 +254,20 @@ export default function TrendsChart() {
           <ResponsiveContainer width="100%" height="100%">
             {selectedMetricInfo?.chartType === 'bar' ? (
               <BarChart data={formattedTrendsData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="formattedDate" 
-                  stroke="#9ca3af"
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
+                <XAxis
+                  dataKey="formattedDate"
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   angle={-45}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis 
-                  stroke="#9ca3af"
+                <YAxis
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   domain={yAxisDomain}
                   tickFormatter={(value) => {
                     if (selectedMetric === 'listeningTimeThisWeek') {
@@ -303,48 +279,50 @@ export default function TrendsChart() {
                     return Math.round(value).toString();
                   }}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
+                    backgroundColor: CHART_THEME.tooltipBg,
+                    border: `1px solid ${CHART_THEME.tooltipBorder}`,
                     borderRadius: '6px',
-                    color: '#f9fafb'
+                    color: CHART_THEME.tooltipText,
+                    fontFamily: CHART_THEME.fontFamily,
+                    fontSize: '12px'
                   }}
-                  labelStyle={{ color: '#d1d5db' }}
+                  labelStyle={{ color: CHART_THEME.tooltipLabel }}
                 />
                 <Bar
                   dataKey={selectedMetric}
-                  fill={selectedMetricInfo?.color || '#3b82f6'}
-                  stroke={selectedMetricInfo?.color || '#3b82f6'}
+                  fill={selectedMetricInfo?.color || CHART_THEME.grid}
+                  stroke={selectedMetricInfo?.color || CHART_THEME.grid}
                   strokeWidth={1}
                   name={selectedMetricInfo?.label || 'Value'}
                   radius={[2, 2, 0, 0]}
                 />
                 {showZoom && formattedTrendsData.length > 10 && (
-                  <Brush 
-                    dataKey="formattedDate" 
-                    height={30} 
-                    stroke={selectedMetricInfo?.color || '#3b82f6'}
-                    fill="#374151"
+                  <Brush
+                    dataKey="formattedDate"
+                    height={30}
+                    stroke={selectedMetricInfo?.color || CHART_THEME.grid}
+                    fill={CHART_THEME.brushFill}
                   />
                 )}
               </BarChart>
             ) : (
               <LineChart data={formattedTrendsData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="formattedDate" 
-                  stroke="#9ca3af"
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} />
+                <XAxis
+                  dataKey="formattedDate"
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   angle={-45}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis 
-                  stroke="#9ca3af"
+                <YAxis
+                  stroke={CHART_THEME.axis}
                   fontSize={12}
-                  tick={{ fill: '#9ca3af' }}
+                  tick={{ fill: CHART_THEME.axis, fontFamily: CHART_THEME.fontFamily }}
                   domain={yAxisDomain}
                   tickFormatter={(value) => {
                     if (selectedMetric === 'listeningTimeThisWeek') {
@@ -356,30 +334,32 @@ export default function TrendsChart() {
                     return Math.round(value).toString();
                   }}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
+                    backgroundColor: CHART_THEME.tooltipBg,
+                    border: `1px solid ${CHART_THEME.tooltipBorder}`,
                     borderRadius: '6px',
-                    color: '#f9fafb'
+                    color: CHART_THEME.tooltipText,
+                    fontFamily: CHART_THEME.fontFamily,
+                    fontSize: '12px'
                   }}
-                  labelStyle={{ color: '#d1d5db' }}
+                  labelStyle={{ color: CHART_THEME.tooltipLabel }}
                 />
                 <Line
                   type="monotone"
                   dataKey={selectedMetric}
-                  stroke={selectedMetricInfo?.color || '#3b82f6'}
+                  stroke={selectedMetricInfo?.color || CHART_THEME.grid}
                   strokeWidth={2}
-                  dot={{ fill: selectedMetricInfo?.color || '#3b82f6', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: selectedMetricInfo?.color || '#3b82f6', strokeWidth: 2, fill: '#1f2937' }}
+                  dot={{ fill: selectedMetricInfo?.color || CHART_THEME.grid, strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: selectedMetricInfo?.color || CHART_THEME.grid, strokeWidth: 2, fill: CHART_THEME.tooltipBg }}
                   name={selectedMetricInfo?.label || 'Value'}
                 />
                 {showZoom && formattedTrendsData.length > 10 && (
-                  <Brush 
-                    dataKey="formattedDate" 
-                    height={30} 
-                    stroke={selectedMetricInfo?.color || '#3b82f6'}
-                    fill="#374151"
+                  <Brush
+                    dataKey="formattedDate"
+                    height={30}
+                    stroke={selectedMetricInfo?.color || CHART_THEME.grid}
+                    fill={CHART_THEME.brushFill}
                   />
                 )}
               </LineChart>

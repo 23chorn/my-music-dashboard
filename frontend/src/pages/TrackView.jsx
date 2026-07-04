@@ -30,6 +30,7 @@ export default function TrackView() {
       subheader={track?.primary_artist_name}
       subheaderLink={track?.primary_artist_id ? `/artist/${track.primary_artist_id}` : undefined}
       metadata={track?.primary_album_name}
+      metadataLink={track?.primary_album_id ? `/album/${track.primary_album_id}` : undefined}
     >
       {/* Track Info Section */}
       <TrackInfoSection track={track} />

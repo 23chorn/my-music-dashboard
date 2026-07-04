@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { FaChevronDown } from "react-icons/fa";
 import WheelPicker from "./WheelPicker";
 
-export default function Dropdown({ value, onChange, options, label, className = "" }) {
+export default function Dropdown({ value, onChange, options, label, className = "", variant = "default", align = "right", inlineLabel = false }) {
   const [open, setOpen] = useState(false);
   const [entered, setEntered] = useState(false);
   const [pendingValue, setPendingValue] = useState(value);
@@ -35,43 +35,67 @@ export default function Dropdown({ value, onChange, options, label, className = 
 
   const selected = options.find(opt => opt.value === value);
 
+  // "inline" is used to embed a dropdown trigger directly in a section title
+  // (e.g. "Top [10] Tracks") so it reads as part of the heading rather than a
+  // separate control; stopPropagation keeps it from also toggling a
+  // collapsible heading's open/closed state when the heading itself is clickable.
+  const triggerClassName = variant === "inline"
+    ? "inline-flex items-baseline gap-1 bg-transparent border border-surface-700 rounded px-1.5 py-0.5 font-display text-[1.2em] leading-none align-baseline uppercase tracking-widest text-brand-400 hover:text-brand-300 hover:border-brand-400/60 transition-colors focus:outline-none"
+    : "flex items-center gap-1.5 h-full px-2.5 py-1.5 font-mono text-xs text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 transition-colors focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-400/60";
+
+  const handleTriggerClick = (e) => {
+    if (variant === "inline") e.stopPropagation();
+    setOpen(o => !o);
+  };
+
   return (
-    <div ref={ref} className={`relative ${className}`}>
+    <div ref={ref} className={`relative ${variant === "inline" ? "inline-block" : ""} ${className}`}>
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={handleTriggerClick}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-center gap-1.5 h-full px-2.5 py-1.5 font-mono text-xs text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 transition-colors focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-400/60"
+        className={triggerClassName}
       >
-        {label && (
+        {label && variant !== "inline" && (
           <span className="text-surface-500 text-[10px] uppercase tracking-wide">{label}</span>
         )}
+        {label && variant === "inline" && inlineLabel && (
+          <span className="text-surface-500 normal-case tracking-normal no-underline">{label}</span>
+        )}
         <span className="whitespace-nowrap">{selected?.label ?? value}</span>
-        <FaChevronDown size={7} className={`text-surface-500 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+        <FaChevronDown size={variant === "inline" ? 7 : 7} className={`text-current opacity-60 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {/* Desktop: anchored popover list, unchanged */}
       {open && (
         <div
           role="listbox"
-          className="hidden sm:block absolute right-0 z-20 mt-1 min-w-full max-h-64 overflow-y-auto bg-surface-800 border border-surface-700 rounded shadow-xl py-1"
+          className={`hidden sm:block absolute ${align === "left" ? "left-0" : "right-0"} z-20 mt-1 min-w-full max-h-64 overflow-y-auto bg-surface-800 border border-surface-700 rounded shadow-xl py-1`}
         >
-          {options.map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              role="option"
-              aria-selected={opt.value === value}
-              onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`block w-full text-left px-3 py-1.5 font-mono text-xs whitespace-nowrap transition-colors ${
-                opt.value === value
-                  ? "text-brand-400 font-semibold bg-surface-700/60"
-                  : "text-surface-300 hover:bg-surface-700 hover:text-surface-100"
-              }`}
-            >
-              {opt.label}
-            </button>
+          {options.map((opt, idx) => (
+            <div key={opt.value}>
+              {/* Optional group header — e.g. "Ratios & Rates (Line Charts)" —
+                  shown once when this option's group differs from the one before it. */}
+              {opt.group && opt.group !== options[idx - 1]?.group && (
+                <div className={`px-3 pb-1 font-mono text-[10px] uppercase tracking-wide text-surface-500 ${idx === 0 ? 'pt-1' : 'pt-2 mt-1 border-t border-surface-700'}`}>
+                  {opt.group}
+                </div>
+              )}
+              <button
+                type="button"
+                role="option"
+                aria-selected={opt.value === value}
+                onClick={(e) => { e.stopPropagation(); onChange(opt.value); setOpen(false); }}
+                className={`block w-full text-left px-3 py-1.5 font-mono text-xs whitespace-nowrap transition-colors ${
+                  opt.value === value
+                    ? "text-brand-400 font-semibold bg-surface-700/60"
+                    : "text-surface-300 hover:bg-surface-700 hover:text-surface-100"
+                }`}
+              >
+                {opt.label}
+              </button>
+            </div>
           ))}
         </div>
       )}

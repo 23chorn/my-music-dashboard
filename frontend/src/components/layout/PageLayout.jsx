@@ -9,6 +9,7 @@ export default function PageLayout({
   subheader,
   subheaderLink,
   metadata,
+  metadataLink,
   children
 }) {
   if (loading) {
@@ -34,6 +35,7 @@ export default function PageLayout({
               subheader={subheader}
               subheaderLink={subheaderLink}
               metadata={metadata}
+              metadataLink={metadataLink}
             />
           )}
           {children}

@@ -2,14 +2,14 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function PlayCountFilters({ minPlays, maxPlays, onMinPlaysChange, onMaxPlaysChange, onClearFilters }) {
   return (
-    <div className="flex items-center gap-1.5 bg-surface-800 border border-surface-700 rounded-sm pl-2.5 pr-1.5 py-1.5">
+    <div className="flex items-center h-8 gap-1.5 bg-surface-800 border border-surface-700 rounded-sm pl-2.5 pr-1.5">
       <span className="font-display text-[10px] uppercase tracking-wide text-surface-500">Plays</span>
       <input
         type="number"
         placeholder="Min"
         value={minPlays}
         onChange={e => onMinPlaysChange(e.target.value === '' ? '' : parseInt(e.target.value))}
-        className="bg-transparent text-surface-100 font-mono text-xs w-12 text-center focus:outline-none placeholder:text-surface-600"
+        className="bg-transparent text-surface-100 font-mono text-xs leading-none w-12 text-center focus:outline-none placeholder:text-surface-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         min="0"
       />
       <span className="text-surface-600">–</span>
@@ -18,7 +18,7 @@ export default function PlayCountFilters({ minPlays, maxPlays, onMinPlaysChange,
         placeholder="Max"
         value={maxPlays}
         onChange={e => onMaxPlaysChange(e.target.value === '' ? '' : parseInt(e.target.value))}
-        className="bg-transparent text-surface-100 font-mono text-xs w-12 text-center focus:outline-none placeholder:text-surface-600"
+        className="bg-transparent text-surface-100 font-mono text-xs leading-none w-12 text-center focus:outline-none placeholder:text-surface-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         min="0"
       />
       {(minPlays !== '' || maxPlays !== '') && (

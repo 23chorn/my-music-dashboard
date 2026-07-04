@@ -1,26 +1,17 @@
 import { Link } from "react-router-dom";
 
-export default function SectionHeader({ image, title, subheader, subheaderLink, metadata }) {
-  const titleInitial = typeof title === "string" && title.length > 0
-    ? title.charAt(0).toUpperCase()
-    : "?";
-
+export default function SectionHeader({ image, title, subheader, subheaderLink, metadata, metadataLink }) {
   return (
     <div className="group flex flex-col sm:flex-row items-stretch rounded overflow-hidden mb-8 bg-surface-900">
-      {/* Editorial crop: a tight detail of the image, not the whole cover */}
-      {image ? (
+      {/* Editorial crop: a tight detail of the image, not the whole cover.
+          No placeholder when there's no image — the text below just takes the full width. */}
+      {image && (
         <img
           src={image}
           alt=""
           aria-hidden="true"
           className="w-full h-40 sm:h-auto sm:w-48 md:w-56 shrink-0 object-cover scale-125 border-b-2 sm:border-b-0 sm:border-r-2 border-brand-400/30 sepia-[.45] saturate-[.7] contrast-[1.05] transition-[filter] duration-300 group-hover:sepia-0 group-hover:saturate-100 group-hover:contrast-100"
         />
-      ) : (
-        <div className="w-full h-40 sm:h-auto sm:w-48 md:w-56 shrink-0 flex items-center justify-center border-b-2 sm:border-b-0 sm:border-r-2 border-brand-400/30 bg-surface-950">
-          <span className="font-display text-4xl text-brand-400/40">
-            {titleInitial}
-          </span>
-        </div>
       )}
       <div className="text-center sm:text-left w-full p-6 sm:p-8">
         <h1 className="text-2xl sm:text-4xl font-bold mb-2">{title}</h1>
@@ -36,7 +27,13 @@ export default function SectionHeader({ image, title, subheader, subheaderLink, 
             {metadata && (
               <>
                 <span className="hidden sm:inline text-surface-600">•</span>
-                <p className="text-sm sm:text-base text-surface-500">{metadata}</p>
+                {metadataLink ? (
+                  <Link to={metadataLink} className="text-sm sm:text-base text-surface-500 hover:underline">
+                    {metadata}
+                  </Link>
+                ) : (
+                  <p className="text-sm sm:text-base text-surface-500">{metadata}</p>
+                )}
               </>
             )}
           </div>

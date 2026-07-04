@@ -102,6 +102,32 @@ export const GRID_CONFIG = {
   gap: 4              // gap-4
 };
 
+// Recharts (Trends / Discovery charts) theme — mirrors the CSS custom
+// properties in index.css so these graphs read as part of the same
+// "record-collector's ledger" system rather than a default dark-dashboard
+// theme. Uses var() so a re-theme via index.css alone still reaches these.
+export const CHART_THEME = {
+  grid: 'var(--color-surface-700)',
+  axis: 'var(--color-surface-400)',
+  tooltipBg: 'var(--color-surface-800)',
+  tooltipBorder: 'var(--color-surface-700)',
+  tooltipText: 'var(--color-surface-100)',
+  tooltipLabel: 'var(--color-surface-300)',
+  brushFill: 'var(--color-surface-700)',
+  fontFamily: 'var(--font-mono)',
+};
+
+// Rotation of accent hues for single-series charts (one metric shown at a
+// time) — the app's own analog-gauge accents, not stock chart-library
+// rainbow colors, so whichever metric is selected still feels on-brand.
+export const CHART_ACCENT_ROTATION = [
+  'var(--color-brand-400)',
+  'var(--color-highlight-400)',
+  'var(--color-success-400)',
+  'var(--color-danger-400)',
+  'var(--color-warning-400)',
+];
+
 /**
  * Helper function to get default limit for a specific section and type
  * @param {string} section - Section name (dashboard, artistView, etc.)

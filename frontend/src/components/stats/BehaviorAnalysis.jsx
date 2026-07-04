@@ -28,13 +28,13 @@ export default function BehaviorAnalysis({ behaviorData }) {
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Diversity Score</h3>
-          <div className="text-3xl font-bold text-indigo-400 mb-2">{diversityScore}</div>
+          <div className="text-3xl font-bold text-highlight-400 mb-2">{diversityScore}</div>
           <p className="text-surface-400 text-sm">
             How diverse your listening is (0-100). Higher = more varied music taste.
           </p>
           <div className="mt-3 bg-surface-800 rounded-full h-3">
-            <div 
-              className="bg-indigo-400 rounded-full h-3" 
+            <div
+              className="bg-highlight-400 rounded-full h-3"
               style={{ width: `${diversityScore}%` }}
             />
           </div>

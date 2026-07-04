@@ -9,12 +9,14 @@ const DEFAULT_OPTIONS = [
   { value: "12month", label: "Last 12 Months" },
 ];
 
-export default function PeriodDropdown({ value, onChange, options }) {
+export default function PeriodDropdown({ value, onChange, options, variant, align }) {
   return (
     <Dropdown
       value={value ?? "overall"}
       onChange={onChange}
       options={options || DEFAULT_OPTIONS}
+      variant={variant}
+      align={align}
     />
   );
 }

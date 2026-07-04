@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import useAlbumViewData from "../hooks/useAlbumViewData";
 import GroupedSection from "../components/sections/GroupedSection";
+import Dropdown from "../components/controls/Dropdown";
 import PageLayout from "../components/layout/PageLayout";
 import StatsSection from "../components/stats/StatsSection";
 import SectionLoader from "../components/ui/SectionLoader";
@@ -49,18 +50,19 @@ export default function AlbumView() {
             })}
             layout='list'
             collapsible={true}
-            actionButton={
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-surface-400">Sort by:</span>
-                <select
-                  value={tracklistSort}
-                  onChange={(e) => setTracklistSort(e.target.value)}
-                  className="bg-surface-800 text-white text-sm px-2 py-1 rounded border border-surface-600 hover:border-surface-500 focus:border-brand-500 focus:outline-none"
-                >
-                  <option value="trackNumber">Track Number</option>
-                  <option value="playCount">Play Count</option>
-                </select>
-              </div>
+            titleExtra={
+              <Dropdown
+                value={tracklistSort}
+                onChange={setTracklistSort}
+                options={[
+                  { value: "trackNumber", label: "Track Number" },
+                  { value: "playCount", label: "Play Count" }
+                ]}
+                label="Sort by"
+                inlineLabel={true}
+                variant="inline"
+                align="left"
+              />
             }
           />
         </SectionLoader>

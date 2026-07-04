@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getArtistDailyPlays } from "../../data/artistApi";
-import { FaChevronDown } from "react-icons/fa";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 
 export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true }) {
   const [dailyPlays, setDailyPlays] = useState([]);
@@ -102,7 +102,7 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
           onClick={() => setOpen(o => !o)}
           aria-label={open ? "Collapse section" : "Expand section"}
         >
-          <FaChevronDown size={9} className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+          <ChevronDownIcon className={`w-3 h-3 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
         </button>
       </div>
       {open && (
@@ -161,10 +161,10 @@ export default function CustomHeatmap({ artistId, days = 90, defaultOpen = true 
               <span>Less</span>
               <div className="flex gap-1">
                 <div className="w-2.5 h-2.5 rounded-sm bg-surface-700"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-danger-200"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-danger-400"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-danger-600"></div>
-                <div className="w-2.5 h-2.5 rounded-sm bg-danger-800"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-brand-800"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-brand-600"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-brand-400"></div>
+                <div className="w-2.5 h-2.5 rounded-sm bg-brand-300"></div>
               </div>
               <span>More</span>
             </div>

@@ -110,7 +110,8 @@ export default function ArtistView() {
             mapper={track => ({
               label: track.track,
               image: track.albumImage,
-              sub: `${formatDateTime(track.timestamp)}${track.album ? ` • ${track.album}` : ''}`
+              album: track.album,
+              sub: formatDateTime(track.timestamp)
             })}
             collapsible={true}
           />
