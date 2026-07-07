@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ChevronDownIcon, TrophyIcon, MusicalNoteIcon, CircleStackIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
+import Panel from '../ui/Panel';
 
 const MILESTONE_CATEGORIES = {
   tracks: {
@@ -207,9 +208,9 @@ export default function MilestoneAchievements() {
           const name = achievementData && (achievementData.track_name || achievementData.album_name || achievementData.artist);
 
           return (
-            <div
+            <Panel
               key={milestone}
-              className="bg-surface-800 border border-surface-700 rounded p-4 flex items-center gap-4"
+              className="p-4 flex items-center gap-4"
             >
               {/* The badge medallion carries the category color as a certification
                   plaque accent — the card itself stays neutral like every other
@@ -256,7 +257,7 @@ export default function MilestoneAchievements() {
                   Not yet certified
                 </div>
               )}
-            </div>
+            </Panel>
           );
         })}
       </div>

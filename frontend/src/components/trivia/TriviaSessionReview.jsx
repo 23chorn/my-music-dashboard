@@ -7,6 +7,7 @@ import {
   TrophyIcon
 } from '@heroicons/react/24/outline';
 import { getTriviaSession } from '../../data/triviaApi';
+import Panel from '../ui/Panel';
 
 export default function TriviaSessionReview({ session: initialSession, onBack }) {
   const [session, setSession] = useState(initialSession);
@@ -84,7 +85,7 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
           Back to History
         </button>
 
-        <div className="bg-surface-800 border border-surface-700 rounded-lg p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2">{session.session_name}</h1>
@@ -111,7 +112,7 @@ export default function TriviaSessionReview({ session: initialSession, onBack })
               <div className="text-sm text-surface-400">Completion Time</div>
             </div>
           </div>
-        </div>
+        </Panel>
       </div>
 
       {/* Questions Review */}

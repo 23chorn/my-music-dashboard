@@ -127,7 +127,7 @@ export class LegacySpotifyDatabaseService {
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('artist', $1, 'spotify', $2) 
-         ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
+         ON CONFLICT DO NOTHING`,
         [artistId, spotifyUri]
       );
 
@@ -217,7 +217,7 @@ export class LegacySpotifyDatabaseService {
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('album', $1, 'spotify', $2) 
-         ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
+         ON CONFLICT DO NOTHING`,
         [albumId, spotifyUri]
       );
 
@@ -293,7 +293,7 @@ export class LegacySpotifyDatabaseService {
       await getSharedPool().query(
         `INSERT INTO external_ids (entity_type, entity_id, source, external_id) 
          VALUES ('track', $1, 'spotify', $2) 
-         ON CONFLICT ON CONSTRAINT external_ids_unique_entity_source DO NOTHING`,
+         ON CONFLICT DO NOTHING`,
         [trackId, spotifyUri]
       );
 

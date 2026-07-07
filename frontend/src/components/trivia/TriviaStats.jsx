@@ -11,6 +11,7 @@ import {
   PuzzlePieceIcon
 } from '@heroicons/react/24/outline';
 import { getTriviaStats } from '../../data/triviaApi';
+import Panel from '../ui/Panel';
 
 export default function TriviaStats({ onBack }) {
   const [stats, setStats] = useState(null);
@@ -89,7 +90,7 @@ export default function TriviaStats({ onBack }) {
 
       <div className="space-y-8">
         {/* Session Overview */}
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
             <TrophyIcon className="h-6 w-6 text-warning-500 mr-2" />
             Session Overview
@@ -120,10 +121,10 @@ export default function TriviaStats({ onBack }) {
               <div className="text-sm text-surface-400">Best Score</div>
             </div>
           </div>
-        </div>
+        </Panel>
 
         {/* Question Performance */}
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
             <AcademicCapIcon className="h-6 w-6 text-brand-500 mr-2" />
             Question Performance
@@ -148,11 +149,11 @@ export default function TriviaStats({ onBack }) {
               <div className="text-sm text-surface-400">Categories Covered</div>
             </div>
           </div>
-        </div>
+        </Panel>
 
         {/* Category Performance */}
         {stats.categories && stats.categories.length > 0 && (
-          <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+          <Panel rounded="rounded-lg" className="p-6">
             <h2 className="text-xl font-semibold text-white mb-6">
               Performance by Category
             </h2>
@@ -179,11 +180,11 @@ export default function TriviaStats({ onBack }) {
                 </div>
               ))}
             </div>
-          </div>
+          </Panel>
         )}
 
         {/* Achievement Badges */}
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <h2 className="text-xl font-semibold text-white mb-6">
             Achievements
           </h2>
@@ -242,10 +243,10 @@ export default function TriviaStats({ onBack }) {
               </div>
             )}
           </div>
-        </div>
+        </Panel>
 
         {/* Progress Goals */}
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <h2 className="text-xl font-semibold text-white mb-6">
             Progress Goals
           </h2>
@@ -298,7 +299,7 @@ export default function TriviaStats({ onBack }) {
               </div>
             </div>
           </div>
-        </div>
+        </Panel>
       </div>
     </div>
   );

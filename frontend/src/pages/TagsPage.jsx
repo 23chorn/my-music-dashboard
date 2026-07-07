@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import PageLayout from '../components/layout/PageLayout';
 import { TagIcon, PlusIcon, PencilIcon, CheckIcon, XMarkIcon, TrashIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import Panel from '../components/ui/Panel';
 
 const TAG_COLORS = [
   '#64748B', // Slate
@@ -168,7 +169,7 @@ export default function TagsPage() {
               Create Tag
             </button>
           ) : (
-            <div className="flex flex-wrap items-center gap-3 p-4 bg-surface-800 border border-surface-700 rounded">
+            <Panel className="flex flex-wrap items-center gap-3 p-4">
               <input
                 type="text"
                 value={newTagName}
@@ -212,7 +213,7 @@ export default function TagsPage() {
                   Cancel
                 </button>
               </div>
-            </div>
+            </Panel>
           )}
         </div>
 
@@ -223,9 +224,10 @@ export default function TagsPage() {
           {tags.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {tags.map((tag) => (
-                <div
+                <Panel
                   key={tag.id}
-                  className="bg-surface-800 border border-surface-700 rounded-lg p-4 hover:border-surface-600 transition-colors"
+                  rounded="rounded-lg"
+                  className="p-4 hover:border-surface-600 transition-colors"
                 >
                   {editingTag === tag.id ? (
                     // Edit mode
@@ -317,7 +319,7 @@ export default function TagsPage() {
                       </Link>
                     </>
                   )}
-                </div>
+                </Panel>
               ))}
             </div>
           ) : (

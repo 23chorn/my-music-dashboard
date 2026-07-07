@@ -8,6 +8,7 @@ import {
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import { submitTriviaAnswer, completeTriviaSession } from '../../data/triviaApi';
+import Panel from '../ui/Panel';
 
 export default function TriviaSession({ session, onComplete, onBack }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -290,7 +291,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
 
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-8">
+        <Panel rounded="rounded-lg" className="p-8">
           {/* Question Header */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
@@ -308,7 +309,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
 
           {/* Question Content */}
           {renderQuestionContent()}
-        </div>
+        </Panel>
       </div>
     );
   };
@@ -318,7 +319,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
 
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-8 text-center">
+        <Panel rounded="rounded-lg" className="p-8 text-center">
           <div className="mb-6">
             {lastResult.isCorrect ? (
               <CheckCircleIcon className="h-16 w-16 text-success-400 mx-auto" />
@@ -356,7 +357,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
               'Complete Quiz'
             )}
           </button>
-        </div>
+        </Panel>
       </div>
     );
   };
@@ -369,7 +370,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
 
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-8 text-center">
+        <Panel rounded="rounded-lg" className="p-8 text-center">
           <TrophyIcon className="h-16 w-16 text-warning-400 mx-auto mb-6" />
 
           <h2 className="text-3xl font-bold text-white mb-2">Quiz Complete!</h2>
@@ -404,7 +405,7 @@ export default function TriviaSession({ session, onComplete, onBack }) {
               New Quiz
             </button>
           </div>
-        </div>
+        </Panel>
       </div>
     );
   };

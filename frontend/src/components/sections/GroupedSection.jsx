@@ -39,7 +39,7 @@ export default function GroupedSection({
   const dynamicMatch = showLimit && limit ? title.match(/^(Top|Recent)\s+(.*)$/i) : null;
 
   const titleNode = (
-    <span className="inline-flex flex-wrap items-baseline gap-x-1.5">
+    <span className="inline-flex flex-nowrap items-baseline gap-x-1.5 whitespace-nowrap">
       {dynamicMatch ? (
         <>
           <span>{dynamicMatch[1]}</span>
@@ -104,7 +104,7 @@ export default function GroupedSection({
           } : {})}
         >
           <h2
-            className={`font-display text-base sm:text-lg uppercase tracking-widest text-brand-400 ${dynamicMatch || titleExtra ? '' : 'whitespace-nowrap'} ${collapsible ? 'group-hover:text-brand-300 transition-colors' : ''}`}
+            className={`font-display text-sm sm:text-lg uppercase tracking-widest text-brand-400 whitespace-nowrap ${collapsible ? 'group-hover:text-brand-300 transition-colors' : ''}`}
           >
             {titleNode}
           </h2>

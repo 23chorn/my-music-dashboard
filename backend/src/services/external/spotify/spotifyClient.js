@@ -355,7 +355,10 @@ class SpotifyService {
     if (!response.ok) {
       const error = await response.text();
       logger.error(`Failed to fetch album ${albumId}: ${error}`);
-      throw new Error(`Spotify API error: ${error}`);
+      const err = new Error(`Spotify API error: ${error}`);
+      err.status = response.status;
+      err.retryAfter = parseInt(response.headers.get('retry-after'), 10) || null;
+      throw err;
     }
 
     const data = await response.json();

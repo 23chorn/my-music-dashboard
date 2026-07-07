@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StatCard from "./StatCard";
 import StatPopup from "../common/StatPopup";
+import Panel from "../ui/Panel";
 
 export default function DiscoveryFreshness({ discoveryData }) {
   const [popupOpen, setPopupOpen] = useState(false);
@@ -109,7 +110,7 @@ export default function DiscoveryFreshness({ discoveryData }) {
           </div>
         ) : popupData.length > 0 ? (
           popupData.map((item, index) => (
-            <div key={item.id || index} className="bg-surface-800 rounded p-3 border border-surface-700">
+            <Panel key={item.id || index} className="p-3">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h4 className="font-medium text-white mb-1">
@@ -137,7 +138,7 @@ export default function DiscoveryFreshness({ discoveryData }) {
                   </p>
                 </div>
               </div>
-            </div>
+            </Panel>
           ))
         ) : (
           <div className="text-center py-4 text-surface-400">

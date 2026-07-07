@@ -8,13 +8,21 @@ export default function Dropdown({ value, onChange, options, label, className = 
   const [entered, setEntered] = useState(false);
   const [pendingValue, setPendingValue] = useState(value);
   const ref = useRef(null);
+  const wasOpenRef = useRef(open);
+
+  // Reset pendingValue synchronously during render (not in the effect below) so that
+  // when WheelPicker mounts for this open, it seeds its scroll position from the real
+  // current value rather than a leftover value from a previous scroll-then-cancel.
+  if (open !== wasOpenRef.current) {
+    wasOpenRef.current = open;
+    if (open) setPendingValue(value);
+  }
 
   useEffect(() => {
     if (!open) {
       setEntered(false);
       return;
     }
-    setPendingValue(value);
     const id = requestAnimationFrame(() => setEntered(true));
     const handlePointer = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -29,8 +37,6 @@ export default function Dropdown({ value, onChange, options, label, className = 
       document.removeEventListener("mousedown", handlePointer);
       document.removeEventListener("keydown", handleKey);
     };
-    // Only re-seed pendingValue when the sheet opens, not on every value change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const selected = options.find(opt => opt.value === value);
@@ -64,7 +70,9 @@ export default function Dropdown({ value, onChange, options, label, className = 
           <span className="text-surface-500 normal-case tracking-normal no-underline">{label}</span>
         )}
         <span className="whitespace-nowrap">{selected?.label ?? value}</span>
-        <FaChevronDown size={variant === "inline" ? 7 : 7} className={`text-current opacity-60 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+        {variant !== "inline" && (
+          <FaChevronDown size={7} className={`text-current opacity-60 transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+        )}
       </button>
 
       {/* Desktop: anchored popover list, unchanged */}

@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import PageLayout from '../components/layout/PageLayout';
 import TriviaSession from '../components/trivia/TriviaSession';
+import Panel from '../components/ui/Panel';
 import TriviaSessionReview from '../components/trivia/TriviaSessionReview';
 import TriviaHistory from '../components/trivia/TriviaHistory';
 import TriviaStats from '../components/trivia/TriviaStats';
@@ -173,7 +174,7 @@ export default function TriviaPage() {
 
       {/* Recent Sessions Preview */}
       {recentSessions.length > 0 && (
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-white">Recent Sessions</h2>
             <button
@@ -206,36 +207,36 @@ export default function TriviaPage() {
               </div>
             ))}
           </div>
-        </div>
+        </Panel>
       )}
 
       {/* Quick Stats */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-surface-800 rounded-lg border border-surface-700 p-4 text-center">
+          <Panel rounded="rounded-lg" className="p-4 text-center">
             <div className="text-2xl font-bold text-brand-400">{stats.sessions.total_sessions || 0}</div>
             <div className="text-sm text-surface-400">Total Sessions</div>
-          </div>
-          <div className="bg-surface-800 rounded-lg border border-surface-700 p-4 text-center">
+          </Panel>
+          <Panel rounded="rounded-lg" className="p-4 text-center">
             <div className="text-2xl font-bold text-success-400">
               {stats.sessions.avg_score ? Math.round(stats.sessions.avg_score) : 0}
             </div>
             <div className="text-sm text-surface-400">Average Score</div>
-          </div>
-          <div className="bg-surface-800 rounded-lg border border-surface-700 p-4 text-center">
+          </Panel>
+          <Panel rounded="rounded-lg" className="p-4 text-center">
             <div className="text-2xl font-bold text-highlight-400">{stats.sessions.best_score || 0}</div>
             <div className="text-sm text-surface-400">Best Score</div>
-          </div>
-          <div className="bg-surface-800 rounded-lg border border-surface-700 p-4 text-center">
+          </Panel>
+          <Panel rounded="rounded-lg" className="p-4 text-center">
             <div className="text-2xl font-bold text-orange-400">{stats.categories?.length || 0}</div>
             <div className="text-sm text-surface-400">Categories Played</div>
-          </div>
+          </Panel>
         </div>
       )}
 
       {/* Available Themes */}
       {themes.length > 0 && (
-        <div className="bg-surface-800 rounded-lg border border-surface-700 p-6">
+        <Panel rounded="rounded-lg" className="p-6">
           <h2 className="text-xl font-semibold text-white mb-4">Trivia Themes</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {themes.map((theme) => (
@@ -257,7 +258,7 @@ export default function TriviaPage() {
               </div>
             ))}
           </div>
-        </div>
+        </Panel>
       )}
     </div>
   );

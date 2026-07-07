@@ -36,6 +36,8 @@ backend/scripts/maintenance/*
 backend/scripts/migration/*
 backend/scripts/utilities/*
 
+*.csv
+
 # One-time data cleanup and investigation scripts
 backend/scripts/*cleanup*.js
 backend/scripts/*duplicate*.js

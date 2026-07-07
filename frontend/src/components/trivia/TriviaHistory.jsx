@@ -10,6 +10,7 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 import { getRecentTriviaSessions, replayTriviaSession, getTriviaSession } from '../../data/triviaApi';
+import Panel from '../ui/Panel';
 
 export default function TriviaHistory({ onBack, onSessionSelect }) {
   const [sessions, setSessions] = useState([]);
@@ -136,9 +137,10 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
       ) : (
         <div className="space-y-4">
           {sessions.map((session) => (
-            <div
+            <Panel
               key={session.id}
-              className="bg-surface-800 border border-surface-700 rounded-lg p-6 hover:border-brand-500 transition-colors"
+              rounded="rounded-lg"
+              className="p-6 hover:border-brand-500 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -257,14 +259,14 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
                   </p>
                 </div>
               )}
-            </div>
+            </Panel>
           ))}
         </div>
       )}
 
       {/* Summary Stats */}
       {sessions.length > 0 && (
-        <div className="mt-8 bg-surface-800 border border-surface-700 rounded-lg p-6">
+        <Panel rounded="rounded-lg" className="mt-8 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Summary Stats</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
@@ -292,7 +294,7 @@ export default function TriviaHistory({ onBack, onSessionSelect }) {
               <div className="text-sm text-surface-400">Best Score</div>
             </div>
           </div>
-        </div>
+        </Panel>
       )}
     </div>
   );

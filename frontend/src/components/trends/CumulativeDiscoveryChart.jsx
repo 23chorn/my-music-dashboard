@@ -5,6 +5,7 @@ import useCumulativeDiscoveryData from '../../hooks/useCumulativeDiscoveryData';
 import { CHART_THEME, CHART_ACCENT_ROTATION as ACCENT } from '../../config/appConfig';
 import Dropdown from '../controls/Dropdown';
 import ControlStrip from '../controls/ControlStrip';
+import Panel from '../ui/Panel';
 
 const CUMULATIVE_METRICS = [
   {
@@ -364,7 +365,7 @@ export default function CumulativeDiscoveryChart() {
       {formattedCumulativeData.length > 0 && (
         <div className="mt-4 space-y-3">
           {/* Current metric explanation */}
-          <div className="bg-surface-800 rounded-lg p-4 border border-surface-700">
+          <Panel rounded="rounded-lg" className="p-4">
             <div className="flex items-start gap-3">
               <div className="text-brand-400">
                 {selectedMetricInfo?.chartType === 'bar' ? <ChartBarIcon className="w-6 h-6" /> : <ArrowTrendingUpIcon className="w-6 h-6" />}
@@ -376,7 +377,7 @@ export default function CumulativeDiscoveryChart() {
                 </p>
               </div>
             </div>
-          </div>
+          </Panel>
           
           {/* Data info */}
           <div className="flex items-center justify-between text-sm text-surface-400">

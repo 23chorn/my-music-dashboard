@@ -3,6 +3,7 @@ import { FaChevronDown } from "react-icons/fa";
 import { getOrdinalSuffix } from "../../utils/ordinalSuffix";
 import { formatValue } from "../../utils/numberFormat";
 import { formatDateTime } from "../../utils/dateFormatter";
+import Panel from "../ui/Panel";
 
 export default function MilestoneSection({ milestones }) {
   const [open, setOpen] = useState(true);
@@ -29,7 +30,7 @@ export default function MilestoneSection({ milestones }) {
       {open && (
         <div className="space-y-2">
           {milestones.map((m, idx) => (
-            <div key={idx} className="flex items-center gap-4 bg-surface-800 border border-surface-700 rounded p-3">
+            <Panel key={idx} className="flex items-center gap-4 p-3">
               <div className="shrink-0 w-14 h-14 rounded-full border-2 border-brand-400/50 flex flex-col items-center justify-center">
                 <span className="font-mono font-bold text-sm text-brand-400 leading-none">
                   {formatValue(m.milestone)}
@@ -48,7 +49,7 @@ export default function MilestoneSection({ milestones }) {
               <div className="font-mono text-xs text-surface-500 shrink-0">
                 {formatDateTime(m.timestamp) || "N/A"}
               </div>
-            </div>
+            </Panel>
           ))}
         </div>
       )}
