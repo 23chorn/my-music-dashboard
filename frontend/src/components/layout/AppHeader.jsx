@@ -34,7 +34,7 @@ export default function AppHeader({
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center pt-4 gap-4 px-4">
+    <div className="w-full flex flex-col items-center justify-center pt-4 pb-6 gap-4 px-4">
       <div className="w-full lg:max-w-7xl lg:mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-center lg:justify-between">
         <div className="sm:absolute sm:left-4 lg:static flex items-center gap-2">
           {showBackButton && (

@@ -13,7 +13,7 @@ const SearchBar = forwardRef(function SearchBar(
   return (
     <form
       ref={ref}
-      className="flex items-end gap-2 mb-6 w-full border-b-2 border-surface-600 focus-within:border-brand-400 transition-colors"
+      className="flex items-end gap-2 w-full border-b-2 border-surface-600 focus-within:border-brand-400 transition-colors"
       onSubmit={handleSubmit}
     >
       <input

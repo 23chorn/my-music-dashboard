@@ -19,12 +19,6 @@ export default function BehaviorAnalysis({ behaviorData }) {
           <p className="text-surface-400 text-sm">
             Average plays per unique track. Higher = more repetitive listening.
           </p>
-          <div className="mt-3 bg-surface-800 rounded-full h-3">
-            <div 
-              className="bg-warning-400 rounded-full h-3" 
-              style={{ width: `${Math.min(repeatFactor * 5, 100)}%` }}
-            />
-          </div>
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Diversity Score</h3>
@@ -32,12 +26,6 @@ export default function BehaviorAnalysis({ behaviorData }) {
           <p className="text-surface-400 text-sm">
             How diverse your listening is (0-100). Higher = more varied music taste.
           </p>
-          <div className="mt-3 bg-surface-800 rounded-full h-3">
-            <div
-              className="bg-highlight-400 rounded-full h-3"
-              style={{ width: `${diversityScore}%` }}
-            />
-          </div>
         </div>
       </div>
     </div>
