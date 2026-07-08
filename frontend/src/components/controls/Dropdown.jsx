@@ -8,6 +8,11 @@ export default function Dropdown({ value, onChange, options, label, className = 
   const [entered, setEntered] = useState(false);
   const [pendingValue, setPendingValue] = useState(value);
   const ref = useRef(null);
+  // The mobile picker sheet is portaled to document.body, so in the real DOM
+  // it's a sibling of `ref`, not a descendant — the outside-click check below
+  // needs this second ref or it treats every tap inside the sheet (including
+  // "Done") as an outside click and closes before the tap's onClick can commit.
+  const portalRef = useRef(null);
   const wasOpenRef = useRef(open);
 
   // Reset pendingValue synchronously during render (not in the effect below) so that
@@ -25,7 +30,9 @@ export default function Dropdown({ value, onChange, options, label, className = 
     }
     const id = requestAnimationFrame(() => setEntered(true));
     const handlePointer = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && ref.current.contains(e.target)) return;
+      if (portalRef.current && portalRef.current.contains(e.target)) return;
+      setOpen(false);
     };
     const handleKey = (e) => {
       if (e.key === "Escape") setOpen(false);
@@ -110,7 +117,7 @@ export default function Dropdown({ value, onChange, options, label, className = 
 
       {/* Mobile: scroll-wheel picker, portaled to body so it's never clipped or mispositioned by an ancestor */}
       {open && createPortal(
-        <div className="sm:hidden">
+        <div className="sm:hidden" ref={portalRef}>
           <div
             aria-hidden="true"
             onClick={() => setOpen(false)}
