@@ -186,35 +186,11 @@ export default function TrendsChart() {
   
   const yAxisDomain = getYAxisDomain(formattedTrendsData, selectedMetric);
   
-  if (loading) {
-    return (
-      <div className="bg-surface-900 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Listening Trends</h2>
-        <div className="flex justify-center py-8">
-          <div className="animate-pulse text-surface-400">Loading trends data...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-surface-900 rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6">Listening Trends</h2>
-        <div className="text-center py-8">
-          <div className="text-danger-400 mb-2">Failed to load trends</div>
-          <div className="text-surface-400 text-sm">{error}</div>
-          <button 
-            onClick={refresh}
-            className="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded transition"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // loading/error render inline below, inside the same returned tree as the
+  // controls — an early return here would swap out the whole component
+  // (including the period/metric Dropdowns) for a differently-shaped tree
+  // the moment a period change kicks off its own refetch, unmounting a
+  // mobile picker sheet still open from the very tap that triggered it.
   return (
     <div className="bg-surface-900 rounded-lg p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
@@ -250,7 +226,22 @@ export default function TrendsChart() {
         </ControlStrip>
       </div>
 
-      {formattedTrendsData.length > 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-pulse text-surface-400">Loading trends data...</div>
+        </div>
+      ) : error ? (
+        <div className="text-center py-8">
+          <div className="text-danger-400 mb-2">Failed to load trends</div>
+          <div className="text-surface-400 text-sm">{error}</div>
+          <button
+            onClick={refresh}
+            className="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded transition"
+          >
+            Retry
+          </button>
+        </div>
+      ) : formattedTrendsData.length > 0 ? (
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             {selectedMetricInfo?.chartType === 'bar' ? (

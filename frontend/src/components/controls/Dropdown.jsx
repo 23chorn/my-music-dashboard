@@ -117,7 +117,12 @@ export default function Dropdown({ value, onChange, options, label, className = 
 
       {/* Mobile: scroll-wheel picker, portaled to body so it's never clipped or mispositioned by an ancestor */}
       {open && createPortal(
-        <div className="sm:hidden" ref={portalRef}>
+        // React bubbles portal events through the *component* tree, not the DOM
+        // tree — so without this, a tap anywhere in this sheet (Done, a row, the
+        // backdrop) also bubbles up into whatever ancestor click handler wraps
+        // this dropdown in the real JSX tree (e.g. a collapsible section header),
+        // firing that handler too.
+        <div className="sm:hidden" ref={portalRef} onClick={(e) => e.stopPropagation()}>
           <div
             aria-hidden="true"
             onClick={() => setOpen(false)}
