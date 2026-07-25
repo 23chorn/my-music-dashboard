@@ -120,6 +120,7 @@ export default function WheelPicker({ options, value, onChange }) {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         className="h-full overflow-y-auto cursor-grab active:cursor-grabbing select-none"
+        style={{ scrollSnapType: "y mandatory", WebkitOverflowScrolling: "touch" }}
       >
         <div style={{ height: PADDING }} />
         {options.map((opt, idx) => {
@@ -134,7 +135,7 @@ export default function WheelPicker({ options, value, onChange }) {
               aria-selected={opt.value === value}
               onClick={() => handleRowClick(idx)}
               className="flex items-center justify-center w-full font-mono text-base text-surface-100 transition-[opacity,transform] duration-150"
-              style={{ height: ROW_HEIGHT, opacity, transform: `scale(${scale})` }}
+              style={{ height: ROW_HEIGHT, scrollSnapAlign: "center", opacity, transform: `scale(${scale})` }}
             >
               {opt.label}
             </button>
