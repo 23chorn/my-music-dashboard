@@ -13,6 +13,7 @@ export default function Dropdown({ value, onChange, options, label, className = 
   // needs this second ref or it treats every tap inside the sheet (including
   // "Done") as an outside click and closes before the tap's onClick can commit.
   const portalRef = useRef(null);
+  const pickerRef = useRef(null);
   const wasOpenRef = useRef(open);
 
   // Reset pendingValue synchronously during render (not in the effect below) so that
@@ -55,6 +56,14 @@ export default function Dropdown({ value, onChange, options, label, className = 
   const triggerClassName = variant === "inline"
     ? "inline-flex items-baseline gap-1 bg-transparent border border-surface-700 rounded px-1.5 py-0.5 font-display text-[1.2em] leading-none align-baseline uppercase tracking-widest text-brand-400 hover:text-brand-300 hover:border-brand-400/60 transition-colors focus:outline-none"
     : "flex items-center gap-1.5 h-full px-2.5 py-1.5 font-mono text-xs text-surface-300 hover:text-surface-100 hover:bg-surface-700/50 transition-colors focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-400/60";
+
+  // Prefer the wheel's live scroll position over pendingValue: on iOS the tap on
+  // "Done" can land before the scroll events for the last bit of momentum have
+  // been delivered, so pendingValue may still hold the previous selection.
+  const commitPicker = () => {
+    const picked = pickerRef.current?.getValue();
+    onChange(picked === undefined ? pendingValue : picked);
+  };
 
   const handleTriggerClick = (e) => {
     if (variant === "inline") e.stopPropagation();
@@ -135,13 +144,13 @@ export default function Dropdown({ value, onChange, options, label, className = 
               <span className="text-surface-500 text-xs uppercase tracking-wide">{label || "Select"}</span>
               <button
                 type="button"
-                onClick={() => { onChange(pendingValue); setOpen(false); }}
+                onClick={() => { commitPicker(); setOpen(false); }}
                 className="font-mono text-sm font-semibold text-brand-400"
               >
                 Done
               </button>
             </div>
-            <WheelPicker options={options} value={pendingValue} onChange={setPendingValue} />
+            <WheelPicker ref={pickerRef} options={options} value={pendingValue} onChange={setPendingValue} />
           </div>
         </div>,
         document.body

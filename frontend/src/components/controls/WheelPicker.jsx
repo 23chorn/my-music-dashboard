@@ -1,14 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useImperativeHandle } from "react";
 
 const ROW_HEIGHT = 44;
 const VISIBLE_ROWS = 5;
 const PICKER_HEIGHT = ROW_HEIGHT * VISIBLE_ROWS;
 const PADDING = (PICKER_HEIGHT - ROW_HEIGHT) / 2;
-const SETTLE_DELAY = 120;
 
-export default function WheelPicker({ options, value, onChange }) {
+export default function WheelPicker({ options, value, onChange, ref }) {
   const scrollRef = useRef(null);
-  const settleTimeout = useRef(null);
   // Touch/trackpad scrolling works natively via overflow-y-auto, but a plain
   // scroll div doesn't support click-and-drag with a mouse — desktop users
   // (e.g. testing in a resized browser window rather than a real touch
@@ -29,33 +27,32 @@ export default function WheelPicker({ options, value, onChange }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => () => clearTimeout(settleTimeout.current), []);
-
   const clampIndex = (idx) => Math.min(options.length - 1, Math.max(0, idx));
 
-  const handleScroll = () => {
+  const indexFromScroll = () => {
     const el = scrollRef.current;
-    if (!el) return;
-    const idx = clampIndex(Math.round(el.scrollTop / ROW_HEIGHT));
-    setCenterIndex(idx);
+    if (!el) return clampIndex(centerIndex);
+    return clampIndex(Math.round(el.scrollTop / ROW_HEIGHT));
+  };
 
-    // Report the value as soon as it's known, not after the settle delay below —
-    // otherwise a "Done" tap right after the finger lifts can land before this
-    // fires and commit the previous value instead of the one just scrolled to.
+  // "Done" reads the live scroll position through this rather than trusting the
+  // last onChange it happened to receive. On iOS the scroll event stream can
+  // still be mid-flight (or land out of order) when the tap fires, so the
+  // scroll position is the only trustworthy source of what the user picked.
+  useImperativeHandle(ref, () => ({
+    getValue: () => options[indexFromScroll()]?.value,
+  }));
+
+  const handleScroll = () => {
+    const idx = indexFromScroll();
+    setCenterIndex(idx);
     const opt = options[idx];
     if (opt && opt.value !== value) onChange(opt.value);
-
-    clearTimeout(settleTimeout.current);
-    settleTimeout.current = setTimeout(() => {
-      const settled = clampIndex(Math.round(el.scrollTop / ROW_HEIGHT));
-      el.scrollTo({ top: settled * ROW_HEIGHT, behavior: "smooth" });
-    }, SETTLE_DELAY);
   };
 
   const selectRow = (idx) => {
     const el = scrollRef.current;
     if (!el) return;
-    clearTimeout(settleTimeout.current);
     el.scrollTo({ top: idx * ROW_HEIGHT, behavior: "smooth" });
     setCenterIndex(idx);
     const opt = options[idx];
@@ -88,7 +85,13 @@ export default function WheelPicker({ options, value, onChange }) {
     if (!drag) return;
     dragState.current = null;
     const el = scrollRef.current;
-    if (el && el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    if (!el) return;
+    if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    // CSS scroll-snap only engages after a real user scroll gesture, so a mouse
+    // drag (which moves scrollTop programmatically) has to be snapped by hand.
+    // Touch and wheel scrolling are left entirely to the browser — racing them
+    // with our own smooth scroll is what made this unreliable on iOS.
+    el.scrollTo({ top: indexFromScroll() * ROW_HEIGHT, behavior: "smooth" });
   };
 
   // Suppress the row's onClick firing a jump to the wrong row right after a
@@ -120,7 +123,7 @@ export default function WheelPicker({ options, value, onChange }) {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         className="h-full overflow-y-auto cursor-grab active:cursor-grabbing select-none"
-        style={{ scrollSnapType: "y mandatory", WebkitOverflowScrolling: "touch" }}
+        style={{ scrollSnapType: "y mandatory" }}
       >
         <div style={{ height: PADDING }} />
         {options.map((opt, idx) => {
@@ -134,10 +137,20 @@ export default function WheelPicker({ options, value, onChange }) {
               role="option"
               aria-selected={opt.value === value}
               onClick={() => handleRowClick(idx)}
-              className="flex items-center justify-center w-full font-mono text-base text-surface-100 transition-[opacity,transform] duration-150"
-              style={{ height: ROW_HEIGHT, scrollSnapAlign: "center", opacity, transform: `scale(${scale})` }}
+              className="flex items-center justify-center w-full font-mono text-base text-surface-100 transition-opacity duration-150"
+              style={{ height: ROW_HEIGHT, scrollSnapAlign: "center", opacity }}
             >
-              {opt.label}
+              {/* The scale lives on this inner span, never on the button. A snap
+                  target's snap area is its *transformed* border box, so scaling
+                  the button itself re-sized every snap area on every scroll event
+                  — WebKit responds by re-snapping mid-gesture and dragging the
+                  wheel back to the row it started on. */}
+              <span
+                className="block transition-transform duration-150"
+                style={{ transform: `scale(${scale})` }}
+              >
+                {opt.label}
+              </span>
             </button>
           );
         })}
