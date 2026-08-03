@@ -46,7 +46,7 @@ export async function fetchAllRecentTracks({ from }) {
     const recentTracks = response.data.recenttracks;
     if (!recentTracks) {
       logger.error(`No recenttracks in response: ${JSON.stringify(response.data)}`);
-      return [];
+      throw new Error('Last.fm response missing recenttracks field');
     }
 
     let tracks = recentTracks.track || [];
@@ -93,7 +93,8 @@ export async function fetchAllRecentTracks({ from }) {
     if (error.response) {
       logger.error(`Last.fm error response status: ${error.response.status}`);
       logger.error(`Last.fm error response data: ${JSON.stringify(error.response.data)}`);
+      throw new Error(`Last.fm API error (${error.response.status}): ${JSON.stringify(error.response.data)}`);
     }
-    return [];
+    throw error;
   }
 }
